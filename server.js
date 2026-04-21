@@ -13,10 +13,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 60000 // Mobilkapcsolat megtartása
+    pingTimeout: 60000
 });
 
-// A helyi MongoDB kapcsolatod
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 
 mongoose.connect(MONGO_URI)
@@ -25,12 +24,12 @@ mongoose.connect(MONGO_URI)
 
 // --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, lowercase: true },
-    displayName: { type: String, required: true },
+    username: { type: String, required: true, unique: true, lowercase: true }, // Ezzel lép be (pl. szaby)
+    displayName: { type: String, required: true }, // Ez látszik a chatben
     password: { type: String, required: true },
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
-    rank: { type: String, default: 'user' }, // user, vip, admin, creator
+    rank: { type: String, default: 'user' }, // creator, admin, vip, user
     isBanned: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
@@ -51,7 +50,6 @@ const activeUsers = new Map();
 // --- SZERVER LOGIKA ---
 io.on('connection', async (socket) => {
     
-    // Kezdeti üzenetek betöltése
     try {
         const messages = await Message.find().sort({ createdAt: 1 }).limit(100);
         socket.emit('initMessages', messages);
@@ -69,11 +67,11 @@ io.on('connection', async (socket) => {
                 if (acc.isBanned) return callback({ success: false, error: "Ki vagy tiltva a szerverről!" });
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
             } else {
-                // Új regisztráció -> 'szaby' automatikusan Készítő lesz
+                // ÚJ REGISZTRÁCIÓ FIGYELÉSE: Ha a beírt név 'szaby', megkapja a 'creator' rangot
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
                     username: lowUser,
-                    displayName: username,
+                    displayName: username, // Kezdetben a felhasználónév a megjelenítő név
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
                     rank: isCreator ? 'creator' : 'vip'
@@ -93,8 +91,16 @@ io.on('connection', async (socket) => {
         callback({ success: true, user: acc });
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
+        // Rendszerüzenet belépéskor
         if (!isGuest) {
-            const sysMsg = new Message({ text: "megérkezett a partyra!", senderDisplayName: acc.displayName, senderUniqueId: "SYS", rank: acc.rank, isSystem: true });
+            const isCreator = acc.rank === 'creator';
+            const sysMsg = new Message({ 
+                text: isCreator ? "a weboldal készítője csatlakozott a chathez! 🛡️" : "megérkezett a partyra!", 
+                senderDisplayName: acc.displayName, 
+                senderUniqueId: "SYS", 
+                rank: acc.rank, 
+                isSystem: true 
+            });
             await sysMsg.save();
             io.emit('newMessage', sysMsg);
         }
@@ -104,7 +110,7 @@ io.on('connection', async (socket) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.isBanned) return;
 
-        // MODERÁTORI PARANCSOK KEZELÉSE (/ban, /unban, /rank)
+        // MODERÁTORI PARANCSOK (/ban, /unban, /rank)
         if (text.startsWith('/') && (user.rank === 'admin' || user.rank === 'creator')) {
             const args = text.split(' ');
             const cmd = args[0].toLowerCase();
@@ -112,11 +118,8 @@ io.on('connection', async (socket) => {
 
             if (cmd === '/ban' && targetId) {
                 await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
-                // Kidobjuk az embert, ha épp online van
                 for (let [sid, u] of activeUsers.entries()) {
-                    if (u.uniqueId === targetId) {
-                        io.sockets.sockets.get(sid)?.disconnect();
-                    }
+                    if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
                 }
                 return socket.emit('newMessage', { text: `Sikeresen kitiltottad: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
@@ -132,7 +135,6 @@ io.on('connection', async (socket) => {
             }
         }
 
-        // Normál üzenet mentése
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
@@ -143,12 +145,11 @@ io.on('connection', async (socket) => {
         io.emit('newMessage', newMsg);
     });
 
-    // Profil szerkesztése
     socket.on('updateProfile', async (data) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank === 'guest') return;
         
-        user.displayName = data.displayName.substring(0, 20); // max 20 karakter
+        user.displayName = data.displayName.substring(0, 20);
         user.avatarSeed = data.avatarSeed;
         
         await Account.updateOne({ uniqueId: user.uniqueId }, { 
@@ -173,4 +174,4 @@ io.on('connection', async (socket) => {
     });
 });
 
-server.listen(process.env.PORT || 3000, () => console.log("🚀 Server running on port 3000..."));
+server.listen(process.env.PORT || 3000, () => console.log("🚀 Server running..."));
