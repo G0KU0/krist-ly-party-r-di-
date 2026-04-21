@@ -1,4 +1,4 @@
-require('dotenv').config(); // .env fájl betöltése (helyi teszteléshez)
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -6,11 +6,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
-// Express alkalmazás inicializálása
 const app = express();
 app.use(cors());
-
-// A 'public' mappában lévő fájlokat (index.html) szolgálja ki a szerver
 app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
@@ -18,37 +15,44 @@ const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// --- MONGODB ADATBÁZIS CSATLAKOZÁS (.env alapján) ---
-// Render.com-on a környezeti változókból olvassa ki, helyben pedig alapértelmezett.
+// --- MONGODB CSATLAKOZÁS ---
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ Sikeresen csatlakozva a MongoDB adatbázishoz!'))
     .catch(err => console.error('❌ MongoDB csatlakozási hiba:', err));
 
+// --- ID GENERÁLÓ FÜGGVÉNY ---
+function generateUniqueId() {
+    return Math.floor(10000 + Math.random() * 90000).toString();
+}
+
 // --- MONGODB ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, lowercase: true },
-    originalName: { type: String, required: true },
+    username: { type: String, required: true, unique: true, lowercase: true }, // Ezzel lép be
+    displayName: { type: String, required: true }, // Ez jelenik meg a chatben (módosítható)
     password: { type: String, required: true }, 
+    uniqueId: { type: String, required: true }, 
     createdAt: { type: Date, default: Date.now }
 });
 const Account = mongoose.model('Account', accountSchema);
 
 const messageSchema = new mongoose.Schema({
     text: String,
-    senderName: String,
-    senderId: String,
+    senderDisplayName: String, // Üzenetnél már a megjelenítő nevet mentjük
+    senderId: String,       
+    senderUniqueId: String, 
     isRegistered: Boolean,
+    isCreator: { type: Boolean, default: false }, // ÚJ: Szaby-e az illető?
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 const Message = mongoose.model('Message', messageSchema);
 
-// Aktív felhasználók
+// Aktív felhasználók memóriában
 const activeUsers = new Map();
 
-// --- SOCKET.IO KOMMUNIKÁCIÓ ---
+// --- SOCKET.IO LOGIKA ---
 io.on('connection', async (socket) => {
     console.log(`🔌 Új kapcsolat: ${socket.id}`);
 
@@ -57,54 +61,120 @@ io.on('connection', async (socket) => {
         socket.emit('initMessages', messages);
     } catch (err) { console.error(err); }
 
+    // 1. BEJELENTKEZÉS
     socket.on('login', async (data, callback) => {
         const { username, password, isGuest } = data;
-        let finalName = username;
+        let finalDisplayName = username;
+        let finalUsername = username;
         let isReg = false;
+        let isCreator = false;
+        let finalUniqueId = '';
 
         if (!isGuest) {
             const lowerUsername = username.toLowerCase();
+            isCreator = (lowerUsername === 'szaby'); // FIGYELI A 'szaby' NEVET!
+
             try {
                 let account = await Account.findOne({ username: lowerUsername });
                 if (account) {
+                    // Már regisztrált
                     if (account.password === password) {
-                        finalName = account.originalName;
+                        finalDisplayName = account.displayName || account.originalName;
+                        finalUsername = account.username;
+                        finalUniqueId = account.uniqueId;
                         isReg = true;
                     } else {
                         return callback({ success: false, error: "Ez a név már foglalt, és a jelszó helytelen!" });
                     }
                 } else {
-                    account = new Account({ username: lowerUsername, originalName: username, password: password });
+                    // ÚJ REGISZTRÁCIÓ
+                    finalUniqueId = generateUniqueId();
+                    account = new Account({ 
+                        username: lowerUsername, 
+                        displayName: username, // Alapból a belépési név a megjelenítő
+                        password: password,
+                        uniqueId: finalUniqueId
+                    });
                     await account.save();
-                    finalName = username;
+                    finalDisplayName = username;
+                    finalUsername = lowerUsername;
                     isReg = true;
                 }
             } catch (err) { return callback({ success: false, error: "Adatbázis hiba történt." }); }
         } else {
-            finalName = username || "Vendég_" + Math.floor(Math.random() * 9999);
+            // Vendég
+            finalDisplayName = username || "Vendég_" + Math.floor(Math.random() * 999);
+            finalUsername = "guest_" + Math.floor(Math.random() * 99999);
+            finalUniqueId = "G" + generateUniqueId().substring(1); 
         }
 
-        activeUsers.set(socket.id, { id: socket.id, userName: finalName, isRegistered: isReg, isTyping: false });
-        callback({ success: true, userName: finalName, isRegistered: isReg });
+        activeUsers.set(socket.id, { 
+            id: socket.id, 
+            username: finalUsername,
+            displayName: finalDisplayName, 
+            uniqueId: finalUniqueId, 
+            isRegistered: isReg, 
+            isCreator: isCreator,
+            isTyping: false 
+        });
+
+        callback({ success: true, displayName: finalDisplayName, uniqueId: finalUniqueId, isRegistered: isReg, isCreator: isCreator });
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
+        // Ha regisztrált lép be, írja ki (Szaby esetén extrán)
         if (isReg) {
-            const sysMsg = new Message({ text: "megérkezett a partyra!", senderName: finalName, senderId: "SYSTEM", isRegistered: true, isSystem: true });
+            const sysMsg = new Message({ 
+                text: isCreator ? "megérkezett, hogy felpörgesse a saját rádióját! 🎧" : "megérkezett a partyra!", 
+                senderDisplayName: finalDisplayName, 
+                senderId: "SYSTEM", 
+                senderUniqueId: finalUniqueId,
+                isRegistered: true, 
+                isCreator: isCreator,
+                isSystem: true 
+            });
             await sysMsg.save();
             io.emit('newMessage', sysMsg);
         }
     });
 
+    // 2. MEGJELENÍTŐ NÉV MÓDOSÍTÁSA (ÚJ)
+    socket.on('changeDisplayName', async (newName) => {
+        const user = activeUsers.get(socket.id);
+        if (!user || !newName || newName.trim() === '') return;
+        
+        const safeName = newName.trim().substring(0, 20); // Max 20 karakter
+        user.displayName = safeName;
+
+        // Ha VIP, elmentjük a MongoDB-be is, hogy legközelebb is ez legyen!
+        if (user.isRegistered) {
+            try {
+                await Account.updateOne({ username: user.username }, { displayName: safeName });
+            } catch(e) { console.error("Hiba a név mentésekor", e); }
+        }
+        
+        io.emit('updateUsers', Array.from(activeUsers.values()));
+    });
+
+    // 3. ÜZENET KÜLDÉSE
     socket.on('sendMessage', async (text) => {
         const user = activeUsers.get(socket.id);
         if (!user || !text.trim()) return;
         try {
-            const newMsg = new Message({ text: text.trim(), senderName: user.userName, senderId: user.id, isRegistered: user.isRegistered, isSystem: false });
+            const newMsg = new Message({ 
+                text: text.trim(), 
+                senderDisplayName: user.displayName, 
+                senderId: user.id, 
+                senderUniqueId: user.uniqueId, 
+                isRegistered: user.isRegistered, 
+                isCreator: user.isCreator, // Mentjük, ha a Készítő írt
+                isSystem: false 
+            });
             await newMsg.save();
             io.emit('newMessage', newMsg);
         } catch (err) { console.error(err); }
     });
 
+    // 4. GÉPELÉS
     socket.on('typing', (isTyping) => {
         const user = activeUsers.get(socket.id);
         if (user) {
@@ -113,6 +183,7 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // 5. KILÉPÉS
     socket.on('disconnect', () => {
         if (activeUsers.has(socket.id)) {
             activeUsers.delete(socket.id);
@@ -122,7 +193,6 @@ io.on('connection', async (socket) => {
     });
 });
 
-// A portot a Render.com határozza meg, ha nem, akkor a 3000-es portot használjuk
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Szerver fut a ${PORT} porton!`);
