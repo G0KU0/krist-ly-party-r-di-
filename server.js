@@ -30,7 +30,9 @@ const accountSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
     rank: { type: String, default: 'user' }, 
-    isBanned: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false }, // Végleges tiltás
+    banExpiresAt: { type: Date, default: null }, // Időszakos tiltás lejárata
+    muteExpiresAt: { type: Date, default: null }, // Időszakos némítás lejárata
     createdAt: { type: Date, default: Date.now }
 });
 const Account = mongoose.model('Account', accountSchema);
@@ -64,7 +66,13 @@ io.on('connection', async (socket) => {
             acc = await Account.findOne({ username: lowUser });
             
             if (acc) {
-                if (acc.isBanned) return callback({ success: false, error: "Ki vagy tiltva a szerverről!" });
+                // TILTÁS ELLENŐRZÉSE
+                if (acc.isBanned) return callback({ success: false, error: "Véglegesen ki vagy tiltva a szerverről!" });
+                if (acc.banExpiresAt && acc.banExpiresAt > new Date()) {
+                    const mins = Math.ceil((acc.banExpiresAt - new Date()) / 60000);
+                    return callback({ success: false, error: `Ideiglenesen ki vagy tiltva! Hátralévő idő: ${mins} perc.` });
+                }
+
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
             } else {
                 const isCreator = (lowUser === 'szaby');
@@ -106,45 +114,129 @@ io.on('connection', async (socket) => {
 
     socket.on('sendMessage', async (text) => {
         const user = activeUsers.get(socket.id);
-        if (!user || user.isBanned) return;
+        if (!user) return;
 
-        // PARANCSOK KEZELÉSE
+        // VENDÉG ESETÉN NINCSENEK JOGOK PARANCSRA
         if (text.startsWith('/')) {
             if (user.rank === 'admin' || user.rank === 'creator') {
                 const args = text.split(' ');
                 const cmd = args[0].toLowerCase();
                 const targetId = args[1]?.replace('#', '');
+                const timeArg = parseInt(args[2]); // Időtartam percben
+                const reason = args.slice(cmd === '/timeout' || cmd === '/mute' ? 3 : 2).join(' ') || 'Nem lett megadva indok';
 
+                // 1. /ban #ID [indok] - Végleges tiltás
                 if (cmd === '/ban' && targetId) {
-                    await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
+                    if (!targetId.startsWith('G')) await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
                     for (let [sid, u] of activeUsers.entries()) {
                         if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
                     }
-                    return socket.emit('newMessage', { text: `Sikeresen kitiltottad: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                    const sysMsg = new Message({ text: `Véglegesen kitiltotta: #${targetId}. Indok: ${reason}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
+                    io.emit('newMessage', sysMsg);
+                    return;
                 }
 
+                // 2. /timeout #ID <perc> [indok] - Időszakos tiltás
+                if (cmd === '/timeout' && targetId && !isNaN(timeArg)) {
+                    if (!targetId.startsWith('G')) {
+                        const expireDate = new Date(Date.now() + timeArg * 60000);
+                        await Account.updateOne({ uniqueId: targetId }, { banExpiresAt: expireDate });
+                    }
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                    }
+                    const sysMsg = new Message({ text: `Kitiltotta #${targetId} felhasználót ${timeArg} percre. Indok: ${reason}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
+                    io.emit('newMessage', sysMsg);
+                    return;
+                }
+
+                // 3. /unban #ID - Tiltás feloldása
                 if (cmd === '/unban' && targetId) {
-                    await Account.updateOne({ uniqueId: targetId }, { isBanned: false });
+                    if (!targetId.startsWith('G')) await Account.updateOne({ uniqueId: targetId }, { isBanned: false, banExpiresAt: null });
                     return socket.emit('newMessage', { text: `Tiltás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
                 }
 
-                if (cmd === '/rank' && targetId && args[2]) {
-                    await Account.updateOne({ uniqueId: targetId }, { rank: args[2].toLowerCase() });
-                    return socket.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${args[2]}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                // 4. /mute #ID <perc> [indok] - Némítás
+                if (cmd === '/mute' && targetId && !isNaN(timeArg)) {
+                    const expireDate = new Date(Date.now() + timeArg * 60000);
+                    if (!targetId.startsWith('G')) await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: expireDate });
+                    
+                    // Memóriában lévő felhasználó módosítása (hogy azonnal ne tudjon írni)
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) {
+                            u.muteExpiresAt = expireDate;
+                            io.to(sid).emit('newMessage', { text: `Le lettél némítva ${timeArg} percre! Indok: ${reason}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                        }
+                    }
+                    const sysMsg = new Message({ text: `Lenémította #${targetId}-t ${timeArg} percre. Indok: ${reason}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
+                    io.emit('newMessage', sysMsg);
+                    return;
                 }
 
+                // 5. /unmute #ID - Némítás feloldása
+                if (cmd === '/unmute' && targetId) {
+                    if (!targetId.startsWith('G')) await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: null });
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) {
+                            u.muteExpiresAt = null;
+                            io.to(sid).emit('newMessage', { text: `A némításod feloldásra került!`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                        }
+                    }
+                    return socket.emit('newMessage', { text: `Némítás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                }
+
+                // 6. /kick #ID [indok] - Kidobás
+                if (cmd === '/kick' && targetId) {
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                    }
+                    const sysMsg = new Message({ text: `Kidobta #${targetId}-t a chatből. Indok: ${reason}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
+                    io.emit('newMessage', sysMsg);
+                    return;
+                }
+
+                // 7. /rank #ID <jog> - Jogosultság adása
+                if (cmd === '/rank' && targetId && args[2]) {
+                    const newRank = args[2].toLowerCase(); // user, vip, admin
+                    if (!targetId.startsWith('G')) await Account.updateOne({ uniqueId: targetId }, { rank: newRank });
+                    
+                    // Ha az ember épp online van, frissítsük a memóriát is
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) {
+                            u.rank = newRank;
+                            io.emit('updateUsers', Array.from(activeUsers.values()));
+                        }
+                    }
+                    return socket.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${newRank}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                }
+
+                // 8. /announce <üzenet> - Globális Rendszerüzenet (Figyelemfelhívás)
+                if (cmd === '/announce' && args.length > 1) {
+                    const annMsg = args.slice(1).join(' ');
+                    const sysMsg = new Message({ text: `📢 BEJELENTÉS: ${annMsg}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
+                    await sysMsg.save();
+                    io.emit('newMessage', sysMsg);
+                    return;
+                }
+
+                // 9. /clear - Globális chat törlés
                 if (cmd === '/clear') {
-                    await Message.deleteMany({}); // Törli a teljes MongoDB kollekciót
-                    io.emit('clearChat'); // Mindenkliensnél törli a képernyőt
+                    await Message.deleteMany({}); 
+                    io.emit('clearChat'); 
                     return socket.emit('newMessage', { text: `A chat előzményeit sikeresen törölted globálisan.`, isSystem: true, senderDisplayName: 'RENDSZER' });
                 }
             } else {
-                // Ha egy sima vendég/vip próbál parancsot használni
                 return socket.emit('newMessage', { text: `Nincs jogosultságod parancsok használatához!`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
         }
 
-        // Ha nem parancs, akkor normál üzenet mentése
+        // NÉMÍTÁS ELLENŐRZÉSE
+        if (user.muteExpiresAt && user.muteExpiresAt > new Date()) {
+            const mins = Math.ceil((user.muteExpiresAt - new Date()) / 60000);
+            return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig, nem küldhetsz üzenetet!`, isSystem: true, senderDisplayName: 'RENDSZER' });
+        }
+
+        // HA MINDEN RENDBEN, MEGY AZ ÜZENET
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
