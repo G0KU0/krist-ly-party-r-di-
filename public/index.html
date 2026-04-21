@@ -7,410 +7,229 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        /* Animációk */
         @keyframes gradient-xy { 0%, 100% { background-size: 400% 400%; background-position: left center; } 50% { background-size: 200% 200%; background-position: right center; } }
         .animate-gradient-xy { animation: gradient-xy 15s ease infinite; }
-        @keyframes pulse-ring { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
-        .playing-animation { animation: pulse-ring 2s infinite; }
-        @keyframes vipGradientAnim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-
-        /* Hangerőszabályzó */
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4B5563; border-radius: 2px; }
+        @keyframes vipAnim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
-        /* Gördítősáv */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 10px; }
-        .input-glow:focus { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.6); outline: none; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* JELVÉNYEK ÉS STÍLUSOK */
-        .badge-creator { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .badge-vip { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .badge-guest { background: #4b5563; color: #d1d5db; }
+        /* Rang színek */
+        .rank-creator { color: #ff4d4d; font-weight: 900; text-shadow: 0 0 10px rgba(255,0,0,0.5); }
+        .rank-admin { color: #ffaa00; font-weight: 800; }
+        .rank-vip { color: #00f2ff; font-weight: 700; }
         
-        .creator-bubble { background: linear-gradient(270deg, #7f1d1d, #b91c1c, #7f1d1d); background-size: 200% 200%; animation: vipGradientAnim 3s ease infinite; border: 1px solid rgba(239, 68, 68, 0.6); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-        .creator-name { color: #f87171; text-shadow: 0 0 8px rgba(239, 68, 68, 0.6); font-weight: 900; }
+        /* Buborék stílusok */
+        .bubble-creator { background: linear-gradient(90deg, #4b0000, #990000); border: 1px solid #ff4d4d; animation: vipAnim 3s infinite; background-size: 200%; }
+        .bubble-admin { background: #2d1f00; border: 1px solid #ffaa00; }
+        .bubble-vip { background: #001a1d; border: 1px solid #00f2ff; }
 
-        .vip-bubble { background: linear-gradient(270deg, rgba(30, 58, 138, 0.95), rgba(126, 34, 206, 0.95), rgba(30, 58, 138, 0.95)); background-size: 200% 200%; animation: vipGradientAnim 4s ease infinite; border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
-        .vip-name { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+        /* Mobil Drawer */
+        #users-sidebar-container { transition: transform 0.3s ease; }
+        .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -5px 0 20px rgba(0,0,0,0.8); }
         
-        .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
-
-        /* Mobilos Oldalsáv Támogatás */
-        .mobile-sidebar-open { display: flex !important; position: absolute; top: 0; right: 0; bottom: 0; z-index: 50; width: 80%; max-width: 320px; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); border-left: 1px solid rgba(255,255,255,0.1); box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
-        
-        /* Kattintható név effekt */
-        .editable-name:hover { opacity: 0.8; text-decoration: underline; cursor: pointer; }
+        #modal-overlay { backdrop-filter: blur(5px); transition: opacity 0.3s; }
     </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-white font-sans flex flex-col relative overflow-x-hidden">
+<body class="min-h-screen bg-gray-900 text-white font-sans flex flex-col overflow-x-hidden">
     
     <div class="fixed inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 animate-gradient-xy opacity-80"></div>
-    <div class="fixed inset-0 z-0" style="background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
 
-    <header class="relative z-10 pt-6 pb-2 sm:p-8 text-center shrink-0">
-        <h1 class="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-lg leading-tight">Kristály Party</h1>
-        <p class="text-base sm:text-2xl mt-1 text-gray-300 font-light tracking-widest">R Á D I Ó</p>
-    </header>
-
-    <main class="relative z-10 flex-grow flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3 sm:p-4 gap-6 w-full max-w-7xl mx-auto pb-12">
-        
-        <!-- RÁDIÓ LEJÁTSZÓ (Mobilon középen, asztalin bal oldalt) -->
-        <div class="w-full max-w-md lg:max-w-none lg:w-4/12 flex flex-col gap-4 sm:gap-6 shrink-0">
-            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
-                 <h3 class="text-lg font-bold text-cyan-400 mb-1 flex justify-center items-center gap-2">Élő Adás</h3>
-                 <p class="text-gray-300 text-xs sm:text-sm">A legújabb dance és party slágerek. Dőlj hátra és csevegj!</p>
-            </div>
-
-            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-[2rem] p-6 sm:p-8 shadow-2xl flex flex-col items-center">
-                <div id="visualizer" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(168,85,247,0.4)] transition-all duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" /></svg>
+    <!-- MODAL: Profil Szerkesztő -->
+    <div id="profile-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+        <div id="modal-overlay" class="absolute inset-0 bg-black/70"></div>
+        <div class="relative bg-gray-800 border border-gray-700 p-6 rounded-3xl w-80 shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-center">Profil Szerkesztése</h3>
+            <div class="flex flex-col items-center gap-4">
+                <div class="relative group">
+                    <img id="edit-avatar" src="" class="w-20 h-20 rounded-full bg-gray-700 border-2 border-cyan-500">
+                    <button onclick="randomAvatar()" class="absolute -bottom-1 -right-1 bg-cyan-500 p-1.5 rounded-full hover:scale-110 transition">🔄</button>
                 </div>
-                <audio id="radio-stream" preload="none"><source src="https://radio-server-autodj.onrender.com/radio.mp3" type="audio/mpeg"></audio>
-                <button id="play-pause-btn" class="w-14 h-14 sm:w-16 sm:h-16 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:bg-gray-200 transition-all focus:outline-none mb-6">
-                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    <svg id="icon-loading" class="animate-spin h-6 w-6 text-gray-900 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </button>
-                <div class="w-full flex items-center space-x-3 bg-gray-900/50 p-3 rounded-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
-                    <input type="range" id="volume-slider" min="0" max="100" value="80" class="flex-grow appearance-none bg-transparent">
+                <div class="w-full">
+                    <label class="text-xs text-gray-400 ml-1">Megjelenítő név</label>
+                    <input type="text" id="edit-displayname" class="w-full bg-gray-900 border border-gray-600 p-2 rounded-xl focus:outline-none focus:border-cyan-500">
+                </div>
+                <div class="flex gap-2 w-full mt-2">
+                    <button onclick="closeModal()" class="flex-1 bg-gray-700 py-2 rounded-xl text-sm">Mégse</button>
+                    <button onclick="saveProfile()" class="flex-1 bg-cyan-600 py-2 rounded-xl text-sm font-bold">Mentés</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- CHAT SZEKCIÓ -->
-        <div class="w-full max-w-md lg:max-w-none lg:w-8/12 flex justify-center">
-            <div class="w-full bg-gray-800/70 backdrop-blur-2xl border border-gray-600/30 rounded-[2rem] shadow-2xl flex flex-col h-[550px] lg:h-[650px] overflow-hidden relative">
-                
-                <!-- Chat Fejléc -->
-                <div class="bg-gray-900/60 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-700/50 flex justify-between items-center shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div class="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" /></svg>
-                        </div>
-                        <div>
-                            <h2 class="font-bold text-base sm:text-lg leading-tight">Party Közösség</h2>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span id="server-status-dot" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_#eab308]"></span>
-                                <span id="server-status-text" class="text-[10px] text-gray-400">Csatlakozás a szerverhez...</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Mobilos Taglista Megnyitó Gomb -->
-                    <button id="mobile-users-toggle" class="lg:hidden flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors">
-                        <span class="text-xs font-bold text-gray-300">👥 Tagok</span>
-                        <span id="mobile-online-count" class="bg-cyan-500 text-gray-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">0</span>
-                    </button>
+    <main class="relative z-10 flex-grow flex flex-col lg:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
+        <!-- Bal oszlop: Rádió -->
+        <div class="w-full lg:w-4/12 flex flex-col gap-4">
+            <div class="bg-gray-800/80 backdrop-blur-md p-6 rounded-3xl border border-gray-700 shadow-xl flex flex-col items-center">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg animate-pulse">🎵</div>
+                <audio id="radio-stream" src="https://radio-server-autodj.onrender.com/radio.mp3"></audio>
+                <button id="play-btn" class="bg-white text-black px-8 py-2 rounded-full font-bold hover:scale-105 transition">LEJÁTSZÁS</button>
+            </div>
+        </div>
+
+        <!-- Chat Szekció -->
+        <div class="w-full lg:w-8/12 flex flex-col h-[600px] bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-[2.5rem] overflow-hidden relative">
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/40">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="font-bold">Party Chat</span>
                 </div>
+                <button id="toggle-users" class="lg:hidden bg-gray-700 px-4 py-1 rounded-full text-xs font-bold">👥 Tagok <span id="user-count">0</span></button>
+            </div>
 
-                <div class="flex flex-grow overflow-hidden relative">
-                    
-                    <!-- Chat Fal (Bal oldal) -->
-                    <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50">
-                        <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
-                            <!-- Üzenetek -->
-                        </div>
+            <div class="flex flex-grow overflow-hidden">
+                <!-- Üzenetek -->
+                <div id="msg-container" class="flex-grow p-4 overflow-y-auto custom-scroll flex flex-col gap-3"></div>
 
-                        <!-- Gépelés indikátor -->
-                        <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">
-                            Valaki éppen ír...
-                        </div>
-
-                        <!-- Bemeneti / Regisztrációs Terület -->
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-10">
-                            
-                            <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
-                                <div class="flex gap-2 border-b border-gray-700/80 pb-2">
-                                    <button id="tab-vip" class="flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors">V.I.P / Regisztrált</button>
-                                    <button id="tab-guest" class="flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors">Vendég (Reg. nélkül)</button>
-                                </div>
-
-                                <!-- VIP FORM -->
-                                <div id="form-vip" class="flex flex-col gap-2">
-                                    <p class="text-[10px] text-cyan-400/80">Regisztrálj, és kapsz: 👑 VIP jelvényt és animált üzeneteket!</p>
-                                    <div class="flex flex-col sm:flex-row gap-2">
-                                        <input type="text" id="vip-username" class="flex-grow bg-gray-900/80 border border-gray-600 rounded-xl px-3 py-2 text-white text-sm input-glow transition-all" placeholder="Felhasználónév (Login)" maxlength="15">
-                                        <input type="password" id="vip-password" class="flex-grow bg-gray-900/80 border border-gray-600 rounded-xl px-3 py-2 text-white text-sm input-glow transition-all" placeholder="Jelszó">
-                                        <button id="btn-vip-login" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 whitespace-nowrap">Belépés / Reg.</button>
-                                    </div>
-                                </div>
-
-                                <!-- GUEST FORM -->
-                                <div id="form-guest" class="flex flex-col gap-2 hidden">
-                                    <p class="text-[10px] text-gray-400">Ideiglenes ID-t kapsz, amíg az oldalon vagy.</p>
-                                    <div class="flex flex-col sm:flex-row gap-2">
-                                        <input type="text" id="guest-username" class="flex-grow bg-gray-900/80 border border-gray-600 rounded-xl px-3 py-2 text-white text-sm input-glow transition-all" placeholder="Megjelenítő Név" maxlength="15">
-                                        <button id="btn-guest-login" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 whitespace-nowrap">Belépés Vendégként</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Chat beviteli mező -->
-                            <div id="chat-panel" class="flex gap-2 hidden relative">
-                                <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj valamit a többieknek..." autocomplete="off">
-                                <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 group">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                                </button>
-                            </div>
-
-                        </div>
+                <!-- Taglista (Desktopon látszik, mobilon drawer) -->
+                <div id="users-sidebar-container" class="absolute inset-y-0 right-0 w-64 translate-x-full lg:translate-x-0 lg:static lg:block bg-gray-900/80 border-l border-gray-700 z-50">
+                    <div class="p-4 font-bold border-b border-gray-700 flex justify-between">
+                        Online Tagok
+                        <button id="close-users" class="lg:hidden">✕</button>
                     </div>
+                    <div id="user-list" class="p-2 flex flex-col gap-2 overflow-y-auto h-full"></div>
+                </div>
+            </div>
 
-                    <!-- Jobb Oldali Felhasználói Lista (Reszponzív) -->
-                    <div id="users-sidebar-container" class="hidden lg:flex flex-col w-1/4 bg-gray-900/40 shrink-0">
-                        <div class="p-3 sm:p-4 border-b border-gray-700/50 bg-gray-900/60 flex justify-between items-center shadow-md">
-                            <h3 class="text-sm font-bold text-gray-300">Online Tagok</h3>
-                            <button id="close-sidebar-btn" class="lg:hidden text-gray-400 hover:text-white p-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                            <span id="online-count" class="hidden lg:inline-block bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
-                        </div>
-                        <div id="online-users-sidebar" class="flex-grow overflow-y-auto custom-scroll p-3 flex flex-col gap-2 relative">
-                            <!-- Online emberek ide kerülnek -->
-                        </div>
+            <!-- Login / Bemenet -->
+            <div id="bottom-bar" class="p-4 bg-gray-900/60 border-t border-gray-700">
+                <div id="auth-box" class="flex flex-col gap-2">
+                    <input type="text" id="login-user" placeholder="Felhasználónév" class="bg-gray-800 border border-gray-700 p-2 rounded-xl text-sm outline-none focus:border-cyan-500">
+                    <input type="password" id="login-pass" placeholder="Jelszó (VIP-nek)" class="bg-gray-800 border border-gray-700 p-2 rounded-xl text-sm outline-none focus:border-cyan-500">
+                    <div class="flex gap-2">
+                        <button onclick="login(true)" class="flex-1 bg-gray-700 py-2 rounded-xl text-xs">Vendég</button>
+                        <button onclick="login(false)" class="flex-1 bg-cyan-600 py-2 rounded-xl text-xs font-bold">Belépés / Reg.</button>
                     </div>
-
+                </div>
+                <div id="chat-box" class="hidden flex gap-2">
+                    <input type="text" id="msg-input" placeholder="Írj egy üzenetet..." class="flex-grow bg-gray-800 border border-gray-700 px-4 py-2 rounded-2xl outline-none">
+                    <button id="send-btn" class="bg-cyan-600 p-2 rounded-xl">➤</button>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // RÁDIÓ LOGIKA
-        const audio = document.getElementById('radio-stream');
-        const playBtn = document.getElementById('play-pause-btn');
-        const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
-        const visualizer = document.getElementById('visualizer');
-        const volumeSlider = document.getElementById('volume-slider');
+        const socket = io();
+        let myUser = null;
+        let tempAvatarSeed = "";
 
-        audio.volume = volumeSlider.value / 100;
-        playBtn.addEventListener('click', () => {
-            if (audio.paused) {
-                const p = audio.play();
-                icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden');
-                if (p) p.then(() => { icons.load.classList.add('hidden'); icons.pause.classList.remove('hidden'); visualizer.classList.add('playing-animation'); })
-                        .catch(e => { icons.load.classList.add('hidden'); icons.play.classList.remove('hidden'); alert("Hiba a lejátszáskor!"); });
-            } else {
-                audio.pause();
-                icons.pause.classList.add('hidden'); icons.play.classList.remove('hidden'); visualizer.classList.remove('playing-animation');
-            }
-        });
-        volumeSlider.addEventListener('input', e => audio.volume = e.target.value / 100);
-        audio.addEventListener('waiting', () => { icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden'); visualizer.classList.remove('playing-animation'); });
-        audio.addEventListener('playing', () => { icons.load.classList.add('hidden'); icons.play.classList.add('hidden'); icons.pause.classList.remove('hidden'); visualizer.classList.add('playing-animation'); });
+        // UI Elemek
+        const msgContainer = document.getElementById('msg-container');
+        const userList = document.getElementById('user-list');
+        const sidebar = document.getElementById('users-sidebar-container');
 
-        // CHAT LOGIKA (Socket.io)
-        const socket = io(); 
-        
-        let userDisplayName = '';
-        let myUniqueId = ''; 
-        let isRegistered = false; 
-        let typingTimeout = null; 
-        let allMessages = []; 
-        
-        const statusDot = document.getElementById('server-status-dot');
-        const statusText = document.getElementById('server-status-text');
-        const authPanel = document.getElementById('auth-panel');
-        const chatPanel = document.getElementById('chat-panel');
-        const messagesContainer = document.getElementById('messages-container');
-        const onlineUsersSidebar = document.getElementById('online-users-sidebar');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const msgInput = document.getElementById('message-input');
-        
-        // Mobilos Menü Logika
-        const sidebarContainer = document.getElementById('users-sidebar-container');
-        document.getElementById('mobile-users-toggle').addEventListener('click', () => sidebarContainer.classList.add('mobile-sidebar-open'));
-        document.getElementById('close-sidebar-btn').addEventListener('click', () => sidebarContainer.classList.remove('mobile-sidebar-open'));
-
-        function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
-        function getAvatarUrl(name) { return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`; }
-        function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
-
-        // --- NÉVVÁLTOZTATÓ FÜGGVÉNY (Globális, hogy HTML-ből hívható legyen) ---
-        window.promptChangeName = function() {
-            const newName = prompt("Add meg az új Megjelenítő Nevedet:", userDisplayName);
-            if (newName && newName.trim() !== "") {
-                socket.emit('changeDisplayName', newName);
-                userDisplayName = newName.trim();
-            }
-        };
-
-        socket.on('connect', () => {
-            statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-            statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
-            statusDot.classList.remove('animate-pulse');
-            statusText.textContent = 'Szerver Online';
-            authPanel.classList.remove('hidden');
-        });
-
-        socket.on('disconnect', () => {
-            statusDot.classList.replace('bg-green-500', 'bg-red-500');
-            statusText.textContent = 'Nincs Kapcsolat';
-        });
-
-        socket.on('initMessages', (messages) => { allMessages = messages; renderMessages(); });
-        socket.on('newMessage', (msg) => { allMessages.push(msg); renderMessages(); });
-
-        socket.on('updateUsers', (users) => {
-            document.getElementById('online-count').textContent = users.length;
-            document.getElementById('mobile-online-count').textContent = users.length;
-            if (users.length === 0) { onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; return; }
-            
-            users.sort((a, b) => {
-                if (a.isCreator && !b.isCreator) return -1;
-                if (!a.isCreator && b.isCreator) return 1;
-                if (a.isRegistered && !b.isRegistered) return -1;
-                if (!a.isRegistered && b.isRegistered) return 1;
-                return 0;
-            });
-
-            onlineUsersSidebar.innerHTML = '';
-            users.forEach(u => {
-                const isMe = u.uniqueId === myUniqueId;
-                
-                let badge = '';
-                if (u.isCreator) badge = '<span class="ml-auto text-[10px] font-black rounded badge-creator px-1.5 py-0.5 shadow-sm">🛠️ KÉSZÍTŐ</span>';
-                else if (u.isRegistered) badge = '<span class="ml-auto text-[10px] font-black rounded badge-vip px-1.5 py-0.5 shadow-sm">👑 VIP</span>';
-                
-                const ringColor = u.isCreator ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.isRegistered ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600');
-                const nameColor = u.isCreator ? 'creator-name' : (u.isRegistered ? 'vip-name font-bold' : 'text-gray-300');
-                
-                const displayNameHtml = isMe 
-                    ? `<span class="editable-name" onclick="promptChangeName()" title="Kattints a név módosításához!">${escapeHTML(u.displayName)} ✏️</span>` 
-                    : escapeHTML(u.displayName);
-
-                const div = document.createElement('div');
-                div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
-                
-                div.innerHTML = `
-                    <div class="relative shrink-0" title="${escapeHTML(u.displayName)} #${escapeHTML(u.uniqueId)}">
-                        <img src="${getAvatarUrl(u.displayName)}" class="w-8 h-8 rounded-full bg-gray-800 border-2 ${ringColor} shadow-sm">
-                        <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
-                    </div>
-                    <div class="flex flex-col justify-center min-w-0 flex-grow">
-                         <span class="text-sm truncate leading-tight ${nameColor}">${displayNameHtml}</span>
-                         <span class="user-id-tag">#${escapeHTML(u.uniqueId)}</span>
-                    </div>
-                    ${badge}
-                `;
-                onlineUsersSidebar.appendChild(div);
-            });
-        });
-
-        socket.on('typingUpdate', (typists) => {
-            const others = typists.filter(u => u.uniqueId !== myUniqueId);
-            if (others.length > 0) {
-                typingIndicator.textContent = others.length > 1 ? `${others.map(u=>u.displayName).join(', ')} éppen írnak...` : `${others[0].displayName} éppen ír...`;
-                typingIndicator.classList.remove('hidden');
-            } else { typingIndicator.classList.add('hidden'); }
-        });
-
-        function renderMessages() {
-            if (allMessages.length === 0) { messagesContainer.innerHTML = '<div class="text-center text-gray-400 mt-10 text-sm">Nincsenek még üzenetek. Légy te az első!</div>'; return; }
-            messagesContainer.innerHTML = '';
-            
-            allMessages.forEach(msg => {
-                const isMe = msg.senderUniqueId === myUniqueId && myUniqueId !== '';
-                const div = document.createElement('div');
-                
-                if (msg.isSystem) {
-                    div.className = `flex w-full justify-center mt-3 mb-1`;
-                    div.innerHTML = `<div class="bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)] font-medium text-center">
-                        ${msg.isCreator ? '🛠️' : '👑'} <b>${escapeHTML(msg.senderDisplayName)}</b> ${escapeHTML(msg.text)}</div>`;
-                    messagesContainer.appendChild(div); return;
-                }
-
-                let bubbleClass = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
-                if (msg.isCreator) bubbleClass = 'creator-bubble text-white';
-                else if (msg.isRegistered) bubbleClass = 'vip-bubble text-white';
-                else if (isMe) bubbleClass = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
-
-                let badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-medium rounded badge-guest ml-2">Vendég</span>';
-                if (msg.isCreator) badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded badge-creator ml-2 shadow-sm">🛠️ KÉSZÍTŐ</span>';
-                else if (msg.isRegistered) badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded badge-vip ml-2 shadow-sm">👑 VIP</span>';
-                
-                let nameClass = 'text-cyan-400 font-bold text-xs sm:text-sm';
-                if (msg.isCreator) nameClass = 'creator-name text-xs sm:text-sm tracking-wide';
-                else if (msg.isRegistered) nameClass = 'vip-name font-bold text-xs sm:text-sm tracking-wide';
-
-                // Ha saját üzenet, akkor a név kattintható (✏️ effekttel)
-                const displayNameHtml = isMe 
-                    ? `<span class="editable-name" onclick="promptChangeName()" title="Kattints a név módosításához!">${escapeHTML(msg.senderDisplayName)} ✏️</span>` 
-                    : escapeHTML(msg.senderDisplayName);
-
-                div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} mt-3`;
-                
-                if (isMe) {
-                    div.innerHTML = `<div class="flex flex-col items-end max-w-[85%]">
-                            <div class="flex items-center mb-1 flex-wrap justify-end">
-                                <span class="text-[10px] text-gray-500 mr-2 font-medium">${formatTime(msg.createdAt)}</span>
-                                ${badgeHtml}
-                                <span class="${nameClass} ml-2">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
-                            </div>
-                            <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
-                        </div>`;
-                } else {
-                    const ring = msg.isCreator ? 'border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]' : (msg.isRegistered ? 'border-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.5)]' : 'border-gray-600');
-                    div.innerHTML = `<div class="flex gap-2 sm:gap-3 max-w-[85%]">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1"><img src="${getAvatarUrl(msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm"></div>
-                            <div class="flex flex-col items-start w-full">
-                                <div class="flex items-center mb-1 w-full flex-wrap">
-                                    <span class="${nameClass}">${escapeHTML(msg.senderDisplayName)} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
-                                    ${badgeHtml}
-                                    <span class="text-[9px] sm:text-[10px] text-gray-500 ml-2 font-medium">${formatTime(msg.createdAt)}</span>
-                                </div>
-                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tl-sm shadow-sm text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
-                            </div>
-                        </div>`;
-                }
-                messagesContainer.appendChild(div);
-            });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        const tabVip = document.getElementById('tab-vip'); const tabGuest = document.getElementById('tab-guest');
-        const formVip = document.getElementById('form-vip'); const formGuest = document.getElementById('form-guest');
-        tabVip.addEventListener('click', () => { tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formVip.classList.remove('hidden'); formGuest.classList.add('hidden'); });
-        tabGuest.addEventListener('click', () => { tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formGuest.classList.remove('hidden'); formVip.classList.add('hidden'); });
-
-        function attemptLogin(user, pass, isGuest) {
-            socket.emit('login', { username: user, password: pass, isGuest: isGuest }, (res) => {
-                if (res.success) {
-                    userDisplayName = res.displayName; 
-                    isRegistered = res.isRegistered;
-                    myUniqueId = res.uniqueId; 
-                    authPanel.classList.add('hidden'); 
-                    chatPanel.classList.remove('hidden'); 
-                    msgInput.focus();
+        // Funkciók
+        function login(isGuest) {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            socket.emit('login', { username: user, password: pass, isGuest }, (res) => {
+                if(res.success) {
+                    myUser = res.user;
+                    document.getElementById('auth-box').classList.add('hidden');
+                    document.getElementById('chat-box').classList.remove('hidden');
                 } else { alert(res.error); }
             });
         }
 
-        document.getElementById('btn-guest-login').addEventListener('click', () => attemptLogin(document.getElementById('guest-username').value.trim(), '', true));
-        document.getElementById('btn-vip-login').addEventListener('click', () => {
-            let u = document.getElementById('vip-username').value.trim();
-            let p = document.getElementById('vip-password').value.trim();
-            if(!u || !p) { alert("Kérlek add meg a felhasználónevet és a jelszót is!"); return; }
-            if(u.toLowerCase().includes("vendég")) { alert("A 'Vendég' szót nem használhatod VIP névként!"); return; }
-            attemptLogin(u, p, false);
+        socket.on('newMessage', (msg) => {
+            const div = document.createElement('div');
+            const isMe = myUser && msg.senderUniqueId === myUser.uniqueId;
+            const rankClass = `rank-${msg.rank}`;
+            const bubbleClass = msg.isSystem ? 'bg-yellow-500/10 text-yellow-200 border border-yellow-500/20 text-center py-1 rounded-full text-xs' : `bubble-${msg.rank} p-3 rounded-2xl max-w-[85%]`;
+            
+            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} w-full`;
+            div.innerHTML = msg.isSystem ? `<p class="w-full">${msg.senderDisplayName} ${msg.text}</p>` : `
+                <div class="flex items-center gap-1 text-[10px] mb-1 ${isMe ? 'flex-row-reverse' : ''}">
+                    <span class="${rankClass}">${msg.senderDisplayName}</span>
+                    <span class="text-gray-500">#${msg.senderUniqueId}</span>
+                </div>
+                <div class="${bubbleClass} shadow-lg text-sm">${msg.text}</div>
+            `;
+            msgContainer.appendChild(div);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
         });
 
-        msgInput.addEventListener('input', () => {
-            if (!userDisplayName) return;
-            socket.emit('typing', true);
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => { socket.emit('typing', false); }, 2000); 
+        socket.on('updateUsers', (users) => {
+            userList.innerHTML = '';
+            document.getElementById('user-count').innerText = users.length;
+            
+            // "Te" szekció
+            if(myUser) {
+                const me = users.find(u => u.uniqueId === myUser.uniqueId);
+                if(me) {
+                    const meDiv = document.createElement('div');
+                    meDiv.className = "p-3 bg-cyan-500/10 border-2 border-cyan-500/50 rounded-2xl flex items-center gap-3 mb-4 cursor-pointer hover:scale-[1.02] transition";
+                    meDiv.onclick = openProfileModal;
+                    meDiv.innerHTML = `
+                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${me.avatarSeed}" class="w-10 h-10 rounded-full bg-gray-800">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm">TE (Szerkesztés ✏️)</span>
+                            <span class="text-xs rank-${me.rank}">${me.displayName}</span>
+                        </div>
+                    `;
+                    userList.appendChild(meDiv);
+                    const hr = document.createElement('div');
+                    hr.className = "h-px bg-gray-700 my-2";
+                    userList.appendChild(hr);
+                }
+            }
+
+            users.forEach(u => {
+                if(myUser && u.uniqueId === myUser.uniqueId) return;
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl transition";
+                div.innerHTML = `
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${u.avatarSeed}" class="w-8 h-8 rounded-full bg-gray-800">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium rank-${u.rank}">${u.displayName}</span>
+                        <span class="text-[9px] text-gray-500">#${u.uniqueId}</span>
+                    </div>
+                `;
+                userList.appendChild(div);
+            });
         });
 
-        document.getElementById('send-btn').addEventListener('click', () => {
-            const text = msgInput.value.trim();
-            if (!text) return;
-            msgInput.value = ''; socket.emit('typing', false); socket.emit('sendMessage', text);
-        });
-        msgInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('send-btn').click(); });
+        // MODAL LOGIKA
+        function openProfileModal() {
+            if(myUser.rank === 'guest') return alert("Vendégként nem szerkesztheted a profilt!");
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('edit-displayname').value = myUser.displayName;
+            tempAvatarSeed = myUser.avatarSeed;
+            updateModalAvatar();
+        }
+        function closeModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+        function randomAvatar() { tempAvatarSeed = Math.random().toString(36).substring(7); updateModalAvatar(); }
+        function updateModalAvatar() { document.getElementById('edit-avatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${tempAvatarSeed}`; }
+        
+        function saveProfile() {
+            const newName = document.getElementById('edit-displayname').value;
+            socket.emit('updateProfile', { displayName: newName, avatarSeed: tempAvatarSeed });
+            myUser.displayName = newName;
+            myUser.avatarSeed = tempAvatarSeed;
+            closeModal();
+        }
 
+        // UI Események
+        document.getElementById('toggle-users').onclick = () => sidebar.classList.add('mobile-sidebar-open');
+        document.getElementById('close-users').onclick = () => sidebar.classList.remove('mobile-sidebar-open');
+        document.getElementById('send-btn').onclick = () => {
+            const input = document.getElementById('msg-input');
+            if(input.value) {
+                if(input.value === '/clear') { msgContainer.innerHTML = ''; }
+                else { socket.emit('sendMessage', input.value); }
+                input.value = '';
+            }
+        };
+        document.getElementById('msg-input').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('send-btn').click(); };
+
+        // Rádió
+        const playBtn = document.getElementById('play-btn');
+        const audio = document.getElementById('radio-stream');
+        playBtn.onclick = () => {
+            if(audio.paused) { audio.play(); playBtn.innerText = 'SZÜNET'; }
+            else { audio.pause(); playBtn.innerText = 'LEJÁTSZÁS'; }
+        };
     </script>
 </body>
 </html>
