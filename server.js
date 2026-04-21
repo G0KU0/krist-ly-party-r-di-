@@ -11,7 +11,10 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { 
+    cors: { origin: "*" },
+    pingTimeout: 60000 // Mobilkapcsolat megtartása
+});
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 
@@ -44,9 +47,15 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 
-// --- LOGIKA ---
+// --- SZERVER LOGIKA ---
 io.on('connection', async (socket) => {
     
+    // Kezdeti üzenetek betöltése
+    try {
+        const messages = await Message.find().sort({ createdAt: 1 }).limit(100);
+        socket.emit('initMessages', messages);
+    } catch (e) { console.error(e); }
+
     socket.on('login', async (data, callback) => {
         const { username, password, isGuest } = data;
         let acc;
@@ -59,19 +68,18 @@ io.on('connection', async (socket) => {
                 if (acc.isBanned) return callback({ success: false, error: "Ki vagy tiltva a szerverről!" });
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
             } else {
-                // Regisztráció
+                // Új regisztráció -> Szaby automatikusan Készítő lesz
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
                     username: lowUser,
                     displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
-                    rank: isCreator ? 'creator' : 'user'
+                    rank: isCreator ? 'creator' : 'vip'
                 });
                 await acc.save();
             }
         } else {
-            // Vendég logika
             acc = { 
                 displayName: username || "Vendég", 
                 uniqueId: "G" + Math.floor(1000 + Math.random() * 9000), 
@@ -83,13 +91,19 @@ io.on('connection', async (socket) => {
         activeUsers.set(socket.id, acc);
         callback({ success: true, user: acc });
         io.emit('updateUsers', Array.from(activeUsers.values()));
+
+        if (!isGuest) {
+            const sysMsg = new Message({ text: "megérkezett a partyra!", senderDisplayName: acc.displayName, senderUniqueId: "SYS", rank: acc.rank, isSystem: true });
+            await sysMsg.save();
+            io.emit('newMessage', sysMsg);
+        }
     });
 
     socket.on('sendMessage', async (text) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.isBanned) return;
 
-        // PARANCSOK KEZELÉSE
+        // MODERÁTORI PARANCSOK (/ban, /unban, /kick, /rank)
         if (text.startsWith('/') && (user.rank === 'admin' || user.rank === 'creator')) {
             const args = text.split(' ');
             const cmd = args[0].toLowerCase();
@@ -97,25 +111,20 @@ io.on('connection', async (socket) => {
 
             if (cmd === '/ban' && targetId) {
                 await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
-                // Kickeljük az online felhasználót ha bent van
                 for (let [sid, u] of activeUsers.entries()) {
-                    if (u.uniqueId === targetId) {
-                        io.to(sid).emit('banned');
-                        io.sockets.sockets.get(sid)?.disconnect();
-                    }
+                    if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
                 }
                 return socket.emit('newMessage', { text: `Sikeresen kitiltottad: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
 
             if (cmd === '/unban' && targetId) {
                 await Account.updateOne({ uniqueId: targetId }, { isBanned: false });
-                return socket.emit('newMessage', { text: `Feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                return socket.emit('newMessage', { text: `Tiltás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
 
             if (cmd === '/rank' && targetId && args[2]) {
-                const newRank = args[2].toLowerCase();
-                await Account.updateOne({ uniqueId: targetId }, { rank: newRank });
-                return socket.emit('newMessage', { text: `Rank módosítva (#${targetId} -> ${newRank})`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                await Account.updateOne({ uniqueId: targetId }, { rank: args[2].toLowerCase() });
+                return socket.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${args[2]}`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
         }
 
@@ -129,11 +138,12 @@ io.on('connection', async (socket) => {
         io.emit('newMessage', newMsg);
     });
 
+    // Profil szerkesztése
     socket.on('updateProfile', async (data) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank === 'guest') return;
         
-        user.displayName = data.displayName.substring(0, 20);
+        user.displayName = data.displayName.substring(0, 20); // max 20 karakter
         user.avatarSeed = data.avatarSeed;
         
         await Account.updateOne({ uniqueId: user.uniqueId }, { 
