@@ -24,12 +24,12 @@ mongoose.connect(MONGO_URI)
 
 // --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, lowercase: true }, // Ezzel lép be (pl. szaby)
-    displayName: { type: String, required: true }, // Ez látszik a chatben
+    username: { type: String, required: true, unique: true, lowercase: true },
+    displayName: { type: String, required: true },
     password: { type: String, required: true },
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
-    rank: { type: String, default: 'user' }, // creator, admin, vip, user
+    rank: { type: String, default: 'user' }, 
     isBanned: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
@@ -67,11 +67,10 @@ io.on('connection', async (socket) => {
                 if (acc.isBanned) return callback({ success: false, error: "Ki vagy tiltva a szerverről!" });
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
             } else {
-                // ÚJ REGISZTRÁCIÓ FIGYELÉSE: Ha a beírt név 'szaby', megkapja a 'creator' rangot
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
                     username: lowUser,
-                    displayName: username, // Kezdetben a felhasználónév a megjelenítő név
+                    displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
                     rank: isCreator ? 'creator' : 'vip'
@@ -91,7 +90,6 @@ io.on('connection', async (socket) => {
         callback({ success: true, user: acc });
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
-        // Rendszerüzenet belépéskor
         if (!isGuest) {
             const isCreator = acc.rank === 'creator';
             const sysMsg = new Message({ 
@@ -110,31 +108,43 @@ io.on('connection', async (socket) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.isBanned) return;
 
-        // MODERÁTORI PARANCSOK (/ban, /unban, /rank)
-        if (text.startsWith('/') && (user.rank === 'admin' || user.rank === 'creator')) {
-            const args = text.split(' ');
-            const cmd = args[0].toLowerCase();
-            const targetId = args[1]?.replace('#', '');
+        // PARANCSOK KEZELÉSE
+        if (text.startsWith('/')) {
+            if (user.rank === 'admin' || user.rank === 'creator') {
+                const args = text.split(' ');
+                const cmd = args[0].toLowerCase();
+                const targetId = args[1]?.replace('#', '');
 
-            if (cmd === '/ban' && targetId) {
-                await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
-                for (let [sid, u] of activeUsers.entries()) {
-                    if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                if (cmd === '/ban' && targetId) {
+                    await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
+                    for (let [sid, u] of activeUsers.entries()) {
+                        if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                    }
+                    return socket.emit('newMessage', { text: `Sikeresen kitiltottad: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
                 }
-                return socket.emit('newMessage', { text: `Sikeresen kitiltottad: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
-            }
 
-            if (cmd === '/unban' && targetId) {
-                await Account.updateOne({ uniqueId: targetId }, { isBanned: false });
-                return socket.emit('newMessage', { text: `Tiltás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
-            }
+                if (cmd === '/unban' && targetId) {
+                    await Account.updateOne({ uniqueId: targetId }, { isBanned: false });
+                    return socket.emit('newMessage', { text: `Tiltás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                }
 
-            if (cmd === '/rank' && targetId && args[2]) {
-                await Account.updateOne({ uniqueId: targetId }, { rank: args[2].toLowerCase() });
-                return socket.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${args[2]}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                if (cmd === '/rank' && targetId && args[2]) {
+                    await Account.updateOne({ uniqueId: targetId }, { rank: args[2].toLowerCase() });
+                    return socket.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${args[2]}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                }
+
+                if (cmd === '/clear') {
+                    await Message.deleteMany({}); // Törli a teljes MongoDB kollekciót
+                    io.emit('clearChat'); // Mindenkliensnél törli a képernyőt
+                    return socket.emit('newMessage', { text: `A chat előzményeit sikeresen törölted globálisan.`, isSystem: true, senderDisplayName: 'RENDSZER' });
+                }
+            } else {
+                // Ha egy sima vendég/vip próbál parancsot használni
+                return socket.emit('newMessage', { text: `Nincs jogosultságod parancsok használatához!`, isSystem: true, senderDisplayName: 'RENDSZER' });
             }
         }
 
+        // Ha nem parancs, akkor normál üzenet mentése
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
