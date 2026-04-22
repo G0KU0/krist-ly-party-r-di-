@@ -52,39 +52,37 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// EMOJI ÉS GIF PANEL LOGIKA
-const emojiPanel = document.getElementById('emoji-panel');
-const emojiBtn = document.getElementById('emoji-toggle-btn');
+// --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
+const emojiPanel = document.getElementById('emoji-panel');
+const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
+// Golyóálló Emoji Gomb Logika (A HTML onclick attribútuma hívja meg)
 window.toggleEmojiPanel = function(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    const panel = document.getElementById('emoji-panel');
     
-    if (panel.classList.contains('active')) {
-        panel.classList.remove('active');
+    if (emojiPanel.classList.contains('active')) {
+        emojiPanel.classList.remove('active');
     } else {
-        panel.classList.add('active');
+        emojiPanel.classList.add('active');
         if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
             fetchGifs('party dance club');
         }
     }
 };
 
+// Kattintás a panelen kívül = bezárás
 document.addEventListener('click', function(event) {
-    const panel = document.getElementById('emoji-panel');
-    const btn = document.getElementById('emoji-toggle-btn');
-    
-    if (panel && panel.classList.contains('active')) {
-        const isClickInsidePanel = panel.contains(event.target);
-        const isClickOnButton = btn.contains(event.target);
+    if (emojiPanel && emojiPanel.classList.contains('active')) {
+        const isClickInsidePanel = emojiPanel.contains(event.target);
+        const isClickOnButton = emojiBtn.contains(event.target);
         
         if (!isClickInsidePanel && !isClickOnButton) {
-            panel.classList.remove('active');
+            emojiPanel.classList.remove('active');
         }
     }
 });
@@ -120,7 +118,7 @@ function renderEmojis(filterQuery = '') {
         span.innerText = item.e;
         span.className = "cursor-pointer hover:scale-125 transition-transform";
         span.onclick = (e) => { 
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             msgInput.value += item.e; 
             msgInput.focus(); 
         };
@@ -133,7 +131,7 @@ function renderEmojis(filterQuery = '') {
             span.innerText = em;
             span.className = "cursor-pointer hover:scale-125 transition-transform";
             span.onclick = (e) => { 
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 msgInput.value += em; 
                 msgInput.focus(); 
             };
@@ -161,11 +159,12 @@ async function fetchGifs(query) {
             const img = document.createElement('img');
             img.src = gif.media[0].tinygif.url; 
             img.className = "gif-img";
-            img.onclick = () => {
+            img.onclick = (e) => {
+                e.preventDefault(); e.stopPropagation();
                 const txt = `[GIF]${gif.media[0].gif.url}`; 
                 if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
                 else socket.emit('sendMessage', txt);
-                document.getElementById('emoji-panel').classList.remove('active');
+                emojiPanel.classList.remove('active');
             };
             gifContainer.appendChild(img);
         });
@@ -212,21 +211,18 @@ window.switchEmojiTab = function(tab) {
 }
 
 // MOBILOS MENÜ LOGIKA
-function openSidebar() {
+window.openSidebar = function() {
     sidebarContainer.classList.remove('translate-x-full');
     sidebarContainer.classList.add('translate-x-0');
     sidebarOverlay.classList.remove('hidden');
     sidebarOverlay.classList.add('block');
 }
-function closeSidebar() {
+window.closeSidebar = function() {
     sidebarContainer.classList.add('translate-x-full');
     sidebarContainer.classList.remove('translate-x-0');
     sidebarOverlay.classList.remove('block');
     sidebarOverlay.classList.add('hidden');
 }
-
-document.getElementById('mobile-users-toggle').addEventListener('click', openSidebar);
-document.getElementById('close-sidebar-btn').addEventListener('click', closeSidebar);
 
 // FÜLEK (TABS) LOGIKÁJA
 window.switchTab = function(id) {
@@ -313,7 +309,7 @@ window.onload = () => {
     }
 };
 
-function logout() {
+window.logout = function() {
     localStorage.removeItem('radio_user');
     localStorage.removeItem('radio_pass');
     localStorage.removeItem('radio_guest');
@@ -656,11 +652,6 @@ function renderMessages() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-const tabVip = document.getElementById('tab-vip'); const tabGuest = document.getElementById('tab-guest');
-const formVip = document.getElementById('form-vip'); const formGuest = document.getElementById('form-guest');
-tabVip.addEventListener('click', () => { tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formVip.classList.remove('hidden'); formGuest.classList.add('hidden'); });
-tabGuest.addEventListener('click', () => { tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formGuest.classList.remove('hidden'); formVip.classList.add('hidden'); });
-
 function handleLoginResponse(res) {
     if (res.success) {
         userDisplayName = res.user.displayName; 
@@ -668,8 +659,9 @@ function handleLoginResponse(res) {
         myRank = res.user.rank;
         myAvatarSeed = res.user.avatarSeed;
         myAvatarUrl = res.user.avatarUrl || '';
-        authPanel.classList.add('hidden'); 
-        chatPanel.classList.remove('hidden'); 
+        
+        document.getElementById('auth-panel').classList.add('hidden'); 
+        document.getElementById('chat-panel').classList.remove('hidden'); 
         document.getElementById('logout-btn').classList.remove('hidden');
         document.getElementById('mobile-logout').classList.remove('hidden');
     } else { 
@@ -678,7 +670,7 @@ function handleLoginResponse(res) {
     }
 }
 
-function attemptLogin(isGuest) {
+window.attemptLogin = function(isGuest) {
     const user = isGuest ? document.getElementById('guest-username').value.trim() : document.getElementById('vip-username').value.trim();
     const pass = isGuest ? '' : document.getElementById('vip-password').value.trim();
     
@@ -701,10 +693,7 @@ function attemptLogin(isGuest) {
     });
 }
 
-document.getElementById('btn-guest-login').addEventListener('click', () => attemptLogin(true));
-document.getElementById('btn-vip-login').addEventListener('click', () => attemptLogin(false));
-
-msgInput.addEventListener('input', () => {
+document.getElementById('message-input').addEventListener('input', () => {
     if (!userDisplayName) return;
     socket.emit('typing', true);
     clearTimeout(typingTimeout);
@@ -712,7 +701,7 @@ msgInput.addEventListener('input', () => {
 });
 
 document.getElementById('send-btn').addEventListener('click', () => {
-    const text = msgInput.value.trim();
+    const text = document.getElementById('message-input').value.trim();
     if (!text) return;
     
     if (currentTab !== 'main' && !text.startsWith('/')) {
@@ -735,11 +724,12 @@ document.getElementById('send-btn').addEventListener('click', () => {
             `;
             messagesContainer.appendChild(helpDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            msgInput.value = '';
+            document.getElementById('message-input').value = '';
             return;
         }
         socket.emit('sendMessage', text);
     }
-    msgInput.value = ''; socket.emit('typing', false);
+    document.getElementById('message-input').value = ''; 
+    socket.emit('typing', false);
 });
-msgInput.addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('send-btn').click(); });
+document.getElementById('message-input').addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('send-btn').click(); });
