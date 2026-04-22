@@ -61,12 +61,10 @@ const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-// KÖZÖS NYITÓ FUNKCIÓ
-function openEmojiPanel(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+// 100% MOBIL BIZTOS NYITÁS
+emojiBtn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     
     if (emojiPanel.classList.contains('active')) {
         emojiPanel.classList.remove('active');
@@ -76,41 +74,18 @@ function openEmojiPanel(e) {
             fetchGifs('party dance club');
         }
     }
-}
+};
 
-// 1. KATTINTÁS (PC)
-emojiBtn.addEventListener('click', openEmojiPanel);
-
-// 2. ÉRINTÉS (MOBIL) - Ez garantálja, hogy telefonon azonnal nyíljon!
-emojiBtn.addEventListener('touchend', function(e) {
-    e.preventDefault(); // Megakadályozza a dupla "szellemkattintást"
-    openEmojiPanel(e);
-});
-
-// ZÁRÁS A PANELEN KÍVÜLI KATTINTÁSRA (PC)
-document.addEventListener('click', function(event) {
+// ZÁRÁS HA MÁSHOVA KATTINTASZ (VAGY BÖKÖSZ MOBILON)
+document.onclick = function(event) {
     if (emojiPanel && emojiPanel.classList.contains('active')) {
-        const isClickInsidePanel = emojiPanel.contains(event.target);
-        const isClickOnButton = emojiBtn.contains(event.target);
-        
-        if (!isClickInsidePanel && !isClickOnButton) {
+        if (!emojiPanel.contains(event.target) && !emojiBtn.contains(event.target)) {
             emojiPanel.classList.remove('active');
         }
     }
-});
+};
 
-// ZÁRÁS A PANELEN KÍVÜLI ÉRINTÉSRE (MOBIL)
-document.addEventListener('touchstart', function(event) {
-    if (emojiPanel && emojiPanel.classList.contains('active')) {
-        const isClickInsidePanel = emojiPanel.contains(event.target);
-        const isClickOnButton = emojiBtn.contains(event.target);
-        
-        if (!isClickInsidePanel && !isClickOnButton) {
-            emojiPanel.classList.remove('active');
-        }
-    }
-});
-
+// EMOJI SZÓTÁR
 const emojisDict = [
     { e: '😀', k: 'mosoly smile happy vidám' }, { e: '😂', k: 'nevet sir lol rofl vicces' },
     { e: '😍', k: 'szerelem love imádom szív' }, { e: '😎', k: 'menő cool szemüveg' },
@@ -166,7 +141,7 @@ function renderEmojis(filterQuery = '') {
 
 renderEmojis();
 
-// TENOR API KERESŐ
+// TENOR API KERESŐ (GIF)
 async function fetchGifs(query) {
     gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
     try {
@@ -194,7 +169,7 @@ async function fetchGifs(query) {
         });
     } catch(e) {
         console.error(e);
-        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor.</div>';
+        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
     }
 }
 
@@ -210,6 +185,7 @@ mediaSearch.addEventListener('input', (e) => {
     }
 });
 
+// FÜL VÁLTÓ (EMOJI <-> GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
@@ -234,7 +210,7 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
-// MOBILOS MENÜ LOGIKA
+// MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
     sidebarContainer.classList.remove('translate-x-full');
     sidebarContainer.classList.add('translate-x-0');
@@ -248,7 +224,13 @@ window.closeSidebar = function() {
     sidebarOverlay.classList.add('hidden');
 }
 
-// FÜLEK (TABS) LOGIKÁJA
+const mobileUsersToggle = document.getElementById('mobile-users-toggle');
+if (mobileUsersToggle) mobileUsersToggle.addEventListener('click', openSidebar);
+
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+
+// FÜLEK (TABS) LOGIKÁJA A CHATHEZ
 window.switchTab = function(id) {
     currentTab = id;
     if (pmTabs[id]) pmTabs[id].unread = 0;
@@ -328,8 +310,10 @@ window.onload = () => {
     } else if (savedGuest) {
         socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
     } else {
-        document.getElementById('auth-panel').classList.remove('hidden');
-        document.getElementById('chat-panel').classList.add('hidden');
+        const authPanelElem = document.getElementById('auth-panel');
+        const chatPanelElem = document.getElementById('chat-panel');
+        if(authPanelElem) authPanelElem.classList.remove('hidden');
+        if(chatPanelElem) chatPanelElem.classList.add('hidden');
     }
 };
 
@@ -363,43 +347,58 @@ window.handleNameClick = function(id, name, rank) {
 window.openProfileModal = function() {
     if(!myUniqueId || myRank === 'guest') return alert("Vendégként nem szerkesztheted a profilodat. Kérlek regisztrálj!");
     const modal = document.getElementById('profile-modal');
-    modal.classList.add('active');
+    if(modal) modal.classList.add('active');
     
-    document.getElementById('edit-displayname').value = userDisplayName;
-    document.getElementById('edit-avatar-url').value = myAvatarUrl || '';
+    const editDisplay = document.getElementById('edit-displayname');
+    const editUrl = document.getElementById('edit-avatar-url');
+    const editAvatar = document.getElementById('edit-avatar');
+    
+    if(editDisplay) editDisplay.value = userDisplayName;
+    if(editUrl) editUrl.value = myAvatarUrl || '';
     tempSeed = myAvatarSeed || Math.random().toString(36).substring(7);
-    document.getElementById('edit-avatar').src = getAvatarUrl(tempSeed, myAvatarUrl, userDisplayName);
+    if(editAvatar) editAvatar.src = getAvatarUrl(tempSeed, myAvatarUrl, userDisplayName);
 }
 
-document.getElementById('edit-avatar-url').addEventListener('input', (e) => {
-    const val = e.target.value.trim();
-    document.getElementById('edit-avatar').src = getAvatarUrl(tempSeed, val, userDisplayName);
-});
+const editAvatarUrlInput = document.getElementById('edit-avatar-url');
+if(editAvatarUrlInput) {
+    editAvatarUrlInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        const editAvatar = document.getElementById('edit-avatar');
+        if(editAvatar) editAvatar.src = getAvatarUrl(tempSeed, val, userDisplayName);
+    });
+}
 
 window.openUserModal = function(id, name, rank) {
     if(!myUniqueId || id === myUniqueId) return;
     
     selectedUserId = id;
-    document.getElementById('mod-name').innerText = name;
-    document.getElementById('mod-id').innerText = "#" + id;
+    const modName = document.getElementById('mod-name');
+    const modId = document.getElementById('mod-id');
+    const modAvatar = document.getElementById('mod-avatar');
+    
+    if(modName) modName.innerText = name;
+    if(modId) modId.innerText = "#" + id;
     
     const targetUser = onlineUsersData.find(u => u.uniqueId === id);
-    const targetAvatar = targetUser ? getAvatarUrl(targetUser.avatarSeed, targetUser.avatarUrl, name) : getAvatarUrl('', '', name);
-    document.getElementById('mod-avatar').src = targetAvatar;
+    const targetAvatarUrl = targetUser ? getAvatarUrl(targetUser.avatarSeed, targetUser.avatarUrl, name) : getAvatarUrl('', '', name);
+    if(modAvatar) modAvatar.src = targetAvatarUrl;
     
-    document.getElementById('btn-pm').onclick = () => {
-        openPMTabFromUser(id, name);
-        closeModal('user-modal');
-        if (window.innerWidth < 1024) closeSidebar();
-    };
+    const btnPm = document.getElementById('btn-pm');
+    if(btnPm) {
+        btnPm.onclick = () => {
+            openPMTabFromUser(id, name);
+            window.closeModal('user-modal');
+            if (window.innerWidth < 1024) closeSidebar();
+        };
+    }
 
     const modSection = document.getElementById('mod-section');
     const btnBox = document.getElementById('rank-buttons');
-    btnBox.innerHTML = '';
+    if(btnBox) btnBox.innerHTML = '';
     
     const canMod = RANKS_POWER[myRank] >= 40 && (RANKS_POWER[myRank] > RANKS_POWER[rank] || myRank === 'creator') && rank !== 'creator';
 
-    if (canMod) {
+    if (canMod && modSection && btnBox) {
         modSection.classList.remove('hidden');
         
         if (RANKS_POWER[myRank] >= 60) {
@@ -416,40 +415,55 @@ window.openUserModal = function(id, name, rank) {
                     const b = document.createElement('button');
                     b.className = `${r.classes} py-2 rounded-xl text-[10px] font-bold transition border`;
                     b.innerText = r.label;
-                    b.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'setRank', value: r.key }); closeModal('user-modal'); };
+                    b.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'setRank', value: r.key }); window.closeModal('user-modal'); };
                     btnBox.appendChild(b);
                 }
             });
         }
 
-        document.getElementById('btn-mute').onclick = () => { socket.emit('adminAction', { targetId: id, action: 'mute', value: 10 }); closeModal('user-modal'); };
-        document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
+        const btnMute = document.getElementById('btn-mute');
+        if(btnMute) btnMute.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'mute', value: 10 }); window.closeModal('user-modal'); };
+        
+        const btnKick = document.getElementById('btn-kick');
+        if(btnKick) btnKick.onclick = () => { socket.emit('sendMessage', `/kick ${id}`); window.closeModal('user-modal'); };
         
         const banBtn = document.getElementById('btn-ban');
-        if (RANKS_POWER[myRank] >= 60) {
-            banBtn.classList.remove('hidden');
-            banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
-        } else {
-            banBtn.classList.add('hidden');
+        if(banBtn) {
+            if (RANKS_POWER[myRank] >= 60) {
+                banBtn.classList.remove('hidden');
+                banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); window.closeModal('user-modal'); };
+            } else {
+                banBtn.classList.add('hidden');
+            }
         }
-    } else {
+    } else if (modSection) {
         modSection.classList.add('hidden');
     }
 
-    document.getElementById('user-modal').classList.add('active');
+    const userModal = document.getElementById('user-modal');
+    if(userModal) userModal.classList.add('active');
 }
 
-window.closeModal = function(modalId) { document.getElementById(modalId).classList.remove('active'); }
+window.closeModal = function(modalId) { 
+    const m = document.getElementById(modalId);
+    if(m) m.classList.remove('active'); 
+}
 
 window.randomAvatar = function() {
     tempSeed = Math.random().toString(36).substring(7);
-    document.getElementById('edit-avatar-url').value = ''; 
-    document.getElementById('edit-avatar').src = getAvatarUrl(tempSeed, '', userDisplayName);
+    const eaUrl = document.getElementById('edit-avatar-url');
+    const eaImg = document.getElementById('edit-avatar');
+    if(eaUrl) eaUrl.value = ''; 
+    if(eaImg) eaImg.src = getAvatarUrl(tempSeed, '', userDisplayName);
 }
 
 window.saveProfile = function() {
-    const name = document.getElementById('edit-displayname').value.trim();
-    const customUrl = document.getElementById('edit-avatar-url').value.trim();
+    const nameInput = document.getElementById('edit-displayname');
+    const urlInput = document.getElementById('edit-avatar-url');
+    if(!nameInput || !urlInput) return;
+
+    const name = nameInput.value.trim();
+    const customUrl = urlInput.value.trim();
     if(!name) return alert("A név nem lehet üres!");
     
     socket.emit('updateProfile', { displayName: name, avatarSeed: tempSeed, avatarUrl: customUrl });
@@ -457,10 +471,11 @@ window.saveProfile = function() {
     myAvatarSeed = tempSeed;
     myAvatarUrl = customUrl;
     
-    closeModal('profile-modal');
+    window.closeModal('profile-modal');
     renderTabs();
 }
 
+// SOCKET ESEMÉNYEK
 socket.on('connect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
@@ -703,19 +718,29 @@ window.handleLoginResponse = function(res) {
         myRank = res.user.rank;
         myAvatarSeed = res.user.avatarSeed;
         myAvatarUrl = res.user.avatarUrl || '';
-        document.getElementById('auth-panel').classList.add('hidden'); 
-        document.getElementById('chat-panel').classList.remove('hidden'); 
-        document.getElementById('logout-btn').classList.remove('hidden');
-        document.getElementById('mobile-logout').classList.remove('hidden');
+        
+        const authPanelElem = document.getElementById('auth-panel');
+        const chatPanelElem = document.getElementById('chat-panel');
+        const logoutBtn = document.getElementById('logout-btn');
+        const mobLogoutBtn = document.getElementById('mobile-logout');
+        
+        if(authPanelElem) authPanelElem.classList.add('hidden'); 
+        if(chatPanelElem) chatPanelElem.classList.remove('hidden'); 
+        if(logoutBtn) logoutBtn.classList.remove('hidden');
+        if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
     } else { 
         alert(res.error); 
-        logout(); 
+        window.logout(); 
     }
 }
 
 window.attemptLogin = function(isGuest) {
-    const user = isGuest ? document.getElementById('guest-username').value.trim() : document.getElementById('vip-username').value.trim();
-    const pass = isGuest ? '' : document.getElementById('vip-password').value.trim();
+    const userField = isGuest ? document.getElementById('guest-username') : document.getElementById('vip-username');
+    const passField = isGuest ? null : document.getElementById('vip-password');
+    
+    if(!userField) return;
+    const user = userField.value.trim();
+    const pass = passField ? passField.value.trim() : '';
     
     if(!isGuest && (!user || !pass)) return alert("Add meg a nevet és a jelszót is!");
     if(isGuest && !user) return alert("Adj meg egy becenevet!");
@@ -731,17 +756,39 @@ window.attemptLogin = function(isGuest) {
                 localStorage.removeItem('radio_user');
                 localStorage.removeItem('radio_pass');
             }
-            handleLoginResponse(res);
+            window.handleLoginResponse(res);
         } else alert(res.error);
     });
 }
 
+// Belépés Gombok eseményei
 const btnGuestLogin = document.getElementById('btn-guest-login');
 if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(true));
 
 const btnVipLogin = document.getElementById('btn-vip-login');
 if(btnVipLogin) btnVipLogin.addEventListener('click', () => attemptLogin(false));
 
+const tabVip = document.getElementById('tab-vip'); 
+const tabGuest = document.getElementById('tab-guest');
+const formVip = document.getElementById('form-vip'); 
+const formGuest = document.getElementById('form-guest');
+
+if(tabVip && tabGuest && formVip && formGuest) {
+    tabVip.addEventListener('click', () => { 
+        tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
+        tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
+        formVip.classList.remove('hidden'); 
+        formGuest.classList.add('hidden'); 
+    });
+    tabGuest.addEventListener('click', () => { 
+        tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
+        tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
+        formGuest.classList.remove('hidden'); 
+        formVip.classList.add('hidden'); 
+    });
+}
+
+// Üzenetküldés események
 const msgInputElem = document.getElementById('message-input');
 if(msgInputElem) {
     msgInputElem.addEventListener('input', () => {
@@ -752,14 +799,18 @@ if(msgInputElem) {
     });
 
     msgInputElem.addEventListener('keypress', e => { 
-        if(e.key === 'Enter') document.getElementById('send-btn').click(); 
+        if(e.key === 'Enter') {
+            const btn = document.getElementById('send-btn');
+            if(btn) btn.click();
+        }
     });
 }
 
 const sendBtn = document.getElementById('send-btn');
 if(sendBtn) {
     sendBtn.addEventListener('click', () => {
-        const text = msgInput.value.trim();
+        if(!msgInputElem) return;
+        const text = msgInputElem.value.trim();
         if (!text) return;
         
         if (currentTab !== 'main' && !text.startsWith('/')) {
@@ -780,13 +831,17 @@ if(sendBtn) {
                     <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
                     <p><b>/clear</b> - Teljes chatfal letakarítása</p>
                 `;
-                messagesContainer.appendChild(helpDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                msgInput.value = '';
+                const mc = document.getElementById('messages-container');
+                if(mc) {
+                    mc.appendChild(helpDiv);
+                    mc.scrollTop = mc.scrollHeight;
+                }
+                msgInputElem.value = '';
                 return;
             }
             socket.emit('sendMessage', text);
         }
-        msgInput.value = ''; socket.emit('typing', false);
+        msgInputElem.value = ''; 
+        socket.emit('typing', false);
     });
 }
