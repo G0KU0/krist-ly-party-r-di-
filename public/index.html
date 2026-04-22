@@ -62,7 +62,7 @@
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL (Felugró ablakok) */
+        /* MODAL */
         .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
@@ -74,31 +74,31 @@
         
         .avatar-img { object-fit: cover; object-position: center; }
 
-        /* --- BIZTONSÁGOS EMOJI / GIF PANEL STÍLUSOK --- */
+        /* BIZTONSÁGOS EMOJI / GIF PANEL STÍLUSOK */
         .emoji-panel {
             position: absolute;
-            bottom: calc(100% + 15px); /* Kicsit feljebb, hogy véletlenül se lógjon bele a gombokba */
+            bottom: calc(100% + 15px); 
             left: 0;
             width: 320px;
             max-width: 95vw;
             height: 380px;
-            background: rgba(15, 23, 42, 0.98); /* Sötétebb, elegánsabb üveg effekt */
+            background: rgba(15, 23, 42, 0.98);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 1.5rem;
             box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8);
-            z-index: 9999 !important; /* Garantáltan legfelül! */
+            z-index: 9999 !important; 
             display: flex;
             flex-direction: column;
             opacity: 0;
-            visibility: hidden; /* Ezzel blokkoljuk a véletlen kattintást, amíg láthatatlan */
+            visibility: hidden; 
             transform: translateY(20px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
         .emoji-panel.active {
             opacity: 1;
-            visibility: visible; /* Csak aktív állapotban lehet rákattintani */
+            visibility: visible; 
             transform: translateY(0);
         }
         .gif-img {
@@ -240,7 +240,7 @@
                             Valaki éppen ír...
                         </div>
 
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-20 relative">
+                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 relative z-20">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
                                 <div class="flex gap-2 border-b border-gray-700/80 pb-2">
@@ -296,7 +296,7 @@
 
                     <div id="sidebar-overlay" class="absolute inset-0 bg-black/80 z-30 hidden lg:hidden backdrop-blur-sm" onclick="closeSidebar()"></div>
 
-                    <div id="users-sidebar-container" class="absolute lg:static inset-y-0 right-0 w-72 lg:w-1/4 bg-gray-900 lg:bg-transparent border-l border-gray-700/50 transform translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col z-40 shadow-2xl lg:shadow-none h-full">
+                    <div id="users-sidebar-container" class="absolute lg:static inset-y-0 right-0 w-72 lg:w-1/4 bg-gray-900 border-l border-gray-700/50 transform translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col z-40 shadow-2xl lg:shadow-none h-full">
                         <div class="p-3 sm:p-4 border-b border-gray-700/50 bg-gray-900/80 flex justify-between items-center shadow-md shrink-0">
                             <h3 class="text-sm font-bold text-gray-300">Online Tagok</h3>
                             <button id="close-sidebar-btn" class="lg:hidden text-gray-400 hover:text-white p-1 bg-slate-800 rounded">
@@ -372,14 +372,14 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // --- ÚJ: GOLYÓÁLLÓ EMOJI / GIF PANEL LOGIKA ---
+        // --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
         const mediaSearch = document.getElementById('media-search');
         const emojiContainer = document.getElementById('content-emojis');
         const gifContainer = document.getElementById('content-gifs');
         let currentMediaTab = 'emojis';
         let gifSearchTimeout = null;
 
-        // Emoji Gomb megnyomása
+        // Emoji Gomb megnyomása (Golyóálló)
         window.toggleEmojiPanel = function(e) {
             if (e) { e.preventDefault(); e.stopPropagation(); }
             const panel = document.getElementById('emoji-panel');
@@ -464,7 +464,7 @@
         
         renderEmojis();
 
-        // TENOR API KERESŐ
+        // TENOR API KERESŐ (JAVÍTOTT)
         async function fetchGifs(query) {
             gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
             try {
@@ -491,7 +491,7 @@
                 });
             } catch(e) {
                 console.error(e);
-                gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor.</div>';
+                gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Túl sok kérés!</div>';
             }
         }
 
@@ -507,6 +507,7 @@
             }
         });
 
+        // JAVÍTVA: Emoji fül váltó CSS fix
         window.switchEmojiTab = function(tab) {
             currentMediaTab = tab;
             const eBtn = document.getElementById('tab-btn-emojis');
@@ -522,8 +523,8 @@
                 mediaSearch.placeholder = "Keresés (pl. mosoly, party, szív)...";
                 renderEmojis(); 
             } else {
-                gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
-                eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+                gBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+                eBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
                 gifContainer.classList.remove('hidden'); 
                 emojiContainer.classList.add('hidden');
                 mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
@@ -726,7 +727,7 @@
                 document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
                 
                 const banBtn = document.getElementById('btn-ban');
-                if (RANKS_POWER[myRank] >= 60) {
+                if (RANKS_POWER[myRank] >= 60) { // Admin felett
                     banBtn.classList.remove('hidden');
                     banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
                 } else {
@@ -901,6 +902,7 @@
                     messagesContainer.appendChild(div); return;
                 }
 
+                // GIF RENDERELÉSE
                 let msgTextHtml = escapeHTML(msg.text);
                 if (msg.text.startsWith('[GIF]')) {
                     const gifUrl = msg.text.replace('[GIF]', '');
