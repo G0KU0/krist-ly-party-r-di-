@@ -51,7 +51,7 @@
         
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
-        /* MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
+        /* MOBILOS OLDALSÁV (Sötétítő háttérrel) */
         #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
         .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
         
@@ -74,12 +74,12 @@
         
         .avatar-img { object-fit: cover; object-position: center; }
 
-        /* EMOJI / GIF PANEL STÍLUS */
+        /* --- ÚJ: EMOJI / GIF PANEL STÍLUSOK --- */
         .emoji-panel {
             position: absolute;
             bottom: calc(100% + 10px);
             left: 0;
-            width: 300px;
+            width: 320px;
             max-width: 90vw;
             height: 350px;
             background: rgba(30, 41, 59, 0.95);
@@ -89,7 +89,7 @@
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
             z-index: 50;
             display: flex;
-            flex-col;
+            flex-direction: column;
             opacity: 0;
             pointer-events: none;
             transform: translateY(10px);
@@ -158,6 +158,7 @@
                 <p id="mod-id" class="text-xs text-slate-400">#00000</p>
             </div>
             
+            <!-- PRIVÁT ÜZENET GOMB -->
             <button id="btn-pm" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-3 rounded-2xl font-bold text-sm shadow-lg mb-4 flex items-center justify-center gap-2 transition">
                 💬 PRIVÁT ÜZENET
             </button>
@@ -234,7 +235,7 @@
                     </div>
                 </div>
 
-                <!-- ÚJ FÜL SÁV (TABS) A PRIVÁT ÜZENETEKHEZ -->
+                <!-- FÜL SÁV (TABS) A PRIVÁT ÜZENETEKHEZ -->
                 <div id="chat-tabs" class="flex overflow-x-auto bg-gray-900/90 border-b border-gray-700/50 shrink-0 tabs-scroll hidden z-10 relative">
                     <!-- Javascript generálja -->
                 </div>
@@ -252,24 +253,8 @@
                             Valaki éppen ír...
                         </div>
 
-                        <!-- EMOJI ÉS GIF PANEL -->
-                        <div id="emoji-panel" class="emoji-panel flex flex-col">
-                            <div class="flex border-b border-white/10 shrink-0 bg-slate-900/80">
-                                <button onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
-                                <button onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
-                            </div>
-                            <!-- EMOJIK -->
-                            <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-2 text-3xl items-center text-center">
-                                <!-- JS Tölti be -->
-                            </div>
-                            <!-- GIFEK -->
-                            <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden">
-                                <!-- JS Tölti be -->
-                            </div>
-                        </div>
-
                         <!-- Bemeneti / Regisztrációs Terület -->
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-20 relative">
+                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 relative z-20">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
                                 <div class="flex gap-2 border-b border-gray-700/80 pb-2">
@@ -295,12 +280,22 @@
                                 </div>
                             </div>
 
-                            <div id="chat-panel" class="flex gap-2 hidden relative">
-                                <!-- EMOJI GOMB -->
-                                <button id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-xl w-10 sm:w-11 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                            <!-- ÚJ EMOJI ÉS GIF PANEL -->
+                            <div id="emoji-panel" class="emoji-panel">
+                                <div class="flex border-b border-gray-700 shrink-0 bg-slate-900/80">
+                                    <button onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
+                                    <button onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
+                                </div>
+                                <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-2 text-3xl items-center text-center"></div>
+                                <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden"></div>
+                            </div>
+
+                            <div id="chat-panel" class="flex gap-2 hidden relative w-full">
+                                <!-- ÚJ EMOJI GOMB -->
+                                <button id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-xl w-10 sm:w-11 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-lg">
                                     😀
                                 </button>
-                                
+
                                 <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj egy üzenetet (vagy /help a parancsokért)..." autocomplete="off">
                                 <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 group">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
@@ -373,7 +368,6 @@
         let selectedUserId = null;
         let onlineUsersData = [];
 
-        // TABS VÁLTOZÓK
         let currentTab = 'main'; 
         let pmTabs = {}; 
 
@@ -391,42 +385,36 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // --- EMOJI ÉS GIF PANEL LOGIKA ---
+        // --- ÚJ: EMOJI ÉS GIF BETÖLTÉSE ---
         const emojiPanel = document.getElementById('emoji-panel');
         const emojiBtn = document.getElementById('emoji-toggle-btn');
         
-        // Emojik generálása
-        const emojis = ['😀','😂','🤣','😍','😎','🥳','🤩','😜','🤪','🤫','🤔','🤐','🤬','🤯','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','💃','🕺','🕴️','👯','👯‍♂️','👯‍♀️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
+        const emojisList = ['😀','😂','🤣','😍','😎','🥳','🤩','😜','🤪','🤫','🤔','🤐','🤬','🤯','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','💃','🕺','🕴️','👯','👯‍♂️','👯‍♀️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
         const emojiContainer = document.getElementById('content-emojis');
-        emojis.forEach(em => {
+        emojisList.forEach(em => {
             const span = document.createElement('span');
             span.innerText = em;
             span.className = "cursor-pointer hover:scale-125 transition-transform";
-            span.onclick = () => {
-                msgInput.value += em;
-                msgInput.focus();
-            };
+            span.onclick = () => { msgInput.value += em; msgInput.focus(); };
             emojiContainer.appendChild(span);
         });
 
-        // Buli GIF-ek generálása
-        const gifs = [
-            'https://media.giphy.com/media/tqfS3X0192w0/giphy.gif', // Táncoló macska
-            'https://media.giphy.com/media/11s7Ke7jcNxCHS/giphy.gif', // Minion
-            'https://media.giphy.com/media/13hxeOYjoTWtK8/giphy.gif', // Carlton
-            'https://media.giphy.com/media/3o7TKrEzvPNxPTi58c/giphy.gif', // Disco
-            'https://media.giphy.com/media/l41Yh18f5TbiWcdmh/giphy.gif', // Buli arc
-            'https://media.giphy.com/media/14qb1Uhf40ndw4/giphy.gif', // Pepe tánc
-            'https://media.giphy.com/media/YRtLgsajXrz1FNJ6oy/giphy.gif', // Kermit tánc
-            'https://media.giphy.com/media/blSTtZehjAZ8I/giphy.gif' // Tűzijáték
+        const gifsList = [
+            'https://media.giphy.com/media/tqfS3X0192w0/giphy.gif', 
+            'https://media.giphy.com/media/11s7Ke7jcNxCHS/giphy.gif', 
+            'https://media.giphy.com/media/13hxeOYjoTWtK8/giphy.gif', 
+            'https://media.giphy.com/media/3o7TKrEzvPNxPTi58c/giphy.gif', 
+            'https://media.giphy.com/media/l41Yh18f5TbiWcdmh/giphy.gif', 
+            'https://media.giphy.com/media/14qb1Uhf40ndw4/giphy.gif', 
+            'https://media.giphy.com/media/YRtLgsajXrz1FNJ6oy/giphy.gif', 
+            'https://media.giphy.com/media/blSTtZehjAZ8I/giphy.gif' 
         ];
         const gifContainer = document.getElementById('content-gifs');
-        gifs.forEach(g => {
+        gifsList.forEach(g => {
             const img = document.createElement('img');
             img.src = g;
             img.className = "gif-img";
             img.onclick = () => {
-                // GIF Küldése [GIF] előtaggal azonnal
                 const txt = `[GIF]${g}`;
                 if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
                 else socket.emit('sendMessage', txt);
@@ -435,7 +423,6 @@
             gifContainer.appendChild(img);
         });
 
-        // Emoji panel megnyitása / bezárása
         emojiBtn.onclick = () => emojiPanel.classList.toggle('active');
         document.addEventListener('click', (e) => {
             if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
@@ -443,7 +430,6 @@
             }
         });
 
-        // Emoji / GIF tab váltó
         window.switchEmojiTab = function(tab) {
             const eBtn = document.getElementById('tab-btn-emojis');
             const gBtn = document.getElementById('tab-btn-gifs');
@@ -453,13 +439,11 @@
             if (tab === 'emojis') {
                 eBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
                 gBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
-                eCont.classList.remove('hidden');
-                gCont.classList.add('hidden');
+                eCont.classList.remove('hidden'); gCont.classList.add('hidden');
             } else {
                 gBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
                 eBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
-                gCont.classList.remove('hidden');
-                eCont.classList.add('hidden');
+                gCont.classList.remove('hidden'); eCont.classList.add('hidden');
             }
         }
 
@@ -481,7 +465,7 @@
         document.getElementById('mobile-users-toggle').addEventListener('click', openSidebar);
         document.getElementById('close-sidebar-btn').addEventListener('click', closeSidebar);
 
-        // FÜLEK (TABS) LOGIKÁJA
+        // FÜLEK LOGIKÁJA
         window.switchTab = function(id) {
             currentTab = id;
             if (pmTabs[id]) pmTabs[id].unread = 0;
@@ -544,14 +528,27 @@
             switchTab(id);
         }
 
-        // HÁTTÉRBŐL VISSZATÉRÉS (ÚJRACSATLAKOZÁS) LOGIKA
+        // AUTO-LOGIN ÉS HÁTTÉR VISSZATÉRÉS
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
-                if (!socket.connected) {
-                    socket.connect(); // Azonnal ébresszük fel a kapcsolatot, ha visszatért az appba
-                }
+                if (!socket.connected) socket.connect(); 
             }
         });
+
+        window.onload = () => {
+            const savedUser = localStorage.getItem('radio_user');
+            const savedPass = localStorage.getItem('radio_pass');
+            const savedGuest = localStorage.getItem('radio_guest');
+
+            if (savedUser && savedPass) {
+                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
+            } else if (savedGuest) {
+                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
+            } else {
+                authPanel.classList.remove('hidden');
+                chatPanel.classList.add('hidden');
+            }
+        };
 
         function logout() {
             localStorage.removeItem('radio_user');
@@ -570,7 +567,7 @@
         
         function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
-        // --- KATTINTHATÓ NEVEK ---
+        // --- KATTINTHATÓ NEVEK ÉS MODALOK ---
         window.handleNameClick = function(id, name, rank) {
             if(!myUniqueId) return;
             if(id === myUniqueId) { 
@@ -624,16 +621,17 @@
                 
                 if (RANKS_POWER[myRank] >= 60) {
                     const ranksToOffer = [
-                        { key: 'owner', label: '👑 TULAJDONOS', color: 'purple', min: 100 },
-                        { key: 'admin', label: '🛡️ ADMIN', color: 'orange', min: 80 },
-                        { key: 'moderator', label: '⚔️ MODERÁTOR', color: 'green', min: 60 },
-                        { key: 'user', label: '👤 TAG', color: 'slate', min: 60 }
+                        { key: 'owner', label: '👑 TULAJDONOS', classes: 'bg-purple-900/40 border-purple-500/50 hover:bg-purple-600 text-purple-200', min: 100 },
+                        { key: 'admin', label: '🛡️ ADMIN', classes: 'bg-orange-900/40 border-orange-500/50 hover:bg-orange-600 text-orange-200', min: 80 },
+                        { key: 'moderator', label: '⚔️ MODERÁTOR', classes: 'bg-green-900/40 border-green-500/50 hover:bg-green-600 text-green-200', min: 60 },
+                        { key: 'vip', label: '💎 VIP', classes: 'bg-blue-900/40 border-blue-500/50 hover:bg-blue-600 text-blue-200', min: 60 },
+                        { key: 'user', label: '👤 TAG', classes: 'bg-slate-800 border-slate-600 hover:bg-slate-600 text-slate-200', min: 60 }
                     ];
 
                     ranksToOffer.forEach(r => {
                         if ((RANKS_POWER[myRank] >= r.min || myRank === 'creator') && rank !== r.key) {
                             const b = document.createElement('button');
-                            b.className = `bg-${r.color}-900/40 border border-${r.color}-500/50 hover:bg-${r.color}-600 py-2 rounded-xl text-[10px] font-bold transition`;
+                            b.className = `${r.classes} py-2 rounded-xl text-[10px] font-bold transition border`;
                             b.innerText = r.label;
                             b.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'setRank', value: r.key }); closeModal('user-modal'); };
                             btnBox.appendChild(b);
@@ -682,23 +680,9 @@
 
         socket.on('connect', () => {
             statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-            statusDot.classList.replace('bg-red-500', 'bg-green-500');
+            statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
             statusDot.classList.remove('animate-pulse');
             statusText.textContent = 'Szerver Online';
-
-            // AUTO-LOGIN: Automatikusan bejelentkezik oldalbetöltéskor ÉS háttérből visszatéréskor is!
-            const savedUser = localStorage.getItem('radio_user');
-            const savedPass = localStorage.getItem('radio_pass');
-            const savedGuest = localStorage.getItem('radio_guest');
-
-            if (savedUser && savedPass) {
-                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
-            } else if (savedGuest) {
-                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
-            } else {
-                authPanel.classList.remove('hidden');
-                chatPanel.classList.add('hidden');
-            }
         });
 
         socket.on('disconnect', () => {
@@ -833,7 +817,7 @@
                     messagesContainer.appendChild(div); return;
                 }
 
-                // GIF RENDERELÉSE: Ha az üzenet eleje [GIF], akkor képként jelenítjük meg
+                // GIF RENDERELÉSE
                 let msgTextHtml = escapeHTML(msg.text);
                 if (msg.text.startsWith('[GIF]')) {
                     const gifUrl = msg.text.replace('[GIF]', '');
@@ -924,7 +908,6 @@
                 chatPanel.classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('mobile-logout').classList.remove('hidden');
-                // Kivettük az msgInput.focus() hívást, hogy háttérből visszatérve ne ugorjon fel a billentyűzet magától!
             } else { 
                 alert(res.error); 
                 logout(); 
