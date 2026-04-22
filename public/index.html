@@ -37,6 +37,16 @@
 
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
+    <div id="guest-warning-modal" class="modal">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('guest-warning-modal')"></div>
+        <div class="modal-content relative bg-slate-800 border border-yellow-500/50 p-8 rounded-[2.5rem] w-[90%] max-w-sm shadow-2xl text-center">
+            <div class="text-5xl mb-4">⚠️</div>
+            <h3 class="text-xl font-black mb-2 text-yellow-400 uppercase tracking-widest">Figyelem!</h3>
+            <p class="text-sm text-gray-300 mb-6">Jelenleg <b>Vendégként</b> léptél be. A vendég fiókok és a hozzájuk tartozó adatok a biztonság érdekében <b class="text-white">24 óra múlva automatikusan törlődnek!</b><br><br>Ha szeretnéd, hogy a profilod és a megszerzett rangjaid megmaradjanak, kérjük regisztrálj a V.I.P fülön!</p>
+            <button onclick="closeModal('guest-warning-modal')" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-3 rounded-2xl font-bold transition shadow-lg">Értettem</button>
+        </div>
+    </div>
+
     <div id="admin-dashboard-modal" class="modal">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="closeModal('admin-dashboard-modal')"></div>
         <div class="modal-content relative bg-slate-900 border border-red-500/50 p-4 sm:p-8 rounded-[2rem] w-[95%] max-w-5xl shadow-2xl h-[85vh] flex flex-col">
@@ -204,7 +214,6 @@
                         <button id="btn-open-dashboard" onclick="openAdminDashboard()" class="hidden bg-red-600 hover:bg-red-500 border border-red-400/50 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-colors shadow-[0_0_10px_rgba(220,38,38,0.5)]">
                             🛡️ Vezérlő
                         </button>
-                        
                         <button id="logout-btn" onclick="logout()" class="hidden lg:flex bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors items-center">🚪 Kilépés</button>
                         <button id="mobile-users-toggle" class="lg:hidden flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors z-30">
                             <span class="text-xs font-bold text-gray-300">👥 Tagok</span>
@@ -216,10 +225,8 @@
                 <div id="chat-tabs" class="flex overflow-x-auto bg-gray-900/90 border-b border-gray-700/50 shrink-0 tabs-scroll hidden z-10 relative"></div>
 
                 <div class="flex flex-grow overflow-hidden relative">
-                    
                     <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50 z-10">
                         <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12"></div>
-
                         <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">Valaki éppen ír...</div>
 
                         <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 relative z-20">
@@ -268,7 +275,6 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                                 </button>
                             </div>
-
                         </div>
                     </div>
 
