@@ -19,18 +19,8 @@ const io = new Server(server, {
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Online')).catch(err => console.error(err));
 
-// --- RANG HIERARCHIA SÚLYOZÁSA ---
-const RANKS = {
-    'creator': 100,
-    'owner': 80,
-    'admin': 60,
-    'moderator': 40,
-    'vip': 30, // A VIP a Tag és a Moderátor között van!
-    'user': 20,
-    'guest': 0
-};
+const RANKS = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
 
-// --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
@@ -38,7 +28,7 @@ const accountSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
     avatarUrl: { type: String, default: '' },
-    rank: { type: String, default: 'user' }, // ALAPÉRTELMEZETT RANG: USER (TAG)
+    rank: { type: String, default: 'user' },
     isBanned: { type: Boolean, default: false },
     banExpiresAt: { type: Date, default: null },
     muteExpiresAt: { type: Date, default: null },
@@ -91,7 +81,7 @@ io.on('connection', async (socket) => {
                     displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
-                    rank: isCreator ? 'creator' : 'user', // ALAPBÓL SIMA TAG
+                    rank: isCreator ? 'creator' : 'user',
                     avatarUrl: ''
                 });
                 await acc.save();
@@ -122,6 +112,57 @@ io.on('connection', async (socket) => {
             await sysMsg.save();
             io.emit('newMessage', sysMsg);
         }
+    });
+
+    // --- ÚJ: VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
+    socket.on('requestAdminData', async () => {
+        const user = activeUsers.get(socket.id);
+        if (!user || user.rank !== 'creator') return; // CSAK SZABY (creator) FÉRHET HOZZÁ!
+        
+        try {
+            const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
+            socket.emit('adminDataResponse', allAccounts);
+        } catch(e) { console.error(e); }
+    });
+
+    socket.on('adminDashboardAction', async (data) => {
+        const admin = activeUsers.get(socket.id);
+        if (!admin || admin.rank !== 'creator') return; // CSAK SZABY MÓDOSÍTHAT!
+
+        const { action, targetId, value } = data;
+        
+        try {
+            if (action === 'delete') {
+                await Account.deleteOne({ uniqueId: targetId });
+                // Ha online van, kidobjuk
+                for (let [sid, u] of activeUsers.entries()) {
+                    if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                }
+            } else if (action === 'setRank') {
+                await Account.updateOne({ uniqueId: targetId }, { rank: value });
+                // Frissítjük, ha online
+                for (let [sid, u] of activeUsers.entries()) {
+                    if (u.uniqueId === targetId) u.rank = value;
+                }
+            } else if (action === 'toggleBan') {
+                const acc = await Account.findOne({ uniqueId: targetId });
+                if(acc) {
+                    acc.isBanned = !acc.isBanned;
+                    await acc.save();
+                    if(acc.isBanned) {
+                        for (let [sid, u] of activeUsers.entries()) {
+                            if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
+                        }
+                    }
+                }
+            }
+            
+            // Adatok újra lekérése és küldése a panelnek
+            const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
+            socket.emit('adminDataResponse', allAccounts);
+            io.emit('updateUsers', Array.from(activeUsers.values()));
+
+        } catch(e) { console.error(e); }
     });
 
     socket.on('adminAction', async (data) => {
@@ -206,7 +247,6 @@ io.on('connection', async (socket) => {
             const args = text.split(' ');
             const cmd = args[0].toLowerCase();
             const targetId = args[1]?.replace('#', '');
-            const timeArg = parseInt(args[2]);
 
             if (cmd === '/clear' && RANKS[user.rank] >= 60) {
                 await Message.deleteMany({}); 
