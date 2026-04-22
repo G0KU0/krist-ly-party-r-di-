@@ -43,7 +43,6 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cur
 /* MOBILOS OLDALSÁV */
 #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
 .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
-
 #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(4px); }
 #sidebar-overlay.active { display: block; }
 
@@ -101,3 +100,11 @@ input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cur
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
 }
+
+/* ADMIN PANEL TÁBLÁZAT STÍLUSOK */
+#admin-users-list tr { transition: background 0.2s; }
+#admin-users-list tr:hover { background: rgba(255,255,255,0.05); }
+.admin-action-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 10px; cursor: pointer; transition: all 0.2s; }
+.admin-action-btn:hover { background: rgba(255,255,255,0.2); }
+.admin-action-delete { color: #fca5a5; border-color: #fca5a5; }
+.admin-action-delete:hover { background: #fca5a5; color: black; }
