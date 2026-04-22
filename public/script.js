@@ -116,6 +116,9 @@ let onlineUsersData = [];
 let currentTab = 'main'; 
 let pmTabs = {}; 
 
+// GLOBÁLIS VÁLTOZÓ AZ ADMIN ADATOKNAK
+window.adminAccountsData = [];
+
 const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
 
 const messagesContainer = document.getElementById('messages-container');
@@ -279,7 +282,8 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
-// --- VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
+
+// --- VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ÉS FIÓK SZERKESZTŐ ---
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez nincs jogosultságod!");
     const modal = document.getElementById('admin-dashboard-modal');
@@ -290,6 +294,7 @@ window.openAdminDashboard = function() {
 }
 
 socket.on('adminDataResponse', (accounts) => {
+    window.adminAccountsData = accounts; // Elmentjük, hogy szerkeszteni tudjunk
     const list = document.getElementById('admin-users-list');
     if(!list) return;
     list.innerHTML = '';
@@ -316,6 +321,7 @@ socket.on('adminDataResponse', (accounts) => {
                 ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
             </td>
             <td class="p-2 text-right space-x-2">
+                <button onclick="openAdminEdit('${acc.uniqueId}')" class="admin-action-btn text-blue-400 border-blue-400/50 hover:bg-blue-500 hover:text-white">Szerkeszt</button>
                 <button onclick="adminAction('toggleBan', '${acc.uniqueId}')" class="admin-action-btn ${isBanned ? 'text-green-400' : 'text-orange-400'}">${isBanned ? 'Felold' : 'Kitilt'}</button>
                 <button onclick="adminAction('delete', '${acc.uniqueId}')" class="admin-action-btn admin-action-delete">Törlés</button>
             </td>
@@ -329,6 +335,40 @@ window.adminAction = function(action, targetId, value = null) {
         if (!confirm('BIZTOSAN törölni akarod ezt a fiókot az adatbázisból? Ez nem vonható vissza!')) return;
     }
     socket.emit('adminDashboardAction', { action, targetId, value });
+}
+
+// ADATBÁZIS SZERKESZTŐ NYITÁSA
+window.openAdminEdit = function(id) {
+    const acc = window.adminAccountsData.find(a => a.uniqueId === id);
+    if(!acc) return;
+    
+    document.getElementById('edit-adm-old-id').value = acc.uniqueId;
+    document.getElementById('edit-adm-id').value = acc.uniqueId;
+    document.getElementById('edit-adm-username').value = acc.username;
+    document.getElementById('edit-adm-displayname').value = acc.displayName;
+    document.getElementById('edit-adm-password').value = acc.password || ''; // Ha vendég, lehet üres
+    
+    document.getElementById('admin-edit-modal').classList.add('active');
+}
+
+// ADATBÁZIS SZERKESZTÉS MENTÉSE
+window.saveAdminEdit = function() {
+    const oldId = document.getElementById('edit-adm-old-id').value;
+    const newId = document.getElementById('edit-adm-id').value.trim();
+    const newUsername = document.getElementById('edit-adm-username').value.trim();
+    const newDisplayName = document.getElementById('edit-adm-displayname').value.trim();
+    const newPassword = document.getElementById('edit-adm-password').value.trim();
+
+    if(!newId || !newUsername || !newDisplayName) return alert("ID, Login név és Megjelenítő név kötelező!");
+
+    socket.emit('adminDashboardAction', { 
+        action: 'editUser', 
+        targetId: oldId, 
+        editData: { newUniqueId: newId, newUsername, newDisplayName, newPassword } 
+    });
+
+    closeModal('admin-edit-modal');
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
 }
 
 // MOBILOS MENÜ LOGIKA (TAGLISTA)
@@ -412,7 +452,7 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
-// --- AUTO-LOGIN ÉS HÁTTÉRBŐL VISSZATÉRÉS LOGIKA ---
+// --- ÚJ: AUTO-LOGIN ÉS HÁTTÉRBŐL VALÓ VISSZATÉRÉS JAVÍTÁSA ---
 function performAutoLogin() {
     const savedUser = localStorage.getItem('radio_user');
     const savedPass = localStorage.getItem('radio_pass');
@@ -430,12 +470,21 @@ function performAutoLogin() {
     }
 }
 
-window.onload = () => {
-    // Az oldal betöltésekor ne csináljunk azonnali auto-logint itt, 
-    // hanem hagyjuk, hogy a socket.on('connect') hívja meg.
-};
+socket.on('connect', () => {
+    const statusDot = document.getElementById('server-status-dot');
+    const statusText = document.getElementById('server-status-text');
+    if(statusDot) {
+        statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
+        statusDot.classList.replace('bg-red-500', 'bg-green-500'); 
+        statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
+        statusDot.classList.remove('animate-pulse');
+    }
+    if(statusText) statusText.textContent = 'Szerver Online';
+    
+    // Ha felébred a telefon a lezárt képernyőből és újra csatlakozik a socket, azonnal beléptet!
+    performAutoLogin();
+});
 
-// HÁTTÉRBŐL VISSZATÉRÉS
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
         if (!socket.connected) {
@@ -448,6 +497,7 @@ document.addEventListener("visibilitychange", () => {
         }
     }
 });
+
 
 window.logout = function() {
     localStorage.removeItem('radio_user');
@@ -617,22 +667,6 @@ window.saveProfile = function() {
     renderTabs();
 }
 
-// SOCKET ESEMÉNYEK
-socket.on('connect', () => {
-    const statusDot = document.getElementById('server-status-dot');
-    const statusText = document.getElementById('server-status-text');
-    if(statusDot) {
-        statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-        statusDot.classList.replace('bg-red-500', 'bg-green-500');
-        statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
-        statusDot.classList.remove('animate-pulse');
-    }
-    if(statusText) statusText.textContent = 'Szerver Online';
-    
-    // Auto-login meghívása, amint a socket csatlakozik
-    performAutoLogin();
-});
-
 socket.on('disconnect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
@@ -687,6 +721,7 @@ socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     const onlineCount = document.getElementById('online-count');
     const mobOnlineCount = document.getElementById('mobile-online-count');
+    const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
     if(onlineCount) onlineCount.textContent = users.length;
     if(mobOnlineCount) mobOnlineCount.textContent = users.length;
@@ -704,7 +739,6 @@ socket.on('updateUsers', (users) => {
         myAvatarUrl = me.avatarUrl; 
         myRank = me.rank; 
 
-        // Készítő gomb megjelenítése
         const dashBtn = document.getElementById('btn-open-dashboard');
         if(dashBtn) {
             if(myRank === 'creator') dashBtn.classList.remove('hidden');
@@ -923,7 +957,6 @@ window.attemptLogin = function(isGuest) {
     });
 }
 
-// Belépés Gombok eseményei
 const btnGuestLogin = document.getElementById('btn-guest-login');
 if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(true));
 
