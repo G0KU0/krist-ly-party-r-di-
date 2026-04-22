@@ -13,14 +13,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 60000
+    pingTimeout: 60000 
 });
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
-
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ MongoDB csatlakozva!'))
-    .catch(err => console.error('❌ MongoDB hiba:', err));
+mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Online')).catch(err => console.error(err));
 
 // --- RANG HIERARCHIA SÚLYOZÁSA ---
 const RANKS = {
@@ -33,7 +30,6 @@ const RANKS = {
     'guest': 0
 };
 
-// --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
@@ -52,8 +48,7 @@ const messageSchema = new mongoose.Schema({
     text: String,
     senderDisplayName: String,
     senderUniqueId: String,
-    recipientUniqueId: { type: String, default: null },
-    recipientDisplayName: { type: String, default: null }, // ÚJ: Elmentjük a fogadó nevét a fülekhez!
+    recipientUniqueId: { type: String, default: null }, // Még benne hagyjuk a sémában a biztonság kedvéért, de nem használjuk PM mentésre
     rank: String,
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
@@ -65,6 +60,7 @@ const activeUsers = new Map();
 io.on('connection', async (socket) => {
     
     try {
+        // CSAK a publikus üzeneteket töltjük be!
         const publicMessages = await Message.find({ recipientUniqueId: null }).sort({ createdAt: 1 }).limit(100);
         socket.emit('initMessages', publicMessages);
     } catch (e) { console.error(e); }
@@ -109,15 +105,6 @@ io.on('connection', async (socket) => {
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
         if (!isGuest) {
-            try {
-                // Privát üzenetek betöltése visszatéréskor
-                const privateMessages = await Message.find({
-                    recipientUniqueId: { $ne: null },
-                    $or: [ { recipientUniqueId: acc.uniqueId }, { senderUniqueId: acc.uniqueId } ]
-                }).sort({ createdAt: 1 }).limit(50);
-                if (privateMessages.length > 0) socket.emit('initPMs', privateMessages);
-            } catch(e) {}
-
             const isCreator = acc.rank === 'creator';
             const sysMsg = new Message({ 
                 text: isCreator ? "a weboldal készítője csatlakozott a chathez! 🛡️" : "megérkezett a partyra!", 
@@ -173,7 +160,7 @@ io.on('connection', async (socket) => {
             return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig!`, isSystem: true, senderDisplayName: 'RENDSZER' });
         }
 
-        // --- ÚJ: PRIVÁT ÜZENET KEZELÉS ---
+        // --- ÚJ: PRIVÁT ÜZENET KEZELÉS (CSAK MEMÓRIA) ---
         if (text.startsWith('/msg ')) {
             const parts = text.split(' ');
             const targetId = parts[1]?.replace('#', '');
@@ -181,7 +168,6 @@ io.on('connection', async (socket) => {
 
             if (!targetId || !pmText) return;
 
-            // Megkeressük a címzett nevét, hogy a Fül címe jó legyen!
             let targetName = 'Felhasználó';
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.uniqueId === targetId) targetName = u.displayName;
@@ -191,23 +177,28 @@ io.on('connection', async (socket) => {
                 if (acc) targetName = acc.displayName;
             }
 
-            const pmMsg = new Message({
+            // Létrehozunk egy memóriabéli objektumot, DE NEM MENTJÜK!
+            const pmMsg = {
                 text: pmText,
                 senderDisplayName: user.displayName,
                 senderUniqueId: user.uniqueId,
                 recipientUniqueId: targetId, 
                 recipientDisplayName: targetName,
-                rank: user.rank
-            });
-            await pmMsg.save();
+                rank: user.rank,
+                createdAt: new Date(),
+                isSystem: false
+            };
 
+            // Visszaküldjük a küldőnek
             socket.emit('newMessage', pmMsg);
+            
+            // Csak annak az egy embernek küldjük el, aki a címzett
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.uniqueId === targetId) {
                     io.to(sid).emit('newMessage', pmMsg);
                 }
             }
-            return; 
+            return; // Kilépünk a mentés előtt
         }
 
         if (text.startsWith('/')) {
@@ -233,6 +224,7 @@ io.on('connection', async (socket) => {
             return;
         }
 
+        // Fő chat publikus üzenet mentése
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
