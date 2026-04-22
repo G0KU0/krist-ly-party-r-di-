@@ -84,19 +84,22 @@ playBtn.addEventListener('click', () => {
         toggleEq(false);
     }
 });
+
 volumeSlider.addEventListener('input', e => audio.volume = e.target.value / 100);
+
 audio.addEventListener('waiting', () => { 
     icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden'); 
     visualizer.classList.remove('playing-animation'); 
     toggleEq(false);
 });
+
 audio.addEventListener('playing', () => { 
     icons.load.classList.add('hidden'); icons.play.classList.add('hidden'); icons.pause.classList.remove('hidden'); 
     visualizer.classList.add('playing-animation'); 
     toggleEq(true);
 });
 
-// CHAT LOGIKA
+// --- CHAT ALAPVETŐ LOGIKA ---
 const socket = io(); 
 
 let userDisplayName = '';
@@ -104,31 +107,25 @@ let myUniqueId = '';
 let myRank = '';
 let myAvatarSeed = '';
 let myAvatarUrl = ''; 
-let myBio = ''; // ÚJ: Saját bio tárolása RAM-ban
+let myBio = ''; 
 let typingTimeout = null; 
 let allMessages = []; 
 let selectedUserId = null;
 let onlineUsersData = [];
 
-// TABS VÁLTOZÓK
 let currentTab = 'main'; 
 let pmTabs = {}; 
 
 const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
 
-const statusDot = document.getElementById('server-status-dot');
-const statusText = document.getElementById('server-status-text');
-const authPanel = document.getElementById('auth-panel');
-const chatPanel = document.getElementById('chat-panel');
 const messagesContainer = document.getElementById('messages-container');
 const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 const typingIndicator = document.getElementById('typing-indicator');
 const msgInput = document.getElementById('message-input');
-
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI ÉS GIF PANEL LOGIKA ---
+// --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
@@ -141,7 +138,6 @@ if(emojiBtn) {
     emojiBtn.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
-        
         if (emojiPanel.classList.contains('active')) {
             emojiPanel.classList.remove('active');
         } else {
@@ -212,7 +208,6 @@ function renderEmojis(filterQuery = '') {
         });
     }
 }
-
 renderEmojis();
 
 async function fetchGifs(query) {
@@ -242,7 +237,6 @@ async function fetchGifs(query) {
             gifContainer.appendChild(img);
         });
     } catch(e) {
-        console.error(e);
         gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
     }
 }
@@ -302,7 +296,6 @@ socket.on('adminDataResponse', (accounts) => {
 
     accounts.forEach(acc => {
         const isBanned = acc.isBanned;
-        
         let rankOptions = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'].map(r => {
             return `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`;
         }).join('');
@@ -338,26 +331,14 @@ window.adminAction = function(action, targetId, value = null) {
     socket.emit('adminDashboardAction', { action, targetId, value });
 }
 
-// MOBILOS MENÜ LOGIKA
+// MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
-    if(sidebarContainer) {
-        sidebarContainer.classList.remove('translate-x-full');
-        sidebarContainer.classList.add('translate-x-0');
-    }
-    if(sidebarOverlay) {
-        sidebarOverlay.classList.remove('hidden');
-        sidebarOverlay.classList.add('block');
-    }
+    if(sidebarContainer) { sidebarContainer.classList.remove('translate-x-full'); sidebarContainer.classList.add('translate-x-0'); }
+    if(sidebarOverlay) { sidebarOverlay.classList.remove('hidden'); sidebarOverlay.classList.add('block'); }
 }
 window.closeSidebar = function() {
-    if(sidebarContainer) {
-        sidebarContainer.classList.add('translate-x-full');
-        sidebarContainer.classList.remove('translate-x-0');
-    }
-    if(sidebarOverlay) {
-        sidebarOverlay.classList.remove('block');
-        sidebarOverlay.classList.add('hidden');
-    }
+    if(sidebarContainer) { sidebarContainer.classList.add('translate-x-full'); sidebarContainer.classList.remove('translate-x-0'); }
+    if(sidebarOverlay) { sidebarOverlay.classList.remove('block'); sidebarOverlay.classList.add('hidden'); }
 }
 
 const mobileUsersToggle = document.getElementById('mobile-users-toggle');
@@ -431,13 +412,8 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        if (!socket.connected) socket.connect(); 
-    }
-});
-
-window.onload = () => {
+// --- AUTO-LOGIN ÉS HÁTTÉRBŐL VISSZATÉRÉS LOGIKA ---
+function performAutoLogin() {
     const savedUser = localStorage.getItem('radio_user');
     const savedPass = localStorage.getItem('radio_pass');
     const savedGuest = localStorage.getItem('radio_guest');
@@ -452,7 +428,26 @@ window.onload = () => {
         if(authPanelElem) authPanelElem.classList.remove('hidden');
         if(chatPanelElem) chatPanelElem.classList.add('hidden');
     }
+}
+
+window.onload = () => {
+    // Az oldal betöltésekor ne csináljunk azonnali auto-logint itt, 
+    // hanem hagyjuk, hogy a socket.on('connect') hívja meg.
 };
+
+// HÁTTÉRBŐL VISSZATÉRÉS
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        if (!socket.connected) {
+            socket.connect(); 
+        } else {
+            // Ha a socket él, de valamiért megszakadt a session
+            if (!userDisplayName) {
+                performAutoLogin();
+            }
+        }
+    }
+});
 
 window.logout = function() {
     localStorage.removeItem('radio_user');
@@ -471,7 +466,7 @@ function getAvatarUrl(seed, customUrl, name) {
 
 function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
-// --- PROFIL ÉS USER MODALOK ---
+// --- KATTINTHATÓ NEVEK ÉS MODALOK ---
 window.handleNameClick = function(id, name, rank) {
     if(!myUniqueId) return;
     if(id === myUniqueId) { 
@@ -519,8 +514,6 @@ window.openUserModal = function(id, name, rank) {
     const targetUser = onlineUsersData.find(u => u.uniqueId === id);
     
     if(modName) modName.innerText = name;
-    
-    // TÖKÉLETES MEGJELENÍTÉS A FELUGRÓ ABLAKBAN
     if(modId) modId.innerText = `ID: #${id} | Fiók: ${targetUser ? targetUser.username : 'Ismeretlen'}`;
     if(modBio) modBio.innerText = targetUser && targetUser.bio ? `"${targetUser.bio}"` : '';
     
@@ -624,15 +617,20 @@ window.saveProfile = function() {
     renderTabs();
 }
 
+// SOCKET ESEMÉNYEK
 socket.on('connect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
     if(statusDot) {
         statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
+        statusDot.classList.replace('bg-red-500', 'bg-green-500');
         statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
         statusDot.classList.remove('animate-pulse');
     }
     if(statusText) statusText.textContent = 'Szerver Online';
+    
+    // Auto-login meghívása, amint a socket csatlakozik
+    performAutoLogin();
 });
 
 socket.on('disconnect', () => {
@@ -689,7 +687,6 @@ socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     const onlineCount = document.getElementById('online-count');
     const mobOnlineCount = document.getElementById('mobile-online-count');
-    const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
     if(onlineCount) onlineCount.textContent = users.length;
     if(mobOnlineCount) mobOnlineCount.textContent = users.length;
@@ -707,6 +704,7 @@ socket.on('updateUsers', (users) => {
         myAvatarUrl = me.avatarUrl; 
         myRank = me.rank; 
 
+        // Készítő gomb megjelenítése
         const dashBtn = document.getElementById('btn-open-dashboard');
         if(dashBtn) {
             if(myRank === 'creator') dashBtn.classList.remove('hidden');
@@ -732,7 +730,6 @@ socket.on('updateUsers', (users) => {
             
             const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
             
-            // ÚJ: A Státusz/Bio mező generálása a Taglistába, és az ID eltüntetése innen!
             const bioHtml = u.bio ? `<span class="text-[10px] text-cyan-400/70 truncate italic block -mt-1">${escapeHTML(u.bio)}</span>` : '';
 
             const div = document.createElement('div');
@@ -876,7 +873,7 @@ window.handleLoginResponse = function(res) {
         myRank = res.user.rank;
         myAvatarSeed = res.user.avatarSeed;
         myAvatarUrl = res.user.avatarUrl || '';
-        myBio = res.user.bio || ''; // ÚJ: Bio letöltése bejelentkezéskor
+        myBio = res.user.bio || ''; 
         
         const authPanelElem = document.getElementById('auth-panel');
         const chatPanelElem = document.getElementById('chat-panel');
@@ -926,6 +923,7 @@ window.attemptLogin = function(isGuest) {
     });
 }
 
+// Belépés Gombok eseményei
 const btnGuestLogin = document.getElementById('btn-guest-login');
 if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(true));
 
