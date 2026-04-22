@@ -53,18 +53,20 @@ const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 // --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
-const emojiPanel = document.getElementById('emoji-panel');
-const emojiBtn = document.getElementById('emoji-toggle-btn');
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
+const emojiPanel = document.getElementById('emoji-panel');
+const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-// Gomb kattintás kezelése mobilra optimalizálva
-emojiBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+// KÖZÖS NYITÓ FUNKCIÓ
+function openEmojiPanel(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
     
     if (emojiPanel.classList.contains('active')) {
         emojiPanel.classList.remove('active');
@@ -74,10 +76,31 @@ emojiBtn.addEventListener('click', (e) => {
             fetchGifs('party dance club');
         }
     }
+}
+
+// 1. KATTINTÁS (PC)
+emojiBtn.addEventListener('click', openEmojiPanel);
+
+// 2. ÉRINTÉS (MOBIL) - Ez garantálja, hogy telefonon azonnal nyíljon!
+emojiBtn.addEventListener('touchend', function(e) {
+    e.preventDefault(); // Megakadályozza a dupla "szellemkattintást"
+    openEmojiPanel(e);
 });
 
-// Zárás a panelen kívüli kattintásra
-document.addEventListener('click', (event) => {
+// ZÁRÁS A PANELEN KÍVÜLI KATTINTÁSRA (PC)
+document.addEventListener('click', function(event) {
+    if (emojiPanel && emojiPanel.classList.contains('active')) {
+        const isClickInsidePanel = emojiPanel.contains(event.target);
+        const isClickOnButton = emojiBtn.contains(event.target);
+        
+        if (!isClickInsidePanel && !isClickOnButton) {
+            emojiPanel.classList.remove('active');
+        }
+    }
+});
+
+// ZÁRÁS A PANELEN KÍVÜLI ÉRINTÉSRE (MOBIL)
+document.addEventListener('touchstart', function(event) {
     if (emojiPanel && emojiPanel.classList.contains('active')) {
         const isClickInsidePanel = emojiPanel.contains(event.target);
         const isClickOnButton = emojiBtn.contains(event.target);
