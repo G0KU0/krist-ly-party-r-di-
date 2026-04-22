@@ -544,21 +544,14 @@
             switchTab(id);
         }
 
-        // AUTO-LOGIN
-        window.onload = () => {
-            const savedUser = localStorage.getItem('radio_user');
-            const savedPass = localStorage.getItem('radio_pass');
-            const savedGuest = localStorage.getItem('radio_guest');
-
-            if (savedUser && savedPass) {
-                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
-            } else if (savedGuest) {
-                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
-            } else {
-                authPanel.classList.remove('hidden');
-                chatPanel.classList.add('hidden');
+        // HÁTTÉRBŐL VISSZATÉRÉS (ÚJRACSATLAKOZÁS) LOGIKA
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                if (!socket.connected) {
+                    socket.connect(); // Azonnal ébresszük fel a kapcsolatot, ha visszatért az appba
+                }
             }
-        };
+        });
 
         function logout() {
             localStorage.removeItem('radio_user');
@@ -689,9 +682,23 @@
 
         socket.on('connect', () => {
             statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-            statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
+            statusDot.classList.replace('bg-red-500', 'bg-green-500');
             statusDot.classList.remove('animate-pulse');
             statusText.textContent = 'Szerver Online';
+
+            // AUTO-LOGIN: Automatikusan bejelentkezik oldalbetöltéskor ÉS háttérből visszatéréskor is!
+            const savedUser = localStorage.getItem('radio_user');
+            const savedPass = localStorage.getItem('radio_pass');
+            const savedGuest = localStorage.getItem('radio_guest');
+
+            if (savedUser && savedPass) {
+                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
+            } else if (savedGuest) {
+                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
+            } else {
+                authPanel.classList.remove('hidden');
+                chatPanel.classList.add('hidden');
+            }
         });
 
         socket.on('disconnect', () => {
@@ -917,7 +924,7 @@
                 chatPanel.classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('mobile-logout').classList.remove('hidden');
-                msgInput.focus();
+                // Kivettük az msgInput.focus() hívást, hogy háttérből visszatérve ne ugorjon fel a billentyűzet magától!
             } else { 
                 alert(res.error); 
                 logout(); 
