@@ -24,7 +24,7 @@ const RANKS = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip'
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
-    password: { type: String, default: '' }, // A Vendégeknek nem kötelező jelszó
+    password: { type: String, default: '' },
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
     avatarUrl: { type: String, default: '' },
@@ -34,7 +34,9 @@ const accountSchema = new mongoose.Schema({
     banExpiresAt: { type: Date, default: null },
     muteExpiresAt: { type: Date, default: null },
     lastIp: { type: String, default: '' }, 
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    // ÚJ: Automatikus megsemmisítés a vendég fiókoknak! (Ha van értéke, akkor törlődik)
+    guestExpireAt: { type: Date, expires: 0 } 
 });
 const Account = mongoose.model('Account', accountSchema);
 
@@ -48,7 +50,7 @@ const messageSchema = new mongoose.Schema({
     avatarUrl: { type: String, default: '' }, 
     rank: String,
     isSystem: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now, expires: 86400 } // 24 óra után automatikus törlés!
+    createdAt: { type: Date, default: Date.now, expires: 86400 } // Chat üzenetek 24h után törlődnek
 });
 const Message = mongoose.model('Message', messageSchema);
 
@@ -70,7 +72,6 @@ io.on('connection', async (socket) => {
         if (!isGuest) {
             const lowUser = username.toLowerCase();
             
-            // Dupla belépés gátló
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.username === lowUser) {
                     io.sockets.sockets.get(sid)?.disconnect();
@@ -105,7 +106,7 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            // ÚJ: VENDÉGEK MENTÉSE AZ ADATBÁZISBA
+            // VENDÉGEK MENTÉSE ÉS 24 ÓRÁS TÖRLÉS BEÁLLÍTÁSA
             const guestId = "G" + Math.floor(1000 + Math.random() * 9000);
             const genUsername = `vendeg_${guestId}_${Date.now()}`;
             
@@ -117,7 +118,9 @@ io.on('connection', async (socket) => {
                 rank: 'guest',
                 avatarUrl: '',
                 bio: '',
-                lastIp: clientIp
+                lastIp: clientIp,
+                // ÚJ: 24 óra múlva törlődik az adatbázisból
+                guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) 
             });
             await acc.save();
         }
@@ -149,13 +152,11 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // --- VEZÉRLŐPULT LOGIKA ---
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
         
         try {
-            // Most már elküldjük a jelszót is a Creatornak!
             const allAccounts = await Account.find({}).sort({ createdAt: -1 });
             socket.emit('adminDataResponse', allAccounts);
         } catch(e) { console.error(e); }
@@ -190,7 +191,6 @@ io.on('connection', async (socket) => {
                     }
                 }
             } else if (action === 'editUser') {
-                // ÚJ: FIÓK TELJESKÖRŰ SZERKESZTÉSE
                 const { newUsername, newDisplayName, newPassword, newUniqueId } = editData;
                 const updateDoc = {};
                 
