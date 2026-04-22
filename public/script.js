@@ -116,7 +116,6 @@ let onlineUsersData = [];
 let currentTab = 'main'; 
 let pmTabs = {}; 
 
-// GLOBÁLIS VÁLTOZÓ AZ ADMIN ADATOKNAK
 window.adminAccountsData = [];
 
 const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
@@ -176,7 +175,7 @@ const emojisDict = [
     { e: '🎶', k: 'zene hangjegy dal' }, { e: '🎤', k: 'mikrofon ének karaoke' }
 ];
 
-const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
+const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -240,6 +239,7 @@ async function fetchGifs(query) {
             gifContainer.appendChild(img);
         });
     } catch(e) {
+        console.error(e);
         gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
     }
 }
@@ -294,7 +294,7 @@ window.openAdminDashboard = function() {
 }
 
 socket.on('adminDataResponse', (accounts) => {
-    window.adminAccountsData = accounts; // Elmentjük, hogy szerkeszteni tudjunk
+    window.adminAccountsData = accounts; 
     const list = document.getElementById('admin-users-list');
     if(!list) return;
     list.innerHTML = '';
@@ -337,7 +337,6 @@ window.adminAction = function(action, targetId, value = null) {
     socket.emit('adminDashboardAction', { action, targetId, value });
 }
 
-// ADATBÁZIS SZERKESZTŐ NYITÁSA
 window.openAdminEdit = function(id) {
     const acc = window.adminAccountsData.find(a => a.uniqueId === id);
     if(!acc) return;
@@ -346,12 +345,11 @@ window.openAdminEdit = function(id) {
     document.getElementById('edit-adm-id').value = acc.uniqueId;
     document.getElementById('edit-adm-username').value = acc.username;
     document.getElementById('edit-adm-displayname').value = acc.displayName;
-    document.getElementById('edit-adm-password').value = acc.password || ''; // Ha vendég, lehet üres
+    document.getElementById('edit-adm-password').value = acc.password || ''; 
     
     document.getElementById('admin-edit-modal').classList.add('active');
 }
 
-// ADATBÁZIS SZERKESZTÉS MENTÉSE
 window.saveAdminEdit = function() {
     const oldId = document.getElementById('edit-adm-old-id').value;
     const newId = document.getElementById('edit-adm-id').value.trim();
@@ -452,7 +450,7 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
-// --- ÚJ: AUTO-LOGIN ÉS HÁTTÉRBŐL VALÓ VISSZATÉRÉS JAVÍTÁSA ---
+// --- AUTO-LOGIN ÉS HÁTTÉRBŐL VALÓ VISSZATÉRÉS JAVÍTÁSA ---
 function performAutoLogin() {
     const savedUser = localStorage.getItem('radio_user');
     const savedPass = localStorage.getItem('radio_pass');
@@ -481,7 +479,6 @@ socket.on('connect', () => {
     }
     if(statusText) statusText.textContent = 'Szerver Online';
     
-    // Ha felébred a telefon a lezárt képernyőből és újra csatlakozik a socket, azonnal beléptet!
     performAutoLogin();
 });
 
@@ -490,7 +487,6 @@ document.addEventListener("visibilitychange", () => {
         if (!socket.connected) {
             socket.connect(); 
         } else {
-            // Ha a socket él, de valamiért megszakadt a session
             if (!userDisplayName) {
                 performAutoLogin();
             }
@@ -922,6 +918,12 @@ window.handleLoginResponse = function(res) {
         if (myRank === 'creator') {
             const dashBtn = document.getElementById('btn-open-dashboard');
             if(dashBtn) dashBtn.classList.remove('hidden');
+        }
+
+        // ÚJ: VENDÉG FIGYELMEZTETÉS MEGJELENÍTÉSE!
+        if (myRank === 'guest') {
+            const guestWarning = document.getElementById('guest-warning-modal');
+            if(guestWarning) guestWarning.classList.add('active');
         }
 
     } else { 
