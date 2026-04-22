@@ -28,10 +28,12 @@ const accountSchema = new mongoose.Schema({
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
     avatarUrl: { type: String, default: '' },
+    bio: { type: String, default: '' }, // ÚJ: Bio/Státusz mező
     rank: { type: String, default: 'user' },
     isBanned: { type: Boolean, default: false },
     banExpiresAt: { type: Date, default: null },
     muteExpiresAt: { type: Date, default: null },
+    lastIp: { type: String, default: '' }, // ÚJ: IP Cím tárolása
     createdAt: { type: Date, default: Date.now }
 });
 const Account = mongoose.model('Account', accountSchema);
@@ -46,7 +48,8 @@ const messageSchema = new mongoose.Schema({
     avatarUrl: { type: String, default: '' }, 
     rank: String,
     isSystem: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
+    // ÚJ: 86400 másodperc (24 óra) után a MongoDB automatikusan törli a rekordot!
+    createdAt: { type: Date, default: Date.now, expires: 86400 } 
 });
 const Message = mongoose.model('Message', messageSchema);
 
@@ -54,6 +57,9 @@ const activeUsers = new Map();
 
 io.on('connection', async (socket) => {
     
+    // IP lekérése proxy/render szerver mögött is
+    const clientIp = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address || socket.conn.remoteAddress;
+
     try {
         const publicMessages = await Message.find({ recipientUniqueId: null }).sort({ createdAt: 1 }).limit(100);
         socket.emit('initMessages', publicMessages);
@@ -65,6 +71,15 @@ io.on('connection', async (socket) => {
 
         if (!isGuest) {
             const lowUser = username.toLowerCase();
+            
+            // ÚJ: DUPLA BEJELENTKEZÉS MEGAKADÁLYOZÁSA (Kidobja a régit)
+            for (let [sid, u] of activeUsers.entries()) {
+                if (u.username === lowUser) {
+                    io.sockets.sockets.get(sid)?.disconnect();
+                    activeUsers.delete(sid);
+                }
+            }
+
             acc = await Account.findOne({ username: lowUser });
             
             if (acc) {
@@ -74,6 +89,11 @@ io.on('connection', async (socket) => {
                     return callback({ success: false, error: `Ideiglenesen ki vagy tiltva! Hátralévő idő: ${mins} perc.` });
                 }
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
+                
+                // IP frissítése bejelentkezéskor
+                acc.lastIp = clientIp;
+                await acc.save();
+
             } else {
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
@@ -82,7 +102,9 @@ io.on('connection', async (socket) => {
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
                     rank: isCreator ? 'creator' : 'user',
-                    avatarUrl: ''
+                    avatarUrl: '',
+                    bio: '',
+                    lastIp: clientIp
                 });
                 await acc.save();
             }
@@ -92,12 +114,22 @@ io.on('connection', async (socket) => {
                 uniqueId: "G" + Math.floor(1000 + Math.random() * 9000), 
                 rank: 'guest', 
                 avatarSeed: socket.id,
-                avatarUrl: ''
+                avatarUrl: '',
+                bio: ''
             };
         }
 
-        activeUsers.set(socket.id, acc);
-        callback({ success: true, user: acc });
+        activeUsers.set(socket.id, {
+            username: acc.username,
+            displayName: acc.displayName,
+            uniqueId: acc.uniqueId,
+            rank: acc.rank,
+            avatarSeed: acc.avatarSeed,
+            avatarUrl: acc.avatarUrl,
+            bio: acc.bio || ''
+        });
+
+        callback({ success: true, user: activeUsers.get(socket.id) });
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
         if (!isGuest) {
@@ -114,10 +146,10 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // --- ÚJ: VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
+    // VEZÉRLŐPULT (ADMIN PANEL) LOGIKA
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
-        if (!user || user.rank !== 'creator') return; // CSAK SZABY (creator) FÉRHET HOZZÁ!
+        if (!user || user.rank !== 'creator') return; 
         
         try {
             const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
@@ -127,20 +159,18 @@ io.on('connection', async (socket) => {
 
     socket.on('adminDashboardAction', async (data) => {
         const admin = activeUsers.get(socket.id);
-        if (!admin || admin.rank !== 'creator') return; // CSAK SZABY MÓDOSÍTHAT!
+        if (!admin || admin.rank !== 'creator') return; 
 
         const { action, targetId, value } = data;
         
         try {
             if (action === 'delete') {
                 await Account.deleteOne({ uniqueId: targetId });
-                // Ha online van, kidobjuk
                 for (let [sid, u] of activeUsers.entries()) {
                     if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect();
                 }
             } else if (action === 'setRank') {
                 await Account.updateOne({ uniqueId: targetId }, { rank: value });
-                // Frissítjük, ha online
                 for (let [sid, u] of activeUsers.entries()) {
                     if (u.uniqueId === targetId) u.rank = value;
                 }
@@ -157,7 +187,6 @@ io.on('connection', async (socket) => {
                 }
             }
             
-            // Adatok újra lekérése és küldése a panelnek
             const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
             socket.emit('adminDataResponse', allAccounts);
             io.emit('updateUsers', Array.from(activeUsers.values()));
@@ -284,11 +313,13 @@ io.on('connection', async (socket) => {
         user.displayName = data.displayName.substring(0, 20);
         user.avatarSeed = data.avatarSeed;
         user.avatarUrl = data.avatarUrl || '';
+        user.bio = data.bio ? data.bio.substring(0, 40) : ''; // ÚJ: Bio mentése a Map-be
         
         await Account.updateOne({ uniqueId: user.uniqueId }, { 
             displayName: user.displayName, 
             avatarSeed: user.avatarSeed,
-            avatarUrl: user.avatarUrl
+            avatarUrl: user.avatarUrl,
+            bio: user.bio // ÚJ: Bio mentése DB-be
         });
         
         io.emit('updateUsers', Array.from(activeUsers.values()));
