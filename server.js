@@ -13,11 +13,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 60000 
+    pingTimeout: 60000
 });
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
-mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Online')).catch(err => console.error(err));
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('✅ MongoDB csatlakozva!'))
+    .catch(err => console.error('❌ MongoDB hiba:', err));
 
 // --- RANG HIERARCHIA SÚLYOZÁSA ---
 const RANKS = {
@@ -30,6 +33,7 @@ const RANKS = {
     'guest': 0
 };
 
+// --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
@@ -49,6 +53,7 @@ const messageSchema = new mongoose.Schema({
     senderDisplayName: String,
     senderUniqueId: String,
     recipientUniqueId: { type: String, default: null },
+    recipientDisplayName: { type: String, default: null }, // ÚJ: Elmentjük a fogadó nevét a fülekhez!
     rank: String,
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
@@ -105,6 +110,7 @@ io.on('connection', async (socket) => {
 
         if (!isGuest) {
             try {
+                // Privát üzenetek betöltése visszatéréskor
                 const privateMessages = await Message.find({
                     recipientUniqueId: { $ne: null },
                     $or: [ { recipientUniqueId: acc.uniqueId }, { senderUniqueId: acc.uniqueId } ]
@@ -167,6 +173,7 @@ io.on('connection', async (socket) => {
             return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig!`, isSystem: true, senderDisplayName: 'RENDSZER' });
         }
 
+        // --- ÚJ: PRIVÁT ÜZENET KEZELÉS ---
         if (text.startsWith('/msg ')) {
             const parts = text.split(' ');
             const targetId = parts[1]?.replace('#', '');
@@ -174,11 +181,22 @@ io.on('connection', async (socket) => {
 
             if (!targetId || !pmText) return;
 
+            // Megkeressük a címzett nevét, hogy a Fül címe jó legyen!
+            let targetName = 'Felhasználó';
+            for (let [sid, u] of activeUsers.entries()) {
+                if (u.uniqueId === targetId) targetName = u.displayName;
+            }
+            if (targetName === 'Felhasználó') {
+                const acc = await Account.findOne({ uniqueId: targetId });
+                if (acc) targetName = acc.displayName;
+            }
+
             const pmMsg = new Message({
                 text: pmText,
                 senderDisplayName: user.displayName,
                 senderUniqueId: user.uniqueId,
                 recipientUniqueId: targetId, 
+                recipientDisplayName: targetName,
                 rank: user.rank
             });
             await pmMsg.save();
