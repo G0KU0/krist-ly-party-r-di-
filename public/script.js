@@ -61,20 +61,22 @@ const gifContainer = document.getElementById('content-gifs');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-// Kattintás a gombra (Kizárólag ez az egy eseményvezérlő felel érte!)
+// Gomb kattintás kezelése mobilra optimalizálva
 emojiBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     
-    emojiPanel.classList.toggle('active');
-    
-    // Ha megnyitjuk és a GIF panel üres, töltsünk be valami alapvetőt
-    if (emojiPanel.classList.contains('active') && currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
-        fetchGifs('party dance club');
+    if (emojiPanel.classList.contains('active')) {
+        emojiPanel.classList.remove('active');
+    } else {
+        emojiPanel.classList.add('active');
+        if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
+            fetchGifs('party dance club');
+        }
     }
 });
 
-// Kattintás a panelen kívül = bezárás
+// Zárás a panelen kívüli kattintásra
 document.addEventListener('click', (event) => {
     if (emojiPanel && emojiPanel.classList.contains('active')) {
         const isClickInsidePanel = emojiPanel.contains(event.target);
@@ -439,17 +441,19 @@ window.saveProfile = function() {
 socket.on('connect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
-    statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-    statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
-    statusDot.classList.remove('animate-pulse');
-    statusText.textContent = 'Szerver Online';
+    if(statusDot) {
+        statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
+        statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
+        statusDot.classList.remove('animate-pulse');
+    }
+    if(statusText) statusText.textContent = 'Szerver Online';
 });
 
 socket.on('disconnect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
-    statusDot.classList.replace('bg-green-500', 'bg-red-500');
-    statusText.textContent = 'Nincs Kapcsolat';
+    if(statusDot) statusDot.classList.replace('bg-green-500', 'bg-red-500');
+    if(statusText) statusText.textContent = 'Nincs Kapcsolat';
 });
 
 socket.on('clearChat', () => {
@@ -497,54 +501,63 @@ socket.on('newMessage', (msg) => {
 
 socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
-    document.getElementById('online-count').textContent = users.length;
-    document.getElementById('mobile-online-count').textContent = users.length;
-    
+    const onlineCount = document.getElementById('online-count');
+    const mobOnlineCount = document.getElementById('mobile-online-count');
     const onlineUsersSidebar = document.getElementById('online-users-sidebar');
-    if (users.length === 0) { onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; return; }
+
+    if(onlineCount) onlineCount.textContent = users.length;
+    if(mobOnlineCount) mobOnlineCount.textContent = users.length;
+    
+    if (users.length === 0) { 
+        if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; 
+        return; 
+    }
     
     users.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
 
     const me = users.find(u => u.uniqueId === myUniqueId);
     if (me) { myAvatarSeed = me.avatarSeed; myAvatarUrl = me.avatarUrl; myRank = me.rank; }
 
-    onlineUsersSidebar.innerHTML = '';
-    users.forEach(u => {
-        const isMe = u.uniqueId === myUniqueId;
-        
-        let badge = '';
-        if (u.rank === 'creator') badge = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
-        else if (u.rank === 'owner') badge = '<span class="badge badge-owner">👑 TULAJDONOS</span>';
-        else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
-        else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
-        else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
-        else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
-        
-        const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
-        const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
-        
-        const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
+    if(onlineUsersSidebar) {
+        onlineUsersSidebar.innerHTML = '';
+        users.forEach(u => {
+            const isMe = u.uniqueId === myUniqueId;
+            
+            let badge = '';
+            if (u.rank === 'creator') badge = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
+            else if (u.rank === 'owner') badge = '<span class="badge badge-owner">👑 TULAJDONOS</span>';
+            else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
+            else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
+            else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
+            else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
+            
+            const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
+            const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
+            
+            const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
 
-        const div = document.createElement('div');
-        div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
-        
-        div.innerHTML = `
-            <div class="relative shrink-0" title="${escapeHTML(u.displayName)} #${escapeHTML(u.uniqueId)}">
-                <img src="${getAvatarUrl(u.avatarSeed, u.avatarUrl, u.displayName)}" class="w-8 h-8 rounded-full bg-gray-800 border-2 ${ringColor} shadow-sm avatar-img">
-                <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
-            </div>
-            <div class="flex flex-col justify-center min-w-0 flex-grow">
-                 <span class="text-sm truncate leading-tight ${nameColor}">${displayNameHtml}</span>
-                 <span class="user-id-tag">#${escapeHTML(u.uniqueId)}</span>
-            </div>
-            ${badge}
-        `;
-        onlineUsersSidebar.appendChild(div);
-    });
+            const div = document.createElement('div');
+            div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
+            
+            div.innerHTML = `
+                <div class="relative shrink-0" title="${escapeHTML(u.displayName)} #${escapeHTML(u.uniqueId)}">
+                    <img src="${getAvatarUrl(u.avatarSeed, u.avatarUrl, u.displayName)}" class="w-8 h-8 rounded-full bg-gray-800 border-2 ${ringColor} shadow-sm avatar-img">
+                    <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                </div>
+                <div class="flex flex-col justify-center min-w-0 flex-grow">
+                     <span class="text-sm truncate leading-tight ${nameColor}">${displayNameHtml}</span>
+                     <span class="user-id-tag">#${escapeHTML(u.uniqueId)}</span>
+                </div>
+                ${badge}
+            `;
+            onlineUsersSidebar.appendChild(div);
+        });
+    }
 });
 
 socket.on('typingUpdate', (typists) => {
     const typingIndicator = document.getElementById('typing-indicator');
+    if(!typingIndicator) return;
     const others = typists.filter(u => u.uniqueId !== myUniqueId);
     if (others.length > 0) {
         typingIndicator.textContent = others.length > 1 ? `${others.map(u=>u.displayName).join(', ')} éppen írnak...` : `${others[0].displayName} éppen ír...`;
@@ -554,6 +567,7 @@ socket.on('typingUpdate', (typists) => {
 
 function renderMessages() {
     const messagesContainer = document.getElementById('messages-container');
+    if(!messagesContainer) return;
     messagesContainer.innerHTML = '';
     
     const filteredMessages = allMessages.filter(msg => {
@@ -699,43 +713,57 @@ window.attemptLogin = function(isGuest) {
     });
 }
 
-document.getElementById('message-input').addEventListener('input', () => {
-    if (!userDisplayName) return;
-    socket.emit('typing', true);
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => { socket.emit('typing', false); }, 2000); 
-});
+const btnGuestLogin = document.getElementById('btn-guest-login');
+if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(true));
 
-document.getElementById('send-btn').addEventListener('click', () => {
-    const msgInput = document.getElementById('message-input');
-    const text = msgInput.value.trim();
-    if (!text) return;
-    
-    if (currentTab !== 'main' && !text.startsWith('/')) {
-        socket.emit('sendMessage', `/msg #${currentTab} ${text}`);
-    } else {
-        if (text === '/help') {
-            const helpDiv = document.createElement('div');
-            helpDiv.className = "bg-slate-800/90 border border-cyan-500 p-4 rounded-xl text-xs text-slate-300 mt-2 mb-2 shadow-lg mx-3";
-            helpDiv.innerHTML = `
-                <h4 class="font-bold text-cyan-400 mb-2">🛡️ PARANCSOK</h4>
-                <p><b>/msg #ID üzenet</b> - Privát üzenet küldése (kattinthatsz is a névre!)</p>
-                <p><b>/ban #ID</b> - Végleges tiltás</p>
-                <p><b>/timeout #ID perc</b> - Időszakos tiltás percekre</p>
-                <p><b>/unban #ID</b> - Tiltás feloldása</p>
-                <p><b>/mute #ID perc</b> - Némítás</p>
-                <p><b>/unmute #ID</b> - Némítás feloldása</p>
-                <p><b>/kick #ID</b> - Kidobás a chatből</p>
-                <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
-                <p><b>/clear</b> - Teljes chatfal letakarítása</p>
-            `;
-            document.getElementById('messages-container').appendChild(helpDiv);
-            document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight;
-            msgInput.value = '';
-            return;
+const btnVipLogin = document.getElementById('btn-vip-login');
+if(btnVipLogin) btnVipLogin.addEventListener('click', () => attemptLogin(false));
+
+const msgInputElem = document.getElementById('message-input');
+if(msgInputElem) {
+    msgInputElem.addEventListener('input', () => {
+        if (!userDisplayName) return;
+        socket.emit('typing', true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => { socket.emit('typing', false); }, 2000); 
+    });
+
+    msgInputElem.addEventListener('keypress', e => { 
+        if(e.key === 'Enter') document.getElementById('send-btn').click(); 
+    });
+}
+
+const sendBtn = document.getElementById('send-btn');
+if(sendBtn) {
+    sendBtn.addEventListener('click', () => {
+        const text = msgInput.value.trim();
+        if (!text) return;
+        
+        if (currentTab !== 'main' && !text.startsWith('/')) {
+            socket.emit('sendMessage', `/msg #${currentTab} ${text}`);
+        } else {
+            if (text === '/help') {
+                const helpDiv = document.createElement('div');
+                helpDiv.className = "bg-slate-800/90 border border-cyan-500 p-4 rounded-xl text-xs text-slate-300 mt-2 mb-2 shadow-lg mx-3";
+                helpDiv.innerHTML = `
+                    <h4 class="font-bold text-cyan-400 mb-2">🛡️ PARANCSOK</h4>
+                    <p><b>/msg #ID üzenet</b> - Privát üzenet küldése (kattinthatsz is a névre!)</p>
+                    <p><b>/ban #ID</b> - Végleges tiltás</p>
+                    <p><b>/timeout #ID perc</b> - Időszakos tiltás percekre</p>
+                    <p><b>/unban #ID</b> - Tiltás feloldása</p>
+                    <p><b>/mute #ID perc</b> - Némítás</p>
+                    <p><b>/unmute #ID</b> - Némítás feloldása</p>
+                    <p><b>/kick #ID</b> - Kidobás a chatből</p>
+                    <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
+                    <p><b>/clear</b> - Teljes chatfal letakarítása</p>
+                `;
+                messagesContainer.appendChild(helpDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                msgInput.value = '';
+                return;
+            }
+            socket.emit('sendMessage', text);
         }
-        socket.emit('sendMessage', text);
-    }
-    msgInput.value = ''; socket.emit('typing', false);
-});
-document.getElementById('message-input').addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('send-btn').click(); });
+        msgInput.value = ''; socket.emit('typing', false);
+    });
+}
