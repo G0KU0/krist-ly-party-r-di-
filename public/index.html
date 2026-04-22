@@ -51,7 +51,7 @@
         
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
-        /* MOBILOS OLDALSÁV */
+        /* MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
         #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
         .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
         
@@ -62,7 +62,7 @@
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL */
+        /* MODAL (Felugró ablakok) */
         .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
@@ -74,7 +74,7 @@
         
         .avatar-img { object-fit: cover; object-position: center; }
 
-        /* EMOJI ÉS GIF PANEL */
+        /* EMOJI / GIF PANEL STÍLUSOK KERESŐVEL */
         .emoji-panel {
             position: absolute;
             bottom: calc(100% + 10px);
@@ -115,10 +115,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-900 text-white font-sans flex flex-col relative overflow-x-hidden">
+<body class="min-h-screen bg-slate-950 text-white font-sans flex flex-col relative overflow-x-hidden">
     
-    <div class="fixed inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 animate-gradient-xy opacity-80"></div>
-    <div class="fixed inset-0 z-0" style="background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
+    <div class="fixed inset-0 z-0 bg-gradient-to-br from-slate-950 via-blue-900/20 to-purple-900/20 animate-gradient-xy"></div>
 
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -233,7 +232,7 @@
 
                 <div class="flex flex-grow overflow-hidden relative">
                     
-                    <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50">
+                    <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50 z-10">
                         <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
                             </div>
 
@@ -255,7 +254,7 @@
                                 </div>
                         </div>
 
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-10 relative">
+                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 relative z-20">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
                                 <div class="flex gap-2 border-b border-gray-700/80 pb-2">
@@ -285,7 +284,7 @@
                                 <button id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-xl w-10 sm:w-11 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-lg">
                                     😀
                                 </button>
-                                
+
                                 <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj egy üzenetet (vagy /help a parancsokért)..." autocomplete="off">
                                 <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 group">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
@@ -373,7 +372,7 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // --- ÚJ: EMOJI ÉS GIF PANEL (TENOR API KERESŐVEL) ---
+        // --- ÚJ: EMOJI ÉS GIF PANEL LOGIKA (TENOR API) ---
         const emojiPanel = document.getElementById('emoji-panel');
         const emojiBtn = document.getElementById('emoji-toggle-btn');
         const mediaSearch = document.getElementById('media-search');
@@ -382,7 +381,6 @@
         let currentMediaTab = 'emojis';
         let gifSearchTimeout = null;
 
-        // Beépített okos Emoji szótár
         const emojisDict = [
             { e: '😀', k: 'mosoly smile happy vidám' }, { e: '😂', k: 'nevet sir lol rofl vicces' },
             { e: '😍', k: 'szerelem love imádom szív' }, { e: '😎', k: 'menő cool szemüveg' },
@@ -399,7 +397,6 @@
             { e: '🎶', k: 'zene hangjegy dal' }, { e: '🎤', k: 'mikrofon ének karaoke' }
         ];
 
-        // A többi alap emoji
         const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
         function renderEmojis(filterQuery = '') {
@@ -431,7 +428,7 @@
         
         renderEmojis();
 
-        // --- STABIL TENOR API KERESŐ (GIPHY HELYETT) ---
+        // TENOR API KERESŐ (GIPHY HELYETT)
         async function fetchGifs(query) {
             gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
             try {
@@ -705,7 +702,7 @@
                 document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
                 
                 const banBtn = document.getElementById('btn-ban');
-                if (RANKS_POWER[myRank] >= 60) { // Admin felett
+                if (RANKS_POWER[myRank] >= 60) {
                     banBtn.classList.remove('hidden');
                     banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
                 } else {
@@ -899,7 +896,7 @@
                 else if (msg.rank === 'admin') badgeHtml = '<span class="badge badge-admin">🛡️ ADMIN</span>';
                 else if (msg.rank === 'moderator') badgeHtml = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
                 else if (msg.rank === 'vip') badgeHtml = '<span class="badge badge-vip">👑 VIP</span>';
-                else if (msg.rank === 'user') badgeHtml = '';
+                else if (msg.rank === 'user') badgeHtml = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
                 
                 let nameClass = 'text-cyan-400 font-bold text-xs sm:text-sm';
                 if (msg.rank === 'creator') nameClass = 'creator-name text-xs sm:text-sm tracking-wide';
@@ -971,7 +968,6 @@
                 chatPanel.classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('mobile-logout').classList.remove('hidden');
-                msgInput.focus();
             } else { 
                 alert(res.error); 
                 logout(); 
