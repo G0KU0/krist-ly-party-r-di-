@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 60000
+    pingTimeout: 60000 // Mobilkapcsolat megtartása
 });
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
@@ -21,17 +21,6 @@ const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristaly
 mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB csatlakozva!'))
     .catch(err => console.error('❌ MongoDB hiba:', err));
-
-// --- RANG HIERARCHIA SÚLYOZÁSA ---
-const RANKS = {
-    'creator': 100,
-    'owner': 80,
-    'admin': 60,
-    'moderator': 40,
-    'vip': 30,
-    'user': 20,
-    'guest': 0
-};
 
 // --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
@@ -52,7 +41,7 @@ const messageSchema = new mongoose.Schema({
     text: String,
     senderDisplayName: String,
     senderUniqueId: String,
-    recipientUniqueId: { type: String, default: null }, // PRIVÁT ÜZENETHEZ
+    recipientUniqueId: { type: String, default: null }, // ÚJ: Privát üzenet
     rank: String,
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
@@ -61,9 +50,11 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 
+// RANG HIERARCHIA
+const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
+
 io.on('connection', async (socket) => {
     
-    // Kezdetben csak a PUBLIKUS üzeneteket küldjük el
     try {
         const publicMessages = await Message.find({ recipientUniqueId: null }).sort({ createdAt: 1 }).limit(100);
         socket.emit('initMessages', publicMessages);
@@ -109,7 +100,7 @@ io.on('connection', async (socket) => {
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
         if (!isGuest) {
-            // PRIVÁT ÜZENETEK BETÖLTÉSE
+            // Privát üzenetek betöltése a belépőnek
             try {
                 const privateMessages = await Message.find({
                     recipientUniqueId: { $ne: null },
@@ -133,18 +124,18 @@ io.on('connection', async (socket) => {
 
     socket.on('adminAction', async (data) => {
         const admin = activeUsers.get(socket.id);
-        if (!admin || RANKS[admin.rank] < 40) return; 
+        if (!admin || RANKS_POWER[admin.rank] < 40) return;
 
         const { targetId, action, value } = data;
         const targetAcc = await Account.findOne({ uniqueId: targetId });
-        
+
         if (targetAcc) {
             if (targetAcc.rank === 'creator') return; 
-            if (RANKS[admin.rank] <= RANKS[targetAcc.rank] && admin.rank !== 'creator') return; 
+            if (RANKS_POWER[admin.rank] <= RANKS_POWER[targetAcc.rank] && admin.rank !== 'creator') return; 
         }
 
         if (action === 'setRank') {
-            if (RANKS[admin.rank] <= RANKS[value] && admin.rank !== 'creator') return; 
+            if (RANKS_POWER[admin.rank] <= RANKS_POWER[value] && admin.rank !== 'creator') return; 
             await Account.updateOne({ uniqueId: targetId }, { rank: value });
         } else if (action === 'ban') {
             await Account.updateOne({ uniqueId: targetId }, { isBanned: true });
@@ -161,7 +152,7 @@ io.on('connection', async (socket) => {
             }
         }
         io.emit('updateUsers', Array.from(activeUsers.values()));
-        if (action === 'setRank') io.emit('newMessage', { text: `Rang módosítva: #${targetId} mostantól ${value}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+        if (action === 'setRank') io.emit('newMessage', { text: `Rang módosítva: #${targetId} -> ${value}`, isSystem: true, senderDisplayName: 'RENDSZER' });
     });
 
     socket.on('sendMessage', async (text) => {
@@ -173,7 +164,7 @@ io.on('connection', async (socket) => {
             return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig!`, isSystem: true, senderDisplayName: 'RENDSZER' });
         }
 
-        // PRIVÁT ÜZENET KEZELÉSE
+        // Privát Üzenet
         if (text.startsWith('/msg ')) {
             const parts = text.split(' ');
             const targetId = parts[1]?.replace('#', '');
@@ -190,30 +181,29 @@ io.on('connection', async (socket) => {
             });
             await pmMsg.save();
 
-            socket.emit('newMessage', pmMsg);
+            socket.emit('newMessage', pmMsg); // Visszakapja a küldő
             for (let [sid, u] of activeUsers.entries()) {
-                if (u.uniqueId === targetId) {
-                    io.to(sid).emit('newMessage', pmMsg);
-                }
+                if (u.uniqueId === targetId) io.to(sid).emit('newMessage', pmMsg); // Megkapja a címzett
             }
             return; 
         }
 
+        // Parancsok
         if (text.startsWith('/')) {
             const args = text.split(' ');
             const cmd = args[0].toLowerCase();
             const targetId = args[1]?.replace('#', '');
             const timeArg = parseInt(args[2]);
 
-            if (cmd === '/clear' && RANKS[user.rank] >= 60) {
+            if (cmd === '/clear' && RANKS_POWER[user.rank] >= 60) {
                 await Message.deleteMany({}); 
                 return io.emit('clearChat'); 
             }
-            if (cmd === '/kick' && targetId && RANKS[user.rank] >= 40) {
+            if (cmd === '/kick' && targetId && RANKS_POWER[user.rank] >= 40) {
                 for (let [sid, u] of activeUsers.entries()) { if (u.uniqueId === targetId) io.sockets.sockets.get(sid)?.disconnect(); }
                 return io.emit('newMessage', { text: `Kidobta #${targetId}-t a chatből.`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
             }
-            if (cmd === '/announce' && args.length > 1 && RANKS[user.rank] >= 60) {
+            if (cmd === '/announce' && args.length > 1 && RANKS_POWER[user.rank] >= 60) {
                 const annMsg = args.slice(1).join(' ');
                 const sysMsg = new Message({ text: `📢 BEJELENTÉS: ${annMsg}`, isSystem: true, senderDisplayName: user.displayName, rank: user.rank });
                 await sysMsg.save();
