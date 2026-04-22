@@ -42,9 +42,12 @@ const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40,
 
 const statusDot = document.getElementById('server-status-dot');
 const statusText = document.getElementById('server-status-text');
+const authPanel = document.getElementById('auth-panel');
+const chatPanel = document.getElementById('chat-panel');
 const messagesContainer = document.getElementById('messages-container');
 const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 const typingIndicator = document.getElementById('typing-indicator');
+const msgInput = document.getElementById('message-input');
 
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -53,38 +56,34 @@ const sidebarOverlay = document.getElementById('sidebar-overlay');
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
+const emojiPanel = document.getElementById('emoji-panel');
+const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-window.toggleEmojiPanel = function(e) {
-    if (e) {
+if(emojiBtn) {
+    emojiBtn.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
-    }
-    const emojiPanel = document.getElementById('emoji-panel');
-    
-    if (emojiPanel.classList.contains('active')) {
-        emojiPanel.classList.remove('active');
-    } else {
-        emojiPanel.classList.add('active');
-        if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
-            fetchGifs('party dance club');
-        }
-    }
-};
-
-document.addEventListener('click', function(event) {
-    const emojiPanel = document.getElementById('emoji-panel');
-    const emojiBtn = document.getElementById('emoji-toggle-btn');
-    if (emojiPanel && emojiPanel.classList.contains('active')) {
-        const isClickInsidePanel = emojiPanel.contains(event.target);
-        const isClickOnButton = emojiBtn.contains(event.target);
         
-        if (!isClickInsidePanel && !isClickOnButton) {
+        if (emojiPanel.classList.contains('active')) {
+            emojiPanel.classList.remove('active');
+        } else {
+            emojiPanel.classList.add('active');
+            if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
+                fetchGifs('party dance club');
+            }
+        }
+    };
+}
+
+document.onclick = function(event) {
+    if (emojiPanel && emojiPanel.classList.contains('active')) {
+        if (!emojiPanel.contains(event.target) && !emojiBtn.contains(event.target)) {
             emojiPanel.classList.remove('active');
         }
     }
-});
+};
 
 const emojisDict = [
     { e: '😀', k: 'mosoly smile happy vidám' }, { e: '😂', k: 'nevet sir lol rofl vicces' },
@@ -105,8 +104,8 @@ const emojisDict = [
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
 function renderEmojis(filterQuery = '') {
+    if(!emojiContainer) return;
     emojiContainer.innerHTML = '';
-    const msgInput = document.getElementById('message-input');
     
     let filteredDict = emojisDict;
     if (filterQuery) {
@@ -142,6 +141,7 @@ renderEmojis();
 
 // TENOR API KERESŐ (GIF)
 async function fetchGifs(query) {
+    if(!gifContainer) return;
     gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
     try {
         const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=LIVDSRZULELA&limit=30`);
@@ -162,14 +162,13 @@ async function fetchGifs(query) {
                 const txt = `[GIF]${gif.media[0].gif.url}`; 
                 if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
                 else socket.emit('sendMessage', txt);
-                const p = document.getElementById('emoji-panel');
-                if(p) p.classList.remove('active');
+                if(emojiPanel) emojiPanel.classList.remove('active');
             };
             gifContainer.appendChild(img);
         });
     } catch(e) {
         console.error(e);
-        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor.</div>';
+        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
     }
 }
 
@@ -187,6 +186,7 @@ if(mediaSearch) {
     });
 }
 
+// FÜL VÁLTÓ (EMOJI <-> GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
@@ -210,6 +210,60 @@ window.switchEmojiTab = function(tab) {
         if (gifContainer && gifContainer.innerHTML.trim() === '') fetchGifs('party dance club');
     }
 }
+
+
+// --- ÚJ: VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
+window.openAdminDashboard = function() {
+    if (myRank !== 'creator') return alert("Ehhez nincs jogosultságod!");
+    const modal = document.getElementById('admin-dashboard-modal');
+    if(modal) modal.classList.add('active');
+    
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Adatok betöltése...</td></tr>';
+    socket.emit('requestAdminData');
+}
+
+socket.on('adminDataResponse', (accounts) => {
+    const list = document.getElementById('admin-users-list');
+    if(!list) return;
+    list.innerHTML = '';
+
+    accounts.forEach(acc => {
+        const isBanned = acc.isBanned;
+        
+        let rankOptions = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'].map(r => {
+            return `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`;
+        }).join('');
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-gray-700/50";
+        tr.innerHTML = `
+            <td class="p-2 text-gray-500 text-xs">#${acc.uniqueId}</td>
+            <td class="p-2 font-mono text-cyan-500 text-xs">${acc.username}</td>
+            <td class="p-2 font-bold">${escapeHTML(acc.displayName)}</td>
+            <td class="p-2">
+                <select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">
+                    ${rankOptions}
+                </select>
+            </td>
+            <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'}">
+                ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
+            </td>
+            <td class="p-2 text-right space-x-2">
+                <button onclick="adminAction('toggleBan', '${acc.uniqueId}')" class="admin-action-btn ${isBanned ? 'text-green-400' : 'text-orange-400'}">${isBanned ? 'Felold' : 'Kitilt'}</button>
+                <button onclick="adminAction('delete', '${acc.uniqueId}')" class="admin-action-btn admin-action-delete">Törlés</button>
+            </td>
+        `;
+        list.appendChild(tr);
+    });
+});
+
+window.adminAction = function(action, targetId, value = null) {
+    if (action === 'delete') {
+        if (!confirm('BIZTOSAN törölni akarod ezt a fiókot az adatbázisból? Ez nem vonható vissza!')) return;
+    }
+    socket.emit('adminDashboardAction', { action, targetId, value });
+}
+
 
 // MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
@@ -239,14 +293,13 @@ if (mobileUsersToggle) mobileUsersToggle.addEventListener('click', openSidebar);
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// FÜLEK (TABS) LOGIKÁJA
+// FÜLEK (TABS) LOGIKÁJA A CHATHEZ
 window.switchTab = function(id) {
     currentTab = id;
     if (pmTabs[id]) pmTabs[id].unread = 0;
     renderTabs();
     renderMessages();
     
-    const msgInput = document.getElementById('message-input');
     if(!msgInput) return;
     if (id === 'main') {
         msgInput.placeholder = "Írj egy üzenetet a fő chatbe (vagy /help)...";
@@ -266,6 +319,7 @@ window.closePMTab = function(e, id) {
 function renderTabs() {
     const tabsDiv = document.getElementById('chat-tabs');
     if(!tabsDiv) return;
+    
     if (Object.keys(pmTabs).length === 0) {
         tabsDiv.classList.add('hidden');
         return;
@@ -559,7 +613,18 @@ socket.on('updateUsers', (users) => {
     users.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
 
     const me = users.find(u => u.uniqueId === myUniqueId);
-    if (me) { myAvatarSeed = me.avatarSeed; myAvatarUrl = me.avatarUrl; myRank = me.rank; }
+    if (me) { 
+        myAvatarSeed = me.avatarSeed; 
+        myAvatarUrl = me.avatarUrl; 
+        myRank = me.rank; 
+
+        // Készítő gomb megjelenítése
+        const dashBtn = document.getElementById('btn-open-dashboard');
+        if(dashBtn) {
+            if(myRank === 'creator') dashBtn.classList.remove('hidden');
+            else dashBtn.classList.add('hidden');
+        }
+    }
 
     if(onlineUsersSidebar) {
         onlineUsersSidebar.innerHTML = '';
@@ -731,6 +796,13 @@ window.handleLoginResponse = function(res) {
         if(chatPanelElem) chatPanelElem.classList.remove('hidden'); 
         if(logoutBtn) logoutBtn.classList.remove('hidden');
         if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
+
+        // Vezérlőpult gomb felfedése
+        if (myRank === 'creator') {
+            const dashBtn = document.getElementById('btn-open-dashboard');
+            if(dashBtn) dashBtn.classList.remove('hidden');
+        }
+
     } else { 
         alert(res.error); 
         window.logout(); 
@@ -792,16 +864,15 @@ if(tabVipElem && tabGuestElem && formVipElem && formGuestElem) {
 }
 
 // Üzenetküldés események
-const msgInputElem = document.getElementById('message-input');
-if(msgInputElem) {
-    msgInputElem.addEventListener('input', () => {
+if(msgInput) {
+    msgInput.addEventListener('input', () => {
         if (!userDisplayName) return;
         socket.emit('typing', true);
         clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => { socket.emit('typing', false); }, 2000); 
     });
 
-    msgInputElem.addEventListener('keypress', e => { 
+    msgInput.addEventListener('keypress', e => { 
         if(e.key === 'Enter') {
             const btn = document.getElementById('send-btn');
             if(btn) btn.click();
@@ -812,8 +883,8 @@ if(msgInputElem) {
 const sendBtn = document.getElementById('send-btn');
 if(sendBtn) {
     sendBtn.addEventListener('click', () => {
-        if(!msgInputElem) return;
-        const text = msgInputElem.value.trim();
+        if(!msgInput) return;
+        const text = msgInput.value.trim();
         if (!text) return;
         
         if (currentTab !== 'main' && !text.startsWith('/')) {
@@ -839,12 +910,12 @@ if(sendBtn) {
                     mc.appendChild(helpDiv);
                     mc.scrollTop = mc.scrollHeight;
                 }
-                msgInputElem.value = '';
+                msgInput.value = '';
                 return;
             }
             socket.emit('sendMessage', text);
         }
-        msgInputElem.value = ''; 
+        msgInput.value = ''; 
         socket.emit('typing', false);
     });
 }
