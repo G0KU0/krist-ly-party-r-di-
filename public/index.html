@@ -62,7 +62,7 @@
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL */
+        /* MODAL (Felugró ablakok) */
         .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
@@ -73,6 +73,46 @@
         .tabs-scroll::-webkit-scrollbar-thumb { background: rgba(217, 70, 239, 0.5); border-radius: 4px; }
         
         .avatar-img { object-fit: cover; object-position: center; }
+
+        /* EMOJI / GIF PANEL STÍLUS */
+        .emoji-panel {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 0;
+            width: 300px;
+            max-width: 90vw;
+            height: 350px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            display: flex;
+            flex-col;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        .emoji-panel.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .gif-img {
+            cursor: pointer;
+            border-radius: 0.5rem;
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+        .gif-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-900 text-white font-sans flex flex-col relative overflow-x-hidden">
@@ -111,7 +151,7 @@
     <!-- MODAL: KÖZÖS PANEL (Privát üzenet + Moderáció) -->
     <div id="user-modal" class="modal">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('user-modal')"></div>
-        <div class="modal-content relative bg-slate-800 border border-slate-700 p-6 rounded-[2rem] w-[340px] shadow-2xl">
+        <div class="modal-content relative bg-slate-800 border border-slate-700 p-6 rounded-[2rem] w-80 shadow-2xl">
             <div class="text-center mb-5">
                 <img id="mod-avatar" src="" class="w-20 h-20 rounded-full mx-auto mb-2 border-4 border-slate-600 avatar-img">
                 <h4 id="mod-name" class="font-bold text-xl text-white">Név</h4>
@@ -124,11 +164,9 @@
 
             <!-- MODERÁCIÓ -->
             <div id="mod-section" class="hidden border-t border-slate-700 pt-4 flex flex-col gap-3">
-                <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-1">Rang Kiosztása</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold text-center">Moderációs Rendszer</p>
                 <div id="rank-buttons" class="grid grid-cols-2 gap-2"></div>
-                
-                <p class="text-[10px] text-slate-400 uppercase font-bold text-center mt-2 mb-1">Büntetések</p>
-                <div id="punish-buttons" class="grid grid-cols-2 gap-2">
+                <div id="punish-buttons" class="grid grid-cols-2 gap-2 mt-2">
                     <button id="btn-mute" class="bg-yellow-600/20 border border-yellow-500 hover:bg-yellow-600 text-yellow-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">NÉMÍT (10p)</button>
                     <button id="btn-kick" class="bg-orange-600/20 border border-orange-500 hover:bg-orange-600 text-orange-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">KIDOBÁS</button>
                 </div>
@@ -214,17 +252,33 @@
                             Valaki éppen ír...
                         </div>
 
+                        <!-- EMOJI ÉS GIF PANEL -->
+                        <div id="emoji-panel" class="emoji-panel flex flex-col">
+                            <div class="flex border-b border-white/10 shrink-0 bg-slate-900/80">
+                                <button onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
+                                <button onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
+                            </div>
+                            <!-- EMOJIK -->
+                            <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-2 text-3xl items-center text-center">
+                                <!-- JS Tölti be -->
+                            </div>
+                            <!-- GIFEK -->
+                            <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden">
+                                <!-- JS Tölti be -->
+                            </div>
+                        </div>
+
                         <!-- Bemeneti / Regisztrációs Terület -->
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-10">
+                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-20 relative">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
                                 <div class="flex gap-2 border-b border-gray-700/80 pb-2">
-                                    <button id="tab-vip" class="flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors">Regisztrált Tag</button>
-                                    <button id="tab-guest" class="flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors">Vendég</button>
+                                    <button id="tab-vip" class="flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors">V.I.P / Regisztrált</button>
+                                    <button id="tab-guest" class="flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors">Vendég (Reg. nélkül)</button>
                                 </div>
 
                                 <div id="form-vip" class="flex flex-col gap-2">
-                                    <p class="text-[10px] text-cyan-400/80">A bejelentkezéshez (titkos) Felhasználónevet adj meg!</p>
+                                    <p class="text-[10px] text-cyan-400/80">A bejelentkezéshez (titkos) Felhasználónevet adj meg, ne a Megjelenítőt!</p>
                                     <div class="flex flex-col sm:flex-row gap-2">
                                         <input type="text" id="vip-username" class="flex-grow bg-gray-900/80 border border-gray-600 rounded-xl px-3 py-2 text-white text-sm input-glow transition-all" placeholder="Felhasználónév (Login)" maxlength="15">
                                         <input type="password" id="vip-password" class="flex-grow bg-gray-900/80 border border-gray-600 rounded-xl px-3 py-2 text-white text-sm input-glow transition-all" placeholder="Jelszó">
@@ -242,6 +296,11 @@
                             </div>
 
                             <div id="chat-panel" class="flex gap-2 hidden relative">
+                                <!-- EMOJI GOMB -->
+                                <button id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-xl w-10 sm:w-11 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                                    😀
+                                </button>
+                                
                                 <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj egy üzenetet (vagy /help a parancsokért)..." autocomplete="off">
                                 <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 group">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
@@ -301,7 +360,7 @@
         audio.addEventListener('waiting', () => { icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden'); visualizer.classList.remove('playing-animation'); });
         audio.addEventListener('playing', () => { icons.load.classList.add('hidden'); icons.play.classList.add('hidden'); icons.pause.classList.remove('hidden'); visualizer.classList.add('playing-animation'); });
 
-        // CHAT LOGIKA ÉS FÜLEK
+        // CHAT LOGIKA
         const socket = io(); 
         
         let userDisplayName = '';
@@ -331,6 +390,79 @@
         
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        // --- EMOJI ÉS GIF PANEL LOGIKA ---
+        const emojiPanel = document.getElementById('emoji-panel');
+        const emojiBtn = document.getElementById('emoji-toggle-btn');
+        
+        // Emojik generálása
+        const emojis = ['😀','😂','🤣','😍','😎','🥳','🤩','😜','🤪','🤫','🤔','🤐','🤬','🤯','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','💔','❤️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💯','💢','💥','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','💃','🕺','🕴️','👯','👯‍♂️','👯‍♀️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
+        const emojiContainer = document.getElementById('content-emojis');
+        emojis.forEach(em => {
+            const span = document.createElement('span');
+            span.innerText = em;
+            span.className = "cursor-pointer hover:scale-125 transition-transform";
+            span.onclick = () => {
+                msgInput.value += em;
+                msgInput.focus();
+            };
+            emojiContainer.appendChild(span);
+        });
+
+        // Buli GIF-ek generálása
+        const gifs = [
+            'https://media.giphy.com/media/tqfS3X0192w0/giphy.gif', // Táncoló macska
+            'https://media.giphy.com/media/11s7Ke7jcNxCHS/giphy.gif', // Minion
+            'https://media.giphy.com/media/13hxeOYjoTWtK8/giphy.gif', // Carlton
+            'https://media.giphy.com/media/3o7TKrEzvPNxPTi58c/giphy.gif', // Disco
+            'https://media.giphy.com/media/l41Yh18f5TbiWcdmh/giphy.gif', // Buli arc
+            'https://media.giphy.com/media/14qb1Uhf40ndw4/giphy.gif', // Pepe tánc
+            'https://media.giphy.com/media/YRtLgsajXrz1FNJ6oy/giphy.gif', // Kermit tánc
+            'https://media.giphy.com/media/blSTtZehjAZ8I/giphy.gif' // Tűzijáték
+        ];
+        const gifContainer = document.getElementById('content-gifs');
+        gifs.forEach(g => {
+            const img = document.createElement('img');
+            img.src = g;
+            img.className = "gif-img";
+            img.onclick = () => {
+                // GIF Küldése [GIF] előtaggal azonnal
+                const txt = `[GIF]${g}`;
+                if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
+                else socket.emit('sendMessage', txt);
+                emojiPanel.classList.remove('active');
+            };
+            gifContainer.appendChild(img);
+        });
+
+        // Emoji panel megnyitása / bezárása
+        emojiBtn.onclick = () => emojiPanel.classList.toggle('active');
+        document.addEventListener('click', (e) => {
+            if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
+                emojiPanel.classList.remove('active');
+            }
+        });
+
+        // Emoji / GIF tab váltó
+        window.switchEmojiTab = function(tab) {
+            const eBtn = document.getElementById('tab-btn-emojis');
+            const gBtn = document.getElementById('tab-btn-gifs');
+            const eCont = document.getElementById('content-emojis');
+            const gCont = document.getElementById('content-gifs');
+            
+            if (tab === 'emojis') {
+                eBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+                gBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+                eCont.classList.remove('hidden');
+                gCont.classList.add('hidden');
+            } else {
+                gBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+                eBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+                gCont.classList.remove('hidden');
+                eCont.classList.add('hidden');
+            }
+        }
+
 
         // MOBILOS MENÜ LOGIKA
         function openSidebar() {
@@ -482,14 +614,12 @@
             const targetAvatar = targetUser ? getAvatarUrl(targetUser.avatarSeed, targetUser.avatarUrl, name) : getAvatarUrl('', '', name);
             document.getElementById('mod-avatar').src = targetAvatar;
             
-            // Privát üzenet gomb működése
             document.getElementById('btn-pm').onclick = () => {
                 openPMTabFromUser(id, name);
                 closeModal('user-modal');
                 if (window.innerWidth < 1024) closeSidebar();
             };
 
-            // Moderációs menü jogosultság alapján
             const modSection = document.getElementById('mod-section');
             const btnBox = document.getElementById('rank-buttons');
             btnBox.innerHTML = '';
@@ -499,20 +629,18 @@
             if (canMod) {
                 modSection.classList.remove('hidden');
                 
-                // TAILWIND FIX: Statikus osztálynevek, hogy a rendszer biztosan lefordítsa őket!
                 if (RANKS_POWER[myRank] >= 60) {
                     const ranksToOffer = [
-                        { key: 'owner', label: '👑 TULAJDONOS', classes: 'bg-purple-900/40 border-purple-500/50 hover:bg-purple-600 text-purple-200', min: 100 },
-                        { key: 'admin', label: '🛡️ ADMIN', classes: 'bg-orange-900/40 border-orange-500/50 hover:bg-orange-600 text-orange-200', min: 80 },
-                        { key: 'moderator', label: '⚔️ MODERÁTOR', classes: 'bg-green-900/40 border-green-500/50 hover:bg-green-600 text-green-200', min: 60 },
-                        { key: 'vip', label: '💎 VIP', classes: 'bg-blue-900/40 border-blue-500/50 hover:bg-blue-600 text-blue-200', min: 60 },
-                        { key: 'user', label: '👤 TAG', classes: 'bg-slate-800 border-slate-600 hover:bg-slate-600 text-slate-200', min: 60 }
+                        { key: 'owner', label: '👑 TULAJDONOS', color: 'purple', min: 100 },
+                        { key: 'admin', label: '🛡️ ADMIN', color: 'orange', min: 80 },
+                        { key: 'moderator', label: '⚔️ MODERÁTOR', color: 'green', min: 60 },
+                        { key: 'user', label: '👤 TAG', color: 'slate', min: 60 }
                     ];
 
                     ranksToOffer.forEach(r => {
                         if ((RANKS_POWER[myRank] >= r.min || myRank === 'creator') && rank !== r.key) {
                             const b = document.createElement('button');
-                            b.className = `${r.classes} py-2 rounded-xl text-[10px] font-bold transition border`;
+                            b.className = `bg-${r.color}-900/40 border border-${r.color}-500/50 hover:bg-${r.color}-600 py-2 rounded-xl text-[10px] font-bold transition`;
                             b.innerText = r.label;
                             b.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'setRank', value: r.key }); closeModal('user-modal'); };
                             btnBox.appendChild(b);
@@ -524,7 +652,7 @@
                 document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
                 
                 const banBtn = document.getElementById('btn-ban');
-                if (RANKS_POWER[myRank] >= 60) { // Admin felett
+                if (RANKS_POWER[myRank] >= 60) {
                     banBtn.classList.remove('hidden');
                     banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
                 } else {
@@ -635,7 +763,6 @@
                 else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
                 else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
                 else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
-                else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
                 
                 const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
                 const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
@@ -699,6 +826,13 @@
                     messagesContainer.appendChild(div); return;
                 }
 
+                // GIF RENDERELÉSE: Ha az üzenet eleje [GIF], akkor képként jelenítjük meg
+                let msgTextHtml = escapeHTML(msg.text);
+                if (msg.text.startsWith('[GIF]')) {
+                    const gifUrl = msg.text.replace('[GIF]', '');
+                    msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
+                }
+
                 let bubbleClass = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
                 if (isPM) bubbleClass = 'pm-bubble text-white font-medium';
                 else if (msg.rank === 'creator') bubbleClass = 'creator-bubble text-white';
@@ -739,7 +873,7 @@
                                     ${badgeHtml}
                                     <span class="${nameClass} ml-2">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
                                 </div>
-                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
+                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words w-auto inline-block">${msgTextHtml}</div>
                             </div>
                             <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1">
                                 <img src="${getAvatarUrl(msg.avatarSeed, msg.avatarUrl, msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm avatar-img">
@@ -758,7 +892,7 @@
                                     ${badgeHtml}
                                     <span class="text-[9px] sm:text-[10px] text-gray-500 ml-2 font-medium">${formatTime(msg.createdAt)}</span>
                                 </div>
-                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tl-sm shadow-sm text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
+                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tl-sm shadow-sm text-sm sm:text-base break-words w-auto inline-block">${msgTextHtml}</div>
                             </div>
                         </div>`;
                 }
