@@ -9,16 +9,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        /* Animációk és Alapok */
         @keyframes gradient-xy { 0%, 100% { background-size: 400% 400%; background-position: left center; } 50% { background-size: 200% 200%; background-position: right center; } }
         .animate-gradient-xy { animation: gradient-xy 15s ease infinite; }
-        
         @keyframes pulse-ring { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
         .playing-animation { animation: pulse-ring 2s infinite; }
-        
         @keyframes vipGradientAnim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* Hangerőszabályzó és Gördítősáv */
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4B5563; border-radius: 2px; }
         
@@ -27,44 +23,39 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 10px; }
         .input-glow:focus { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.6); outline: none; }
 
-        /* JELVÉNYEK ÉS RANG SZÍNEK (Az összes új ranggal) */
+        /* JELVÉNYEK ÉS STÍLUSOK */
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 5px; color: white; border: 1px solid rgba(255,255,255,0.1); }
-        
         .badge-creator { background: linear-gradient(90deg, #990000, #ff0000); border-color: gold; box-shadow: 0 0 8px rgba(255,0,0,0.5); }
-        .badge-owner { background: linear-gradient(135deg, #7e22ce, #c026d3); border-color: #f0abfc; box-shadow: 0 0 8px rgba(192,38,211,0.5); }
+        .badge-owner { background: #7e22ce; }
         .badge-admin { background: #d97706; }
         .badge-moderator { background: #15803d; }
         .badge-vip { background: #3b82f6; }
         .badge-guest { background: #4b5563; color: #d1d5db; }
         
         .rank-creator { color: #fca5a5; font-weight: 900; text-shadow: 0 0 5px rgba(255,0,0,0.8); }
-        .rank-owner { color: #f0abfc; font-weight: 900; text-shadow: 0 0 5px rgba(192,38,211,0.8); }
+        .rank-owner { color: #e879f9; font-weight: 800; }
         .rank-admin { color: #fcd34d; font-weight: 800; }
         .rank-moderator { color: #86efac; font-weight: 700; }
         .rank-vip { color: #93c5fd; font-weight: 700; }
         .rank-user { color: #22d3ee; font-weight: 600; }
         .rank-guest { color: #94a3b8; }
         
-        /* BUBORÉKOK */
         .creator-bubble { background: linear-gradient(270deg, #7f1d1d, #b91c1c, #7f1d1d); background-size: 200% 200%; animation: vipGradientAnim 3s ease infinite; border: 1px solid rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .owner-bubble { background: linear-gradient(270deg, #4c1d95, #7e22ce, #4c1d95); background-size: 200% 200%; animation: vipGradientAnim 4s ease infinite; border: 1px solid rgba(192,38,211, 0.6); box-shadow: 0 0 15px rgba(192,38,211, 0.3); }
         .pm-bubble { background: #4a044e; border: 1px solid #d946ef; box-shadow: inset 0 0 15px rgba(217,70,239,0.3); }
-        
+
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
-        /* MOBILOS OLDALSÁV (Sötétítő háttérrel) */
-        #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; z-index: 100 !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
+        /* JAVÍTOTT MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
+        #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 150 !important; }
+        .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px #000; }
         
-        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(4px); }
+        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 140; backdrop-filter: blur(4px); }
         #sidebar-overlay.active { display: block; }
         
-        /* KATTINTHATÓ NEVEK */
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL (Felugró ablakok) */
-        .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 200; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
         .modal.active .modal-content { transform: scale(1); }
@@ -75,20 +66,20 @@
     <div class="fixed inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 animate-gradient-xy opacity-80"></div>
     <div class="fixed inset-0 z-0" style="background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
 
-    <div id="sidebar-overlay"></div>
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-    <!-- MODAL: PROFIL SZERKESZTŐ (Amikor a saját nevedre kattintasz) -->
+    <!-- MODAL: PROFIL SZERKESZTŐ -->
     <div id="profile-modal" class="modal">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('profile-modal')"></div>
         <div class="modal-content relative bg-slate-800 border border-slate-700 p-8 rounded-[2.5rem] w-80 shadow-2xl">
-            <h3 class="text-xl font-bold mb-6 text-center text-cyan-400">Profil Szerkesztése</h3>
+            <h3 class="text-xl font-bold mb-6 text-center text-cyan-400">Saját Profilod</h3>
             <div class="flex flex-col items-center gap-5">
                 <div class="relative cursor-pointer group" onclick="randomAvatar()" title="Kattints új kép generálásához!">
                     <img id="edit-avatar" src="" class="w-24 h-24 rounded-full bg-slate-700 border-4 border-cyan-500 shadow-lg group-hover:scale-105 transition-transform duration-300">
                     <button class="absolute bottom-0 right-0 bg-cyan-500 p-2 rounded-full shadow-lg text-xs">🔄</button>
                 </div>
                 <div class="w-full">
-                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Megjelenítő Név (Chatben ez látszik)</label>
+                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Megjelenítő Név (Ezt látják a többiek)</label>
                     <input type="text" id="edit-displayname" class="w-full bg-slate-900 border border-slate-600 p-3 rounded-2xl text-center font-bold focus:border-cyan-500 outline-none transition shadow-inner">
                 </div>
                 <button onclick="saveProfile()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 py-3 rounded-2xl font-bold hover:opacity-90 transition shadow-lg mt-2">Mentés</button>
@@ -96,7 +87,7 @@
         </div>
     </div>
 
-    <!-- MODAL: KÖZÖS PANEL (Privát üzenet + Moderáció, amikor más nevére kattintasz) -->
+    <!-- MODAL: ADMIN / PRIVÁT ÜZENET PANEL -->
     <div id="user-modal" class="modal">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('user-modal')"></div>
         <div class="modal-content relative bg-slate-800 border border-slate-700 p-6 rounded-[2rem] w-80 shadow-2xl">
@@ -106,12 +97,10 @@
                 <p id="mod-id" class="text-xs text-slate-400">#00000</p>
             </div>
             
-            <!-- PRIVÁT ÜZENET GOMB (Ezt mindenki látja) -->
             <button id="btn-pm" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-3 rounded-2xl font-bold text-sm shadow-lg mb-4 flex items-center justify-center gap-2 transition">
                 💬 PRIVÁT ÜZENET
             </button>
 
-            <!-- MODERÁCIÓ (Csak jogosultaknak jelenik meg dinamikusan) -->
             <div id="mod-section" class="hidden border-t border-slate-700 pt-4 flex flex-col gap-3">
                 <p class="text-[10px] text-slate-400 uppercase font-bold text-center">Moderációs Rendszer</p>
                 <div id="rank-buttons" class="grid grid-cols-2 gap-2"></div>
@@ -131,7 +120,7 @@
 
     <main class="relative z-10 flex-grow flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3 sm:p-4 gap-6 w-full max-w-7xl mx-auto pb-12">
         
-        <!-- RÁDIÓ LEJÁTSZÓ (Mobilon középen, asztalin bal oldalt) -->
+        <!-- RÁDIÓ LEJÁTSZÓ -->
         <div class="w-full max-w-md lg:max-w-none lg:w-4/12 flex flex-col gap-4 sm:gap-6 shrink-0">
             <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
                  <h3 class="text-lg font-bold text-cyan-400 mb-1 flex justify-center items-center gap-2">Élő Adás</h3>
@@ -155,12 +144,12 @@
             </div>
         </div>
 
-        <!-- CHAT SZEKCIÓ -->
+        <!-- CHAT SZEKCIÓ (Javított magasság mobilon) -->
         <div class="w-full max-w-md lg:max-w-none lg:w-8/12 flex justify-center">
-            <div class="w-full bg-gray-800/70 backdrop-blur-2xl border border-gray-600/30 rounded-[2rem] shadow-2xl flex flex-col h-[550px] lg:h-[650px] overflow-hidden relative">
+            <div class="w-full bg-gray-800/70 backdrop-blur-2xl border border-gray-600/30 rounded-[2rem] shadow-2xl flex flex-col h-[75vh] min-h-[500px] lg:h-[650px] overflow-hidden relative">
                 
                 <!-- Chat Fejléc -->
-                <div class="bg-gray-900/60 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-700/50 flex justify-between items-center shrink-0">
+                <div class="bg-gray-900/60 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-700/50 flex justify-between items-center shrink-0 z-20">
                     <div class="flex items-center gap-3">
                         <div class="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" /></svg>
@@ -174,12 +163,8 @@
                         </div>
                     </div>
                     
-                    <div class="flex items-center gap-2">
-                        <!-- ÚJ KILÉPÉS GOMB -->
-                        <button id="logout-btn" onclick="logout()" class="hidden lg:flex bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors items-center gap-1">
-                            🚪 Kilépés
-                        </button>
-                        <!-- Mobilos Taglista Gomb -->
+                    <div class="flex gap-2">
+                        <button id="logout-btn" onclick="logout()" class="hidden lg:flex bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors items-center">🚪 Kilépés</button>
                         <button id="mobile-users-toggle" class="lg:hidden flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors">
                             <span class="text-xs font-bold text-gray-300">👥 Tagok</span>
                             <span id="mobile-online-count" class="bg-cyan-500 text-gray-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">0</span>
@@ -189,19 +174,18 @@
 
                 <div class="flex flex-grow overflow-hidden relative">
                     
-                    <!-- Chat Fal (Bal oldal) -->
+                    <!-- Chat Fal -->
                     <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50">
                         <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
                             <!-- Üzenetek -->
                         </div>
 
-                        <!-- Gépelés indikátor -->
                         <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">
                             Valaki éppen ír...
                         </div>
 
-                        <!-- Bemeneti / Regisztrációs Terület -->
-                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-10">
+                        <!-- Bemeneti Terület -->
+                        <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-20">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
                                 <div class="flex gap-2 border-b border-gray-700/80 pb-2">
@@ -228,7 +212,7 @@
                             </div>
 
                             <div id="chat-panel" class="flex gap-2 hidden relative">
-                                <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj egy üzenetet (vagy /help a parancsokért)..." autocomplete="off">
+                                <input type="text" id="message-input" class="flex-grow bg-gray-800/80 border border-gray-600 rounded-xl px-4 py-2.5 text-white text-sm input-glow transition-all" placeholder="Írj egy üzenetet (vagy /help)..." autocomplete="off">
                                 <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 shrink-0 group">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform rotate-90 group-hover:rotate-45 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                                 </button>
@@ -237,15 +221,14 @@
                         </div>
                     </div>
 
-                    <!-- Jobb Oldali Felhasználói Lista -->
-                    <div id="users-sidebar-container" class="fixed lg:static inset-y-0 right-0 w-72 lg:w-1/4 bg-slate-900 border-l border-gray-700/50 translate-x-full lg:translate-x-0 flex flex-col z-50">
+                    <!-- Jobb Oldali Felhasználói Lista (Sötétítő hálót kijavítottuk) -->
+                    <div id="users-sidebar-container" class="fixed lg:static inset-y-0 right-0 w-72 lg:w-1/4 bg-slate-900 border-l border-gray-700/50 translate-x-full lg:translate-x-0 flex flex-col z-[150]">
                         <div class="p-3 sm:p-4 border-b border-gray-700/50 bg-gray-900/80 flex justify-between items-center shadow-md">
                             <h3 class="text-sm font-bold text-gray-300">Online Tagok</h3>
                             <button id="close-sidebar-btn" class="lg:hidden text-gray-400 hover:text-white p-1 bg-slate-800 rounded">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
-                            <!-- Mobilos Kilépés Gomb (csak akkor látszik, ha megnyitják a menüt) -->
-                            <button onclick="logout()" class="lg:hidden ml-auto mr-2 bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors">🚪 Kilépés</button>
+                            <button onclick="logout()" class="lg:hidden ml-auto mr-2 bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors hidden" id="mobile-logout">🚪 Kilépés</button>
                             <span id="online-count" class="hidden lg:inline-block bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
                         </div>
                         <div id="online-users-sidebar" class="flex-grow overflow-y-auto custom-scroll p-3 flex flex-col gap-2 relative"></div>
@@ -257,7 +240,6 @@
     </main>
 
     <script>
-        // RÁDIÓ LOGIKA
         const audio = document.getElementById('radio-stream');
         const playBtn = document.getElementById('play-pause-btn');
         const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -291,7 +273,6 @@
         let allMessages = []; 
         let selectedUserId = null;
 
-        // HIERARCHIA SÚLYOK
         const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
 
         const statusDot = document.getElementById('server-status-dot');
@@ -306,26 +287,6 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // AUTO-LOGIN RENDSZER (Minden oldalbetöltéskor lefut)
-        window.onload = () => {
-            const savedUser = localStorage.getItem('radio_user');
-            const savedPass = localStorage.getItem('radio_pass');
-            const savedGuest = localStorage.getItem('radio_guest');
-
-            if (savedUser && savedPass) {
-                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
-            } else if (savedGuest) {
-                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
-            }
-        };
-
-        function logout() {
-            localStorage.removeItem('radio_user');
-            localStorage.removeItem('radio_pass');
-            localStorage.removeItem('radio_guest');
-            location.reload(); // Oldal frissítése a kezdőállapotba
-        }
-
         function openSidebar() { sidebarContainer.classList.add('mobile-sidebar-open'); sidebarOverlay.classList.add('active'); }
         function closeSidebar() { sidebarContainer.classList.remove('mobile-sidebar-open'); sidebarOverlay.classList.remove('active'); }
 
@@ -337,7 +298,75 @@
         function getAvatarUrl(name) { return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`; }
         function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
-        // --- KATTINTHATÓ NEVEK (Profil és Moderáció) ---
+        // --- MENTÉS LOGIKA ÉS HÁTTÉR-ÚJRACSATLAKOZÁS ---
+        socket.on('connect', () => {
+            statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
+            statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
+            statusDot.classList.remove('animate-pulse');
+            statusText.textContent = 'Szerver Online';
+
+            // Ha megszakadt a net (vagy frissítette az oldalt), a gép emlékszik a bejelentkezésre!
+            const savedUser = localStorage.getItem('radio_user');
+            const savedPass = localStorage.getItem('radio_pass');
+            const savedGuest = localStorage.getItem('radio_guest');
+
+            if (savedUser && savedPass) {
+                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
+            } else if (savedGuest) {
+                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
+            } else {
+                authPanel.classList.remove('hidden');
+                chatPanel.classList.add('hidden');
+            }
+        });
+
+        function handleLoginResponse(res) {
+            if (res.success) {
+                userDisplayName = res.user.displayName; 
+                myUniqueId = res.user.uniqueId; 
+                myRank = res.user.rank;
+                myAvatarSeed = res.user.avatarSeed;
+                authPanel.classList.add('hidden'); 
+                chatPanel.classList.remove('hidden'); 
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('mobile-logout').classList.remove('hidden');
+            } else { 
+                alert(res.error); 
+                logout(); // Hibás mentésnél törlünk
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('radio_user');
+            localStorage.removeItem('radio_pass');
+            localStorage.removeItem('radio_guest');
+            location.reload(); 
+        }
+
+        function attemptLogin(isGuest) {
+            const user = isGuest ? document.getElementById('guest-username').value.trim() : document.getElementById('vip-username').value.trim();
+            const pass = isGuest ? '' : document.getElementById('vip-password').value.trim();
+            
+            if(!isGuest && (!user || !pass)) return alert("Add meg a nevet és a jelszót is!");
+            if(isGuest && !user) return alert("Adj meg egy becenevet!");
+
+            socket.emit('login', { username: user, password: pass, isGuest: isGuest }, (res) => {
+                if (res.success) {
+                    if (!isGuest) {
+                        localStorage.setItem('radio_user', user);
+                        localStorage.setItem('radio_pass', pass);
+                        localStorage.removeItem('radio_guest');
+                    } else {
+                        localStorage.setItem('radio_guest', user);
+                        localStorage.removeItem('radio_user');
+                        localStorage.removeItem('radio_pass');
+                    }
+                    handleLoginResponse(res);
+                } else alert(res.error);
+            });
+        }
+
+        // KATTINTHATÓ NEVEK
         window.handleNameClick = function(id, name, rank) {
             if(!myUniqueId) return;
             if(id === myUniqueId) { 
@@ -365,25 +394,20 @@
             document.getElementById('mod-id').innerText = "#" + id;
             document.getElementById('mod-avatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${id}`;
             
-            // Privát üzenet gomb működése
             document.getElementById('btn-pm').onclick = () => {
                 msgInput.value = `/msg #${id} `;
                 msgInput.focus();
                 closeModal('user-modal');
-                if (window.innerWidth < 1024) closeSidebar();
+                closeSidebar();
             };
 
-            // Moderációs menü jogosultság alapján
             const modSection = document.getElementById('mod-section');
             const btnBox = document.getElementById('rank-buttons');
             btnBox.innerHTML = '';
             
-            const canMod = RANKS_POWER[myRank] >= 40 && (RANKS_POWER[myRank] > RANKS_POWER[rank] || myRank === 'creator') && rank !== 'creator';
-
-            if (canMod) {
+            if (RANKS_POWER[myRank] >= 40 && (RANKS_POWER[myRank] > RANKS_POWER[rank] || myRank === 'creator') && rank !== 'creator') {
                 modSection.classList.remove('hidden');
                 
-                // Csak akkor adhat rangot, ha legalább Admin (60)
                 if (RANKS_POWER[myRank] >= 60) {
                     const ranksToOffer = [
                         { key: 'owner', label: '👑 TULAJDONOS', color: 'purple', min: 100 },
@@ -407,12 +431,10 @@
                 document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
                 
                 const banBtn = document.getElementById('btn-ban');
-                if (RANKS_POWER[myRank] >= 60) { // Admin felett
+                if (RANKS_POWER[myRank] >= 60) {
                     banBtn.classList.remove('hidden');
                     banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
-                } else {
-                    banBtn.classList.add('hidden');
-                }
+                } else { banBtn.classList.add('hidden'); }
             } else {
                 modSection.classList.add('hidden');
             }
@@ -433,14 +455,6 @@
             userDisplayName = name; myAvatarSeed = tempSeed;
             closeModal('profile-modal');
         }
-
-        socket.on('connect', () => {
-            statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
-            statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
-            statusDot.classList.remove('animate-pulse');
-            statusText.textContent = 'Szerver Online';
-            if(!myUser) authPanel.classList.remove('hidden');
-        });
 
         socket.on('disconnect', () => {
             statusDot.classList.replace('bg-green-500', 'bg-red-500');
@@ -476,12 +490,11 @@
                 else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
                 else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
                 else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
-                else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
                 
                 const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
                 const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
                 
-                const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
+                const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
 
                 const div = document.createElement('div');
                 div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
@@ -547,7 +560,7 @@
 
                 let pmHeader = '';
                 if (isPM) {
-                    const dirText = isMe ? `💬 Privát üzenet tőled neki: #${escapeHTML(msg.recipientUniqueId)}` : `💬 Privát üzenet tőle: ${escapeHTML(msg.senderDisplayName)}`;
+                    const dirText = isMe ? `💬 Privát tőled neki: #${escapeHTML(msg.recipientUniqueId)}` : `💬 Privát tőle: ${escapeHTML(msg.senderDisplayName)}`;
                     pmHeader = `<div class="text-[9px] text-fuchsia-400 font-black mb-1 bg-black/40 rounded py-1 px-3 border border-fuchsia-500/30 inline-block">${dirText}</div>`;
                 }
 
@@ -588,46 +601,8 @@
         tabVip.addEventListener('click', () => { tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formVip.classList.remove('hidden'); formGuest.classList.add('hidden'); });
         tabGuest.addEventListener('click', () => { tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formGuest.classList.remove('hidden'); formVip.classList.add('hidden'); });
 
-        function handleLoginResponse(res) {
-            if (res.success) {
-                userDisplayName = res.user.displayName; 
-                myUniqueId = res.user.uniqueId; 
-                myRank = res.user.rank;
-                authPanel.classList.add('hidden'); 
-                chatPanel.classList.remove('hidden'); 
-                document.getElementById('logout-btn').classList.remove('hidden');
-                msgInput.focus();
-            } else { 
-                alert(res.error); 
-                logout(); // Hibás jelszónál kitörli a mentett adatot
-            }
-        }
-
-        function attemptLogin(user, pass, isGuest) {
-            socket.emit('login', { username: user, password: pass, isGuest: isGuest }, (res) => {
-                if (res.success) {
-                    if (!isGuest) {
-                        localStorage.setItem('radio_user', user);
-                        localStorage.setItem('radio_pass', pass);
-                        localStorage.removeItem('radio_guest');
-                    } else {
-                        localStorage.setItem('radio_guest', user);
-                        localStorage.removeItem('radio_user');
-                        localStorage.removeItem('radio_pass');
-                    }
-                    handleLoginResponse(res);
-                } else alert(res.error);
-            });
-        }
-
-        document.getElementById('btn-guest-login').addEventListener('click', () => attemptLogin(document.getElementById('guest-username').value.trim(), '', true));
-        document.getElementById('btn-vip-login').addEventListener('click', () => {
-            let u = document.getElementById('vip-username').value.trim();
-            let p = document.getElementById('vip-password').value.trim();
-            if(!u || !p) { alert("Kérlek add meg a Felhasználónevet és a Jelszót is!"); return; }
-            if(u.toLowerCase().includes("vendég")) { alert("A 'Vendég' szót nem használhatod VIP névként!"); return; }
-            attemptLogin(u, p, false);
-        });
+        document.getElementById('btn-guest-login').addEventListener('click', () => attemptLogin(true));
+        document.getElementById('btn-vip-login').addEventListener('click', () => attemptLogin(false));
 
         msgInput.addEventListener('input', () => {
             if (!userDisplayName) return;
@@ -644,7 +619,7 @@
                 const helpDiv = document.createElement('div');
                 helpDiv.className = "bg-slate-800/90 border border-cyan-500 p-4 rounded-xl text-xs text-slate-300 mt-2 mb-2 shadow-lg";
                 helpDiv.innerHTML = `
-                    <h4 class="font-bold text-cyan-400 mb-2">🛡️ PARANCSOK</h4>
+                    <h4 class="font-bold text-cyan-400 mb-2">🛡️ PARANCSOK (Szöveges)</h4>
                     <p><b>/msg #ID üzenet</b> - Privát üzenet küldése</p>
                     <p><b>/ban #ID</b> - Végleges tiltás</p>
                     <p><b>/timeout #ID perc</b> - Időszakos tiltás percekre</p>
@@ -654,6 +629,7 @@
                     <p><b>/kick #ID</b> - Kidobás a chatből</p>
                     <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
                     <p><b>/clear</b> - Teljes chatfal letakarítása</p>
+                    <p class="mt-2 text-yellow-400 italic">*Tipp: Kattints valaki nevére a grafikus Moderációs Panelhez!</p>
                 `;
                 messagesContainer.appendChild(helpDiv);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
