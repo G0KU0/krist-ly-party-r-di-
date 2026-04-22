@@ -51,7 +51,7 @@
         
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
-        /* MOBILOS OLDALSÁV */
+        /* MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
         #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
         .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
         
@@ -62,7 +62,7 @@
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL */
+        /* MODAL (Felugró ablakok) */
         .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
@@ -74,31 +74,31 @@
         
         .avatar-img { object-fit: cover; object-position: center; }
 
-        /* EMOJI / GIF PANEL STÍLUSOK KERESŐVEL */
+        /* --- BIZTONSÁGOS EMOJI / GIF PANEL STÍLUSOK --- */
         .emoji-panel {
             position: absolute;
-            bottom: calc(100% + 10px);
+            bottom: calc(100% + 15px); /* Kicsit feljebb, hogy véletlenül se lógjon bele a gombokba */
             left: 0;
             width: 320px;
-            max-width: 90vw;
-            height: 400px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 95vw;
+            height: 380px;
+            background: rgba(15, 23, 42, 0.98); /* Sötétebb, elegánsabb üveg effekt */
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 1.5rem;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-            z-index: 150; /* Magasabbra téve, hogy biztosan minden felett legyen */
+            box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8);
+            z-index: 9999 !important; /* Garantáltan legfelül! */
             display: flex;
             flex-direction: column;
             opacity: 0;
-            pointer-events: none;
-            transform: translateY(10px);
+            visibility: hidden; /* Ezzel blokkoljuk a véletlen kattintást, amíg láthatatlan */
+            transform: translateY(20px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
         .emoji-panel.active {
             opacity: 1;
-            pointer-events: auto;
+            visibility: visible; /* Csak aktív állapotban lehet rákattintani */
             transform: translateY(0);
         }
         .gif-img {
@@ -160,11 +160,9 @@
             </button>
 
             <div id="mod-section" class="hidden border-t border-slate-700 pt-4 flex flex-col gap-3">
-                <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-1">Rang Kiosztása</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold text-center">Moderációs Rendszer</p>
                 <div id="rank-buttons" class="grid grid-cols-2 gap-2"></div>
-                
-                <p class="text-[10px] text-slate-400 uppercase font-bold text-center mt-2 mb-1">Büntetések</p>
-                <div id="punish-buttons" class="grid grid-cols-2 gap-2">
+                <div id="punish-buttons" class="grid grid-cols-2 gap-2 mt-2">
                     <button id="btn-mute" class="bg-yellow-600/20 border border-yellow-500 hover:bg-yellow-600 text-yellow-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">NÉMÍT (10p)</button>
                     <button id="btn-kick" class="bg-orange-600/20 border border-orange-500 hover:bg-orange-600 text-orange-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">KIDOBÁS</button>
                 </div>
@@ -234,26 +232,12 @@
 
                 <div class="flex flex-grow overflow-hidden relative">
                     
-                    <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50">
+                    <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50 z-10">
                         <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
                             </div>
 
                         <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">
                             Valaki éppen ír...
-                        </div>
-
-                        <div id="emoji-panel" class="emoji-panel">
-                            <div class="flex border-b border-gray-700 shrink-0 bg-slate-900/80">
-                                <button type="button" onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
-                                <button type="button" onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
-                            </div>
-                            <div class="p-2 bg-slate-800 border-b border-gray-700 shrink-0">
-                                <input type="text" id="media-search" placeholder="Keresés (pl. mosoly, party, szív)..." class="w-full bg-slate-900 border border-gray-600 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-cyan-500 transition">
-                            </div>
-                            <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-2 text-3xl items-center text-center">
-                                </div>
-                            <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden">
-                                </div>
                         </div>
 
                         <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-20 relative">
@@ -282,8 +266,22 @@
                                 </div>
                             </div>
 
+                            <div id="emoji-panel" class="emoji-panel">
+                                <div class="flex border-b border-gray-700 shrink-0 bg-slate-900/80">
+                                    <button type="button" onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
+                                    <button type="button" onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
+                                </div>
+                                <div class="p-2 bg-slate-800 border-b border-gray-700 shrink-0">
+                                    <input type="text" id="media-search" placeholder="Keresés (pl. mosoly, party, szív)..." class="w-full bg-slate-900 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500 transition">
+                                </div>
+                                <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-3 text-3xl items-center text-center">
+                                    </div>
+                                <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden">
+                                    </div>
+                            </div>
+
                             <div id="chat-panel" class="flex gap-2 hidden relative">
-                                <button type="button" id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-xl w-10 sm:w-11 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-lg">
+                                <button type="button" onclick="toggleEmojiPanel(event)" id="emoji-toggle-btn" class="bg-slate-700 hover:bg-slate-600 text-2xl w-12 sm:w-14 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-lg cursor-pointer">
                                     😀
                                 </button>
                                 
@@ -374,14 +372,42 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        // --- EMOJI ÉS GIF PANEL LOGIKA ---
-        const emojiPanel = document.getElementById('emoji-panel');
-        const emojiBtn = document.getElementById('emoji-toggle-btn');
+        // --- ÚJ: GOLYÓÁLLÓ EMOJI / GIF PANEL LOGIKA ---
         const mediaSearch = document.getElementById('media-search');
         const emojiContainer = document.getElementById('content-emojis');
         const gifContainer = document.getElementById('content-gifs');
         let currentMediaTab = 'emojis';
         let gifSearchTimeout = null;
+
+        // Emoji Gomb megnyomása
+        window.toggleEmojiPanel = function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            const panel = document.getElementById('emoji-panel');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+            } else {
+                panel.classList.add('active');
+                if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
+                    fetchGifs('party dance club');
+                }
+            }
+        };
+
+        // Kattintás a panelen kívül = bezárás
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('emoji-panel');
+            const btn = document.getElementById('emoji-toggle-btn');
+            
+            if (panel && panel.classList.contains('active')) {
+                const isClickInsidePanel = panel.contains(event.target);
+                const isClickOnButton = btn.contains(event.target);
+                
+                if (!isClickInsidePanel && !isClickOnButton) {
+                    panel.classList.remove('active');
+                }
+            }
+        });
 
         const emojisDict = [
             { e: '😀', k: 'mosoly smile happy vidám' }, { e: '😂', k: 'nevet sir lol rofl vicces' },
@@ -413,7 +439,11 @@
                 const span = document.createElement('span');
                 span.innerText = item.e;
                 span.className = "cursor-pointer hover:scale-125 transition-transform";
-                span.onclick = () => { msgInput.value += item.e; msgInput.focus(); };
+                span.onclick = (e) => { 
+                    e.stopPropagation();
+                    msgInput.value += item.e; 
+                    msgInput.focus(); 
+                };
                 emojiContainer.appendChild(span);
             });
 
@@ -422,7 +452,11 @@
                     const span = document.createElement('span');
                     span.innerText = em;
                     span.className = "cursor-pointer hover:scale-125 transition-transform";
-                    span.onclick = () => { msgInput.value += em; msgInput.focus(); };
+                    span.onclick = (e) => { 
+                        e.stopPropagation();
+                        msgInput.value += em; 
+                        msgInput.focus(); 
+                    };
                     emojiContainer.appendChild(span);
                 });
             }
@@ -451,7 +485,7 @@
                         const txt = `[GIF]${gif.media[0].gif.url}`; 
                         if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
                         else socket.emit('sendMessage', txt);
-                        emojiPanel.classList.remove('active');
+                        document.getElementById('emoji-panel').classList.remove('active');
                     };
                     gifContainer.appendChild(img);
                 });
@@ -473,21 +507,6 @@
             }
         });
 
-        // JAVÍTVA: A GOMB KATTINTÁS BIZTONSÁGOS KEZELÉSE
-        emojiBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // Ne adja tovább a kattintást a body-nak!
-            emojiPanel.classList.toggle('active');
-            if(currentMediaTab === 'gifs' && gifContainer.innerHTML === '') fetchGifs('party dance club');
-        });
-
-        // JAVÍTVA: KÜLSŐ KATTINTÁS ÉRZÉKELÉSE (Szigorított ellenőrzéssel)
-        document.addEventListener('click', (e) => {
-            if (!emojiPanel.contains(e.target) && !emojiBtn.contains(e.target)) {
-                emojiPanel.classList.remove('active');
-            }
-        });
-
         window.switchEmojiTab = function(tab) {
             currentMediaTab = tab;
             const eBtn = document.getElementById('tab-btn-emojis');
@@ -496,15 +515,15 @@
             mediaSearch.value = ''; 
 
             if (tab === 'emojis') {
-                eBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
-                gBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+                eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+                gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
                 emojiContainer.classList.remove('hidden'); 
                 gifContainer.classList.add('hidden');
                 mediaSearch.placeholder = "Keresés (pl. mosoly, party, szív)...";
                 renderEmojis(); 
             } else {
-                gBtn.className = "flex-1 py-2 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
-                eBtn.className = "flex-1 py-2 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+                gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+                eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
                 gifContainer.classList.remove('hidden'); 
                 emojiContainer.classList.add('hidden');
                 mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
@@ -882,7 +901,6 @@
                     messagesContainer.appendChild(div); return;
                 }
 
-                // GIF RENDERELÉSE
                 let msgTextHtml = escapeHTML(msg.text);
                 if (msg.text.startsWith('[GIF]')) {
                     const gifUrl = msg.text.replace('[GIF]', '');
@@ -973,7 +991,6 @@
                 chatPanel.classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('mobile-logout').classList.remove('hidden');
-                msgInput.focus();
             } else { 
                 alert(res.error); 
                 logout(); 
