@@ -24,16 +24,16 @@ const RANKS = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip'
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, default: '' }, // A Vendégeknek nem kötelező jelszó
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
     avatarUrl: { type: String, default: '' },
-    bio: { type: String, default: '' }, // ÚJ: Bio/Státusz mező
+    bio: { type: String, default: '' }, 
     rank: { type: String, default: 'user' },
     isBanned: { type: Boolean, default: false },
     banExpiresAt: { type: Date, default: null },
     muteExpiresAt: { type: Date, default: null },
-    lastIp: { type: String, default: '' }, // ÚJ: IP Cím tárolása
+    lastIp: { type: String, default: '' }, 
     createdAt: { type: Date, default: Date.now }
 });
 const Account = mongoose.model('Account', accountSchema);
@@ -48,8 +48,7 @@ const messageSchema = new mongoose.Schema({
     avatarUrl: { type: String, default: '' }, 
     rank: String,
     isSystem: { type: Boolean, default: false },
-    // ÚJ: 86400 másodperc (24 óra) után a MongoDB automatikusan törli a rekordot!
-    createdAt: { type: Date, default: Date.now, expires: 86400 } 
+    createdAt: { type: Date, default: Date.now, expires: 86400 } // 24 óra után automatikus törlés!
 });
 const Message = mongoose.model('Message', messageSchema);
 
@@ -57,7 +56,6 @@ const activeUsers = new Map();
 
 io.on('connection', async (socket) => {
     
-    // IP lekérése proxy/render szerver mögött is
     const clientIp = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address || socket.conn.remoteAddress;
 
     try {
@@ -72,7 +70,7 @@ io.on('connection', async (socket) => {
         if (!isGuest) {
             const lowUser = username.toLowerCase();
             
-            // ÚJ: DUPLA BEJELENTKEZÉS MEGAKADÁLYOZÁSA (Kidobja a régit)
+            // Dupla belépés gátló
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.username === lowUser) {
                     io.sockets.sockets.get(sid)?.disconnect();
@@ -90,10 +88,8 @@ io.on('connection', async (socket) => {
                 }
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
                 
-                // IP frissítése bejelentkezéskor
                 acc.lastIp = clientIp;
                 await acc.save();
-
             } else {
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
@@ -109,14 +105,21 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            acc = { 
-                displayName: username || "Vendég", 
-                uniqueId: "G" + Math.floor(1000 + Math.random() * 9000), 
-                rank: 'guest', 
-                avatarSeed: socket.id,
+            // ÚJ: VENDÉGEK MENTÉSE AZ ADATBÁZISBA
+            const guestId = "G" + Math.floor(1000 + Math.random() * 9000);
+            const genUsername = `vendeg_${guestId}_${Date.now()}`;
+            
+            acc = new Account({
+                username: genUsername,
+                displayName: username || "Vendég",
+                password: "", 
+                uniqueId: guestId,
+                rank: 'guest',
                 avatarUrl: '',
-                bio: ''
-            };
+                bio: '',
+                lastIp: clientIp
+            });
+            await acc.save();
         }
 
         activeUsers.set(socket.id, {
@@ -146,13 +149,14 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // VEZÉRLŐPULT (ADMIN PANEL) LOGIKA
+    // --- VEZÉRLŐPULT LOGIKA ---
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
         
         try {
-            const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
+            // Most már elküldjük a jelszót is a Creatornak!
+            const allAccounts = await Account.find({}).sort({ createdAt: -1 });
             socket.emit('adminDataResponse', allAccounts);
         } catch(e) { console.error(e); }
     });
@@ -161,7 +165,7 @@ io.on('connection', async (socket) => {
         const admin = activeUsers.get(socket.id);
         if (!admin || admin.rank !== 'creator') return; 
 
-        const { action, targetId, value } = data;
+        const { action, targetId, value, editData } = data;
         
         try {
             if (action === 'delete') {
@@ -185,9 +189,28 @@ io.on('connection', async (socket) => {
                         }
                     }
                 }
+            } else if (action === 'editUser') {
+                // ÚJ: FIÓK TELJESKÖRŰ SZERKESZTÉSE
+                const { newUsername, newDisplayName, newPassword, newUniqueId } = editData;
+                const updateDoc = {};
+                
+                if (newUsername) updateDoc.username = newUsername.toLowerCase();
+                if (newDisplayName) updateDoc.displayName = newDisplayName;
+                if (newPassword !== undefined) updateDoc.password = newPassword;
+                if (newUniqueId) updateDoc.uniqueId = newUniqueId;
+                
+                await Account.updateOne({ uniqueId: targetId }, updateDoc);
+                
+                for (let [sid, u] of activeUsers.entries()) {
+                    if (u.uniqueId === targetId) {
+                        if (newUsername) u.username = newUsername.toLowerCase();
+                        if (newDisplayName) u.displayName = newDisplayName;
+                        if (newUniqueId) u.uniqueId = newUniqueId;
+                    }
+                }
             }
             
-            const allAccounts = await Account.find({}, '-password').sort({ createdAt: -1 });
+            const allAccounts = await Account.find({}).sort({ createdAt: -1 });
             socket.emit('adminDataResponse', allAccounts);
             io.emit('updateUsers', Array.from(activeUsers.values()));
 
@@ -313,13 +336,13 @@ io.on('connection', async (socket) => {
         user.displayName = data.displayName.substring(0, 20);
         user.avatarSeed = data.avatarSeed;
         user.avatarUrl = data.avatarUrl || '';
-        user.bio = data.bio ? data.bio.substring(0, 40) : ''; // ÚJ: Bio mentése a Map-be
+        user.bio = data.bio ? data.bio.substring(0, 40) : ''; 
         
         await Account.updateOne({ uniqueId: user.uniqueId }, { 
             displayName: user.displayName, 
             avatarSeed: user.avatarSeed,
             avatarUrl: user.avatarUrl,
-            bio: user.bio // ÚJ: Bio mentése DB-be
+            bio: user.bio 
         });
         
         io.emit('updateUsers', Array.from(activeUsers.values()));
