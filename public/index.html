@@ -14,18 +14,36 @@
     
     <div class="fixed inset-0 z-0 bg-gradient-to-br from-slate-950 via-blue-900/20 to-purple-900/20 animate-gradient-xy"></div>
 
+    <div class="relative z-40 w-full bg-slate-900/80 backdrop-blur-md border-b border-white/5 py-2 px-4 sm:px-8 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-[0_0_8px_#ef4444]"></span>
+            </span>
+            <span class="text-[10px] sm:text-xs text-red-500 font-black uppercase tracking-widest hidden sm:inline-block">Élő Adás</span>
+            <span class="text-[10px] sm:text-xs text-red-500 font-black uppercase tracking-widest sm:hidden">Élő</span>
+        </div>
+        
+        <div class="flex items-center gap-3 sm:gap-6">
+            <div class="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-full px-3 py-1 shadow-inner">
+                <span id="weather-icon" class="text-sm">🌤️</span>
+                <span id="weather-temp" class="text-xs sm:text-sm font-bold text-slate-300">--°C</span>
+            </div>
+            <div id="live-clock" class="font-mono text-cyan-400 text-xs sm:text-sm tracking-wider font-bold bg-slate-800/60 border border-cyan-900/50 rounded-full px-3 py-1 shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+                00:00:00
+            </div>
+        </div>
+    </div>
+
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
     <div id="admin-dashboard-modal" class="modal">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="closeModal('admin-dashboard-modal')"></div>
         <div class="modal-content relative bg-slate-900 border border-red-500/50 p-4 sm:p-8 rounded-[2rem] w-[95%] max-w-4xl shadow-2xl h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4 shrink-0">
-                <h2 class="text-xl sm:text-2xl font-black text-red-500 tracking-widest flex items-center gap-2">
-                    🛡️ RENDSZER VEZÉRLŐ
-                </h2>
+                <h2 class="text-xl sm:text-2xl font-black text-red-500 tracking-widest flex items-center gap-2">🛡️ RENDSZER VEZÉRLŐ</h2>
                 <button onclick="closeModal('admin-dashboard-modal')" class="text-gray-400 hover:text-white font-bold text-xl">✕</button>
             </div>
-            
             <div class="flex-grow overflow-y-auto custom-scroll pr-2">
                 <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
@@ -38,8 +56,7 @@
                             <th class="p-2 text-right">Műveletek</th>
                         </tr>
                     </thead>
-                    <tbody id="admin-users-list">
-                        </tbody>
+                    <tbody id="admin-users-list"></tbody>
                 </table>
             </div>
         </div>
@@ -75,11 +92,9 @@
                 <h4 id="mod-name" class="font-bold text-xl text-white">Név</h4>
                 <p id="mod-id" class="text-xs text-slate-400">#00000</p>
             </div>
-            
             <button id="btn-pm" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-3 rounded-2xl font-bold text-sm shadow-lg mb-4 flex items-center justify-center gap-2 transition">
                 💬 PRIVÁT ÜZENET
             </button>
-
             <div id="mod-section" class="hidden border-t border-slate-700 pt-4 flex flex-col gap-3">
                 <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-1">Rang Kiosztása</p>
                 <div id="rank-buttons" class="grid grid-cols-2 gap-2"></div>
@@ -93,7 +108,7 @@
         </div>
     </div>
 
-    <header class="relative z-10 pt-6 pb-2 sm:p-8 text-center shrink-0">
+    <header class="relative z-10 pt-4 pb-2 sm:pt-6 sm:p-8 text-center shrink-0">
         <h1 class="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-lg leading-tight">Kristály Party</h1>
         <p class="text-base sm:text-2xl mt-1 text-gray-300 font-light tracking-widest">R Á D I Ó</p>
     </header>
@@ -101,22 +116,36 @@
     <main class="relative z-10 flex-grow flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3 sm:p-4 gap-6 w-full max-w-7xl mx-auto pb-4">
         
         <div class="w-full max-w-md lg:max-w-none lg:w-4/12 flex flex-col gap-4 sm:gap-6 shrink-0">
-            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
-                 <h3 class="text-lg font-bold text-cyan-400 mb-1 flex justify-center items-center gap-2">Élő Adás</h3>
-                 <p class="text-gray-300 text-xs sm:text-sm">A legújabb dance és party slágerek. Dőlj hátra és csevegj!</p>
+            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col items-center">
+                 <h3 class="text-sm font-black text-cyan-400 tracking-widest uppercase mb-1">Most Szól</h3>
+                 <p class="text-white font-medium text-center text-sm sm:text-base">A legújabb dance és party slágerek!</p>
             </div>
 
-            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-[2rem] p-6 sm:p-8 shadow-2xl flex flex-col items-center">
-                <div id="visualizer" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(168,85,247,0.4)] transition-all duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 sm:h-14 sm:w-14 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" /></svg>
+            <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-[2rem] p-6 sm:p-8 shadow-2xl flex flex-col items-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-t from-cyan-900/20 to-transparent pointer-events-none"></div>
+                
+                <div id="visualizer" class="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 border-4 border-cyan-500/30 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(6,182,212,0.3)] transition-all duration-300 relative z-10">
+                    
+                    <svg id="music-icon" xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-cyan-400 drop-shadow-md transition-opacity duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                    
+                    <div id="eq-bars" class="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 transition-opacity duration-300 pointer-events-none h-12 mt-10">
+                        <div class="eq-bar eq-1"></div>
+                        <div class="eq-bar eq-2"></div>
+                        <div class="eq-bar eq-3"></div>
+                        <div class="eq-bar eq-4"></div>
+                        <div class="eq-bar eq-5"></div>
+                    </div>
                 </div>
+
                 <audio id="radio-stream" preload="none"><source src="https://radio-server-autodj.onrender.com/radio.mp3" type="audio/mpeg"></audio>
-                <button id="play-pause-btn" class="w-14 h-14 sm:w-16 sm:h-16 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:bg-gray-200 transition-all focus:outline-none mb-6">
-                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    <svg id="icon-loading" class="animate-spin h-6 w-6 text-gray-900 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                
+                <button id="play-pause-btn" class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-cyan-400 to-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:scale-105 transition-all focus:outline-none mb-8 z-10">
+                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 sm:h-10 sm:w-10 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <svg id="icon-loading" class="animate-spin h-8 w-8 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
-                <div class="w-full flex items-center space-x-3 bg-gray-900/50 p-3 rounded-xl">
+                
+                <div class="w-full flex items-center space-x-3 bg-gray-900/60 p-3.5 rounded-2xl z-10 border border-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
                     <input type="range" id="volume-slider" min="0" max="100" value="80" class="flex-grow appearance-none bg-transparent">
                 </div>
@@ -158,9 +187,12 @@
                 <div class="flex flex-grow overflow-hidden relative">
                     
                     <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50 z-10">
-                        <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12"></div>
+                        <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
+                            </div>
 
-                        <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">Valaki éppen ír...</div>
+                        <div id="typing-indicator" class="absolute bottom-[80px] sm:bottom-[90px] left-4 sm:left-6 text-[10px] sm:text-[11px] bg-gray-900/90 px-3 py-1.5 rounded-full text-cyan-400 italic font-medium hidden shadow-lg border border-cyan-500/30 z-20">
+                            Valaki éppen ír...
+                        </div>
 
                         <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 relative z-20">
                             
