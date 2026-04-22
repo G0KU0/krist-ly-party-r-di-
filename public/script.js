@@ -1,25 +1,101 @@
-// RÁDIÓ LOGIKA
+// --- ÓRA ÉS IDŐJÁRÁS WIDGET LOGIKA ---
+function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const clockEl = document.getElementById('live-clock');
+    if(clockEl) clockEl.innerText = timeString;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+async function fetchWeather() {
+    try {
+        // Alapértelmezetten Magyarország közepére lőtt, ingyenes API
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=47.4984&longitude=19.0404&current_weather=true');
+        const data = await res.json();
+        const temp = Math.round(data.current_weather.temperature);
+        const code = data.current_weather.weathercode;
+        
+        let icon = '🌤️';
+        if(code === 0) icon = '☀️';
+        else if(code >= 1 && code <= 3) icon = '⛅';
+        else if(code >= 45 && code <= 48) icon = '🌫️';
+        else if(code >= 51 && code <= 67) icon = '🌧️';
+        else if(code >= 71 && code <= 77) icon = '❄️';
+        else if(code >= 80 && code <= 82) icon = '🌦️';
+        else if(code >= 95) icon = '⛈️';
+
+        const tempEl = document.getElementById('weather-temp');
+        const iconEl = document.getElementById('weather-icon');
+        if(tempEl) tempEl.innerText = `${temp}°C`;
+        if(iconEl) iconEl.innerText = icon;
+    } catch (err) {
+        const tempEl = document.getElementById('weather-temp');
+        if(tempEl) tempEl.innerText = '--°C';
+    }
+}
+fetchWeather();
+setInterval(fetchWeather, 1800000); // Félóránként frissítjük
+
+// --- RÁDIÓ LOGIKA (FRISSÍTVE EQUALIZERREL) ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
 const visualizer = document.getElementById('visualizer');
 const volumeSlider = document.getElementById('volume-slider');
+const eqBars = document.getElementById('eq-bars');
+const musicIcon = document.getElementById('music-icon');
 
 audio.volume = volumeSlider.value / 100;
+
+function toggleEq(playing) {
+    if (playing) {
+        if(musicIcon) musicIcon.classList.add('opacity-0');
+        if(eqBars) {
+            eqBars.classList.remove('opacity-0');
+            eqBars.classList.add('opacity-100');
+        }
+    } else {
+        if(musicIcon) musicIcon.classList.remove('opacity-0');
+        if(eqBars) {
+            eqBars.classList.add('opacity-0');
+            eqBars.classList.remove('opacity-100');
+        }
+    }
+}
+
 playBtn.addEventListener('click', () => {
     if (audio.paused) {
         const p = audio.play();
         icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden');
-        if (p) p.then(() => { icons.load.classList.add('hidden'); icons.pause.classList.remove('hidden'); visualizer.classList.add('playing-animation'); })
-                .catch(e => { icons.load.classList.add('hidden'); icons.play.classList.remove('hidden'); alert("Hiba a lejátszáskor!"); });
+        if (p) p.then(() => { 
+            icons.load.classList.add('hidden'); 
+            icons.pause.classList.remove('hidden'); 
+            visualizer.classList.add('playing-animation');
+            toggleEq(true);
+        }).catch(e => { 
+            icons.load.classList.add('hidden'); 
+            icons.play.classList.remove('hidden'); 
+            alert("Hiba a lejátszáskor!"); 
+        });
     } else {
         audio.pause();
-        icons.pause.classList.add('hidden'); icons.play.classList.remove('hidden'); visualizer.classList.remove('playing-animation');
+        icons.pause.classList.add('hidden'); icons.play.classList.remove('hidden'); 
+        visualizer.classList.remove('playing-animation');
+        toggleEq(false);
     }
 });
 volumeSlider.addEventListener('input', e => audio.volume = e.target.value / 100);
-audio.addEventListener('waiting', () => { icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden'); visualizer.classList.remove('playing-animation'); });
-audio.addEventListener('playing', () => { icons.load.classList.add('hidden'); icons.play.classList.add('hidden'); icons.pause.classList.remove('hidden'); visualizer.classList.add('playing-animation'); });
+audio.addEventListener('waiting', () => { 
+    icons.play.classList.add('hidden'); icons.pause.classList.add('hidden'); icons.load.classList.remove('hidden'); 
+    visualizer.classList.remove('playing-animation'); 
+    toggleEq(false);
+});
+audio.addEventListener('playing', () => { 
+    icons.load.classList.add('hidden'); icons.play.classList.add('hidden'); icons.pause.classList.remove('hidden'); 
+    visualizer.classList.add('playing-animation'); 
+    toggleEq(true);
+});
 
 // CHAT LOGIKA
 const socket = io(); 
@@ -263,7 +339,6 @@ window.adminAction = function(action, targetId, value = null) {
     }
     socket.emit('adminDashboardAction', { action, targetId, value });
 }
-
 
 // MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
@@ -541,6 +616,8 @@ window.saveProfile = function() {
 }
 
 socket.on('connect', () => {
+    const statusDot = document.getElementById('server-status-dot');
+    const statusText = document.getElementById('server-status-text');
     if(statusDot) {
         statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
         statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
@@ -550,6 +627,8 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
+    const statusDot = document.getElementById('server-status-dot');
+    const statusText = document.getElementById('server-status-text');
     if(statusDot) statusDot.classList.replace('bg-green-500', 'bg-red-500');
     if(statusText) statusText.textContent = 'Nincs Kapcsolat';
 });
@@ -601,6 +680,7 @@ socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     const onlineCount = document.getElementById('online-count');
     const mobOnlineCount = document.getElementById('mobile-online-count');
+    const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
     if(onlineCount) onlineCount.textContent = users.length;
     if(mobOnlineCount) mobOnlineCount.textContent = users.length;
@@ -797,7 +877,6 @@ window.handleLoginResponse = function(res) {
         if(logoutBtn) logoutBtn.classList.remove('hidden');
         if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
 
-        // Vezérlőpult gomb felfedése
         if (myRank === 'creator') {
             const dashBtn = document.getElementById('btn-open-dashboard');
             if(dashBtn) dashBtn.classList.remove('hidden');
@@ -836,7 +915,6 @@ window.attemptLogin = function(isGuest) {
     });
 }
 
-// Belépés Gombok eseményei
 const btnGuestLogin = document.getElementById('btn-guest-login');
 if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(true));
 
@@ -863,7 +941,6 @@ if(tabVipElem && tabGuestElem && formVipElem && formGuestElem) {
     });
 }
 
-// Üzenetküldés események
 if(msgInput) {
     msgInput.addEventListener('input', () => {
         if (!userDisplayName) return;
