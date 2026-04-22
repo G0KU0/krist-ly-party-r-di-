@@ -30,12 +30,14 @@ const RANKS = {
     'guest': 0
 };
 
+// --- ADATMODELLEK (Bővítve az avatarUrl-el) ---
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
     password: { type: String, required: true },
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
+    avatarUrl: { type: String, default: '' }, // ÚJ: Egyéni kép URL
     rank: { type: String, default: 'user' }, 
     isBanned: { type: Boolean, default: false },
     banExpiresAt: { type: Date, default: null },
@@ -48,7 +50,10 @@ const messageSchema = new mongoose.Schema({
     text: String,
     senderDisplayName: String,
     senderUniqueId: String,
-    recipientUniqueId: { type: String, default: null }, // Még benne hagyjuk a sémában a biztonság kedvéért, de nem használjuk PM mentésre
+    recipientUniqueId: { type: String, default: null }, 
+    recipientDisplayName: { type: String, default: null }, 
+    avatarSeed: { type: String, default: '' }, // ÚJ: Elmentjük a képet az üzenethez
+    avatarUrl: { type: String, default: '' }, // ÚJ: Egyéni kép az üzenethez
     rank: String,
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
@@ -60,7 +65,6 @@ const activeUsers = new Map();
 io.on('connection', async (socket) => {
     
     try {
-        // CSAK a publikus üzeneteket töltjük be!
         const publicMessages = await Message.find({ recipientUniqueId: null }).sort({ createdAt: 1 }).limit(100);
         socket.emit('initMessages', publicMessages);
     } catch (e) { console.error(e); }
@@ -87,7 +91,8 @@ io.on('connection', async (socket) => {
                     displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
-                    rank: isCreator ? 'creator' : 'user'
+                    rank: isCreator ? 'creator' : 'user',
+                    avatarUrl: ''
                 });
                 await acc.save();
             }
@@ -96,7 +101,8 @@ io.on('connection', async (socket) => {
                 displayName: username || "Vendég", 
                 uniqueId: "G" + Math.floor(1000 + Math.random() * 9000), 
                 rank: 'guest', 
-                avatarSeed: socket.id 
+                avatarSeed: socket.id,
+                avatarUrl: ''
             };
         }
 
@@ -160,7 +166,6 @@ io.on('connection', async (socket) => {
             return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig!`, isSystem: true, senderDisplayName: 'RENDSZER' });
         }
 
-        // --- ÚJ: PRIVÁT ÜZENET KEZELÉS (CSAK MEMÓRIA) ---
         if (text.startsWith('/msg ')) {
             const parts = text.split(' ');
             const targetId = parts[1]?.replace('#', '');
@@ -172,33 +177,25 @@ io.on('connection', async (socket) => {
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.uniqueId === targetId) targetName = u.displayName;
             }
-            if (targetName === 'Felhasználó') {
-                const acc = await Account.findOne({ uniqueId: targetId });
-                if (acc) targetName = acc.displayName;
-            }
 
-            // Létrehozunk egy memóriabéli objektumot, DE NEM MENTJÜK!
             const pmMsg = {
                 text: pmText,
                 senderDisplayName: user.displayName,
                 senderUniqueId: user.uniqueId,
                 recipientUniqueId: targetId, 
                 recipientDisplayName: targetName,
+                avatarSeed: user.avatarSeed,
+                avatarUrl: user.avatarUrl,
                 rank: user.rank,
                 createdAt: new Date(),
                 isSystem: false
             };
 
-            // Visszaküldjük a küldőnek
             socket.emit('newMessage', pmMsg);
-            
-            // Csak annak az egy embernek küldjük el, aki a címzett
             for (let [sid, u] of activeUsers.entries()) {
-                if (u.uniqueId === targetId) {
-                    io.to(sid).emit('newMessage', pmMsg);
-                }
+                if (u.uniqueId === targetId) io.to(sid).emit('newMessage', pmMsg);
             }
-            return; // Kilépünk a mentés előtt
+            return; 
         }
 
         if (text.startsWith('/')) {
@@ -224,12 +221,14 @@ io.on('connection', async (socket) => {
             return;
         }
 
-        // Fő chat publikus üzenet mentése
+        // Publikus üzenet mentése, hozzácsatolva az Avatart
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
             senderUniqueId: user.uniqueId,
-            rank: user.rank
+            rank: user.rank,
+            avatarSeed: user.avatarSeed,
+            avatarUrl: user.avatarUrl
         });
         await newMsg.save();
         io.emit('newMessage', newMsg);
@@ -238,9 +237,17 @@ io.on('connection', async (socket) => {
     socket.on('updateProfile', async (data) => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank === 'guest') return;
+        
         user.displayName = data.displayName.substring(0, 20);
         user.avatarSeed = data.avatarSeed;
-        await Account.updateOne({ uniqueId: user.uniqueId }, { displayName: user.displayName, avatarSeed: user.avatarSeed });
+        user.avatarUrl = data.avatarUrl || '';
+        
+        await Account.updateOne({ uniqueId: user.uniqueId }, { 
+            displayName: user.displayName, 
+            avatarSeed: user.avatarSeed,
+            avatarUrl: user.avatarUrl
+        });
+        
         io.emit('updateUsers', Array.from(activeUsers.values()));
     });
 
