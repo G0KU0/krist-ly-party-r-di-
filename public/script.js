@@ -42,12 +42,9 @@ const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40,
 
 const statusDot = document.getElementById('server-status-dot');
 const statusText = document.getElementById('server-status-text');
-const authPanel = document.getElementById('auth-panel');
-const chatPanel = document.getElementById('chat-panel');
 const messagesContainer = document.getElementById('messages-container');
 const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 const typingIndicator = document.getElementById('typing-indicator');
-const msgInput = document.getElementById('message-input');
 
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -56,15 +53,15 @@ const sidebarOverlay = document.getElementById('sidebar-overlay');
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
-const emojiPanel = document.getElementById('emoji-panel');
-const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-// 100% MOBIL BIZTOS NYITÁS
-emojiBtn.onclick = function(e) {
-    e.preventDefault();
-    e.stopPropagation();
+window.toggleEmojiPanel = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const emojiPanel = document.getElementById('emoji-panel');
     
     if (emojiPanel.classList.contains('active')) {
         emojiPanel.classList.remove('active');
@@ -76,16 +73,19 @@ emojiBtn.onclick = function(e) {
     }
 };
 
-// ZÁRÁS HA MÁSHOVA KATTINTASZ (VAGY BÖKÖSZ MOBILON)
-document.onclick = function(event) {
+document.addEventListener('click', function(event) {
+    const emojiPanel = document.getElementById('emoji-panel');
+    const emojiBtn = document.getElementById('emoji-toggle-btn');
     if (emojiPanel && emojiPanel.classList.contains('active')) {
-        if (!emojiPanel.contains(event.target) && !emojiBtn.contains(event.target)) {
+        const isClickInsidePanel = emojiPanel.contains(event.target);
+        const isClickOnButton = emojiBtn.contains(event.target);
+        
+        if (!isClickInsidePanel && !isClickOnButton) {
             emojiPanel.classList.remove('active');
         }
     }
-};
+});
 
-// EMOJI SZÓTÁR
 const emojisDict = [
     { e: '😀', k: 'mosoly smile happy vidám' }, { e: '😂', k: 'nevet sir lol rofl vicces' },
     { e: '😍', k: 'szerelem love imádom szív' }, { e: '😎', k: 'menő cool szemüveg' },
@@ -106,6 +106,7 @@ const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','
 
 function renderEmojis(filterQuery = '') {
     emojiContainer.innerHTML = '';
+    const msgInput = document.getElementById('message-input');
     
     let filteredDict = emojisDict;
     if (filterQuery) {
@@ -118,8 +119,7 @@ function renderEmojis(filterQuery = '') {
         span.className = "cursor-pointer hover:scale-125 transition-transform";
         span.onclick = (e) => { 
             e.preventDefault(); e.stopPropagation();
-            msgInput.value += item.e; 
-            msgInput.focus(); 
+            if(msgInput) { msgInput.value += item.e; msgInput.focus(); }
         };
         emojiContainer.appendChild(span);
     });
@@ -131,8 +131,7 @@ function renderEmojis(filterQuery = '') {
             span.className = "cursor-pointer hover:scale-125 transition-transform";
             span.onclick = (e) => { 
                 e.preventDefault(); e.stopPropagation();
-                msgInput.value += em; 
-                msgInput.focus(); 
+                if(msgInput) { msgInput.value += em; msgInput.focus(); }
             };
             emojiContainer.appendChild(span);
         });
@@ -163,65 +162,75 @@ async function fetchGifs(query) {
                 const txt = `[GIF]${gif.media[0].gif.url}`; 
                 if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
                 else socket.emit('sendMessage', txt);
-                emojiPanel.classList.remove('active');
+                const p = document.getElementById('emoji-panel');
+                if(p) p.classList.remove('active');
             };
             gifContainer.appendChild(img);
         });
     } catch(e) {
         console.error(e);
-        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
+        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor.</div>';
     }
 }
 
-mediaSearch.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    if (currentMediaTab === 'emojis') {
-        renderEmojis(query);
-    } else {
-        clearTimeout(gifSearchTimeout);
-        gifSearchTimeout = setTimeout(() => {
-            fetchGifs(query || 'party dance club');
-        }, 600); 
-    }
-});
+if(mediaSearch) {
+    mediaSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (currentMediaTab === 'emojis') {
+            renderEmojis(query);
+        } else {
+            clearTimeout(gifSearchTimeout);
+            gifSearchTimeout = setTimeout(() => {
+                fetchGifs(query || 'party dance club');
+            }, 600); 
+        }
+    });
+}
 
-// FÜL VÁLTÓ (EMOJI <-> GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
     const gBtn = document.getElementById('tab-btn-gifs');
     
-    mediaSearch.value = ''; 
+    if(mediaSearch) mediaSearch.value = ''; 
 
     if (tab === 'emojis') {
-        eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
-        gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
-        emojiContainer.classList.remove('hidden'); 
-        gifContainer.classList.add('hidden');
-        mediaSearch.placeholder = "Keresés (pl. mosoly, party, szív)...";
+        if(eBtn) eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+        if(gBtn) gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+        if(emojiContainer) emojiContainer.classList.remove('hidden'); 
+        if(gifContainer) gifContainer.classList.add('hidden');
+        if(mediaSearch) mediaSearch.placeholder = "Keresés (pl. mosoly, party, szív)...";
         renderEmojis(); 
     } else {
-        gBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
-        eBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
-        gifContainer.classList.remove('hidden'); 
-        emojiContainer.classList.add('hidden');
-        mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
-        if (gifContainer.innerHTML.trim() === '') fetchGifs('party dance club');
+        if(gBtn) gBtn.className = "flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400";
+        if(eBtn) eBtn.className = "flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent";
+        if(gifContainer) gifContainer.classList.remove('hidden'); 
+        if(emojiContainer) emojiContainer.classList.add('hidden');
+        if(mediaSearch) mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
+        if (gifContainer && gifContainer.innerHTML.trim() === '') fetchGifs('party dance club');
     }
 }
 
 // MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
-    sidebarContainer.classList.remove('translate-x-full');
-    sidebarContainer.classList.add('translate-x-0');
-    sidebarOverlay.classList.remove('hidden');
-    sidebarOverlay.classList.add('block');
+    if(sidebarContainer) {
+        sidebarContainer.classList.remove('translate-x-full');
+        sidebarContainer.classList.add('translate-x-0');
+    }
+    if(sidebarOverlay) {
+        sidebarOverlay.classList.remove('hidden');
+        sidebarOverlay.classList.add('block');
+    }
 }
 window.closeSidebar = function() {
-    sidebarContainer.classList.add('translate-x-full');
-    sidebarContainer.classList.remove('translate-x-0');
-    sidebarOverlay.classList.remove('block');
-    sidebarOverlay.classList.add('hidden');
+    if(sidebarContainer) {
+        sidebarContainer.classList.add('translate-x-full');
+        sidebarContainer.classList.remove('translate-x-0');
+    }
+    if(sidebarOverlay) {
+        sidebarOverlay.classList.remove('block');
+        sidebarOverlay.classList.add('hidden');
+    }
 }
 
 const mobileUsersToggle = document.getElementById('mobile-users-toggle');
@@ -230,13 +239,15 @@ if (mobileUsersToggle) mobileUsersToggle.addEventListener('click', openSidebar);
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// FÜLEK (TABS) LOGIKÁJA A CHATHEZ
+// FÜLEK (TABS) LOGIKÁJA
 window.switchTab = function(id) {
     currentTab = id;
     if (pmTabs[id]) pmTabs[id].unread = 0;
     renderTabs();
     renderMessages();
     
+    const msgInput = document.getElementById('message-input');
+    if(!msgInput) return;
     if (id === 'main') {
         msgInput.placeholder = "Írj egy üzenetet a fő chatbe (vagy /help)...";
     } else {
@@ -254,7 +265,7 @@ window.closePMTab = function(e, id) {
 
 function renderTabs() {
     const tabsDiv = document.getElementById('chat-tabs');
-    
+    if(!tabsDiv) return;
     if (Object.keys(pmTabs).length === 0) {
         tabsDiv.classList.add('hidden');
         return;
@@ -475,10 +486,7 @@ window.saveProfile = function() {
     renderTabs();
 }
 
-// SOCKET ESEMÉNYEK
 socket.on('connect', () => {
-    const statusDot = document.getElementById('server-status-dot');
-    const statusText = document.getElementById('server-status-text');
     if(statusDot) {
         statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
         statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
@@ -488,8 +496,6 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
-    const statusDot = document.getElementById('server-status-dot');
-    const statusText = document.getElementById('server-status-text');
     if(statusDot) statusDot.classList.replace('bg-green-500', 'bg-red-500');
     if(statusText) statusText.textContent = 'Nincs Kapcsolat';
 });
@@ -541,7 +547,6 @@ socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     const onlineCount = document.getElementById('online-count');
     const mobOnlineCount = document.getElementById('mobile-online-count');
-    const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
     if(onlineCount) onlineCount.textContent = users.length;
     if(mobOnlineCount) mobOnlineCount.textContent = users.length;
@@ -594,7 +599,6 @@ socket.on('updateUsers', (users) => {
 });
 
 socket.on('typingUpdate', (typists) => {
-    const typingIndicator = document.getElementById('typing-indicator');
     if(!typingIndicator) return;
     const others = typists.filter(u => u.uniqueId !== myUniqueId);
     if (others.length > 0) {
@@ -604,7 +608,6 @@ socket.on('typingUpdate', (typists) => {
 });
 
 function renderMessages() {
-    const messagesContainer = document.getElementById('messages-container');
     if(!messagesContainer) return;
     messagesContainer.innerHTML = '';
     
@@ -768,23 +771,23 @@ if(btnGuestLogin) btnGuestLogin.addEventListener('click', () => attemptLogin(tru
 const btnVipLogin = document.getElementById('btn-vip-login');
 if(btnVipLogin) btnVipLogin.addEventListener('click', () => attemptLogin(false));
 
-const tabVip = document.getElementById('tab-vip'); 
-const tabGuest = document.getElementById('tab-guest');
-const formVip = document.getElementById('form-vip'); 
-const formGuest = document.getElementById('form-guest');
+const tabVipElem = document.getElementById('tab-vip'); 
+const tabGuestElem = document.getElementById('tab-guest');
+const formVipElem = document.getElementById('form-vip'); 
+const formGuestElem = document.getElementById('form-guest');
 
-if(tabVip && tabGuest && formVip && formGuest) {
-    tabVip.addEventListener('click', () => { 
-        tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
-        tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
-        formVip.classList.remove('hidden'); 
-        formGuest.classList.add('hidden'); 
+if(tabVipElem && tabGuestElem && formVipElem && formGuestElem) {
+    tabVipElem.addEventListener('click', () => { 
+        tabVipElem.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
+        tabGuestElem.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
+        formVipElem.classList.remove('hidden'); 
+        formGuestElem.classList.add('hidden'); 
     });
-    tabGuest.addEventListener('click', () => { 
-        tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
-        tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
-        formGuest.classList.remove('hidden'); 
-        formVip.classList.add('hidden'); 
+    tabGuestElem.addEventListener('click', () => { 
+        tabGuestElem.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; 
+        tabVipElem.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; 
+        formGuestElem.classList.remove('hidden'); 
+        formVipElem.classList.add('hidden'); 
     });
 }
 
