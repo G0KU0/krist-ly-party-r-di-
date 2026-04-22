@@ -1,0 +1,104 @@
+/* Animációk és Alapok */
+@keyframes gradient-xy { 0%, 100% { background-size: 400% 400%; background-position: left center; } 50% { background-size: 200% 200%; background-position: right center; } }
+.animate-gradient-xy { animation: gradient-xy 15s ease infinite; }
+
+@keyframes pulse-ring { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
+.playing-animation { animation: pulse-ring 2s infinite; }
+
+@keyframes vipGradientAnim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4B5563; border-radius: 2px; }
+
+.custom-scroll::-webkit-scrollbar { width: 6px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+.input-glow:focus { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.6); outline: none; }
+
+/* JELVÉNYEK ÉS RANG SZÍNEK */
+.badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 5px; color: white; border: 1px solid rgba(255,255,255,0.1); display: inline-block; }
+
+.badge-creator { background: linear-gradient(90deg, #990000, #ff0000); border-color: gold; box-shadow: 0 0 8px rgba(255,0,0,0.5); }
+.badge-owner { background: linear-gradient(135deg, #7e22ce, #c026d3); border-color: #f0abfc; box-shadow: 0 0 8px rgba(192,38,211,0.5); }
+.badge-admin { background: #d97706; }
+.badge-moderator { background: #15803d; }
+.badge-vip { background: #3b82f6; }
+.badge-guest { background: #4b5563; color: #d1d5db; }
+
+.rank-creator { color: #fca5a5; font-weight: 900; text-shadow: 0 0 5px rgba(255,0,0,0.8); }
+.rank-owner { color: #f0abfc; font-weight: 900; text-shadow: 0 0 5px rgba(192,38,211,0.8); }
+.rank-admin { color: #fcd34d; font-weight: 800; }
+.rank-moderator { color: #86efac; font-weight: 700; }
+.rank-vip { color: #93c5fd; font-weight: 700; }
+.rank-user { color: #22d3ee; font-weight: 600; }
+.rank-guest { color: #94a3b8; }
+
+/* BUBORÉKOK */
+.creator-bubble { background: linear-gradient(270deg, #7f1d1d, #b91c1c, #7f1d1d); background-size: 200% 200%; animation: vipGradientAnim 3s ease infinite; border: 1px solid rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+.owner-bubble { background: linear-gradient(270deg, #4c1d95, #7e22ce, #4c1d95); background-size: 200% 200%; animation: vipGradientAnim 4s ease infinite; border: 1px solid rgba(192,38,211, 0.6); box-shadow: 0 0 15px rgba(192,38,211, 0.3); }
+.pm-bubble { background: #4a044e; border: 1px solid #d946ef; box-shadow: inset 0 0 15px rgba(217,70,239,0.3); }
+
+.user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
+
+/* MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
+#users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
+.mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
+
+#sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(4px); }
+#sidebar-overlay.active { display: block; }
+
+/* KATTINTHATÓ NEVEK */
+.editable-name { cursor: pointer; transition: all 0.2s; }
+.editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
+
+/* MODAL (Felugró ablakok) */
+.modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.modal.active { opacity: 1; pointer-events: auto; }
+.modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+.modal.active .modal-content { transform: scale(1); }
+
+/* FÜLEK SCROLL */
+.tabs-scroll::-webkit-scrollbar { height: 4px; }
+.tabs-scroll::-webkit-scrollbar-thumb { background: rgba(217, 70, 239, 0.5); border-radius: 4px; }
+
+.avatar-img { object-fit: cover; object-position: center; }
+
+/* EMOJI / GIF PANEL STÍLUSOK KERESŐVEL */
+.emoji-panel {
+    position: absolute;
+    bottom: calc(100% + 15px); 
+    left: 0;
+    width: 320px;
+    max-width: 95vw;
+    height: 380px;
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 1.5rem;
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.8);
+    z-index: 9999 !important; 
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden; 
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+.emoji-panel.active {
+    opacity: 1;
+    visibility: visible; 
+    transform: translateY(0);
+}
+.gif-img {
+    cursor: pointer;
+    border-radius: 0.5rem;
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+.gif-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+}
