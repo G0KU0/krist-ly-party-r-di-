@@ -25,20 +25,20 @@ const RANKS = {
     'owner': 80,
     'admin': 60,
     'moderator': 40,
-    'vip': 30,
+    'vip': 30, // A VIP a Tag és a Moderátor között van!
     'user': 20,
     'guest': 0
 };
 
-// --- ADATMODELLEK (Bővítve az avatarUrl-el) ---
+// --- ADATMODELLEK ---
 const accountSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, lowercase: true },
     displayName: { type: String, required: true },
     password: { type: String, required: true },
     uniqueId: { type: String, required: true },
     avatarSeed: { type: String, default: () => Math.random().toString(36).substring(7) },
-    avatarUrl: { type: String, default: '' }, // ÚJ: Egyéni kép URL
-    rank: { type: String, default: 'user' }, 
+    avatarUrl: { type: String, default: '' },
+    rank: { type: String, default: 'user' }, // ALAPÉRTELMEZETT RANG: USER (TAG)
     isBanned: { type: Boolean, default: false },
     banExpiresAt: { type: Date, default: null },
     muteExpiresAt: { type: Date, default: null },
@@ -52,8 +52,8 @@ const messageSchema = new mongoose.Schema({
     senderUniqueId: String,
     recipientUniqueId: { type: String, default: null }, 
     recipientDisplayName: { type: String, default: null }, 
-    avatarSeed: { type: String, default: '' }, // ÚJ: Elmentjük a képet az üzenethez
-    avatarUrl: { type: String, default: '' }, // ÚJ: Egyéni kép az üzenethez
+    avatarSeed: { type: String, default: '' }, 
+    avatarUrl: { type: String, default: '' }, 
     rank: String,
     isSystem: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
@@ -91,7 +91,7 @@ io.on('connection', async (socket) => {
                     displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
-                    rank: isCreator ? 'creator' : 'user',
+                    rank: isCreator ? 'creator' : 'user', // ALAPBÓL SIMA TAG
                     avatarUrl: ''
                 });
                 await acc.save();
@@ -177,6 +177,10 @@ io.on('connection', async (socket) => {
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.uniqueId === targetId) targetName = u.displayName;
             }
+            if (targetName === 'Felhasználó') {
+                const acc = await Account.findOne({ uniqueId: targetId });
+                if (acc) targetName = acc.displayName;
+            }
 
             const pmMsg = {
                 text: pmText,
@@ -221,7 +225,6 @@ io.on('connection', async (socket) => {
             return;
         }
 
-        // Publikus üzenet mentése, hozzácsatolva az Avatart
         const newMsg = new Message({
             text: text,
             senderDisplayName: user.displayName,
