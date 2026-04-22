@@ -35,8 +35,7 @@ const accountSchema = new mongoose.Schema({
     muteExpiresAt: { type: Date, default: null },
     lastIp: { type: String, default: '' }, 
     createdAt: { type: Date, default: Date.now },
-    // ÚJ: Automatikus megsemmisítés a vendég fiókoknak! (Ha van értéke, akkor törlődik)
-    guestExpireAt: { type: Date, expires: 0 } 
+    guestExpireAt: { type: Date, expires: 0 } // A MongoDB automatikusan törli, ha ez lejár
 });
 const Account = mongoose.model('Account', accountSchema);
 
@@ -50,7 +49,7 @@ const messageSchema = new mongoose.Schema({
     avatarUrl: { type: String, default: '' }, 
     rank: String,
     isSystem: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now, expires: 86400 } // Chat üzenetek 24h után törlődnek
+    createdAt: { type: Date, default: Date.now, expires: 86400 } // 24h után chat törlés
 });
 const Message = mongoose.model('Message', messageSchema);
 
@@ -66,7 +65,7 @@ io.on('connection', async (socket) => {
     } catch (e) { console.error(e); }
 
     socket.on('login', async (data, callback) => {
-        const { username, password, isGuest } = data;
+        const { username, password, isGuest, guestId } = data;
         let acc;
 
         if (!isGuest) {
@@ -106,23 +105,42 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            // VENDÉGEK MENTÉSE ÉS 24 ÓRÁS TÖRLÉS BEÁLLÍTÁSA
-            const guestId = "G" + Math.floor(1000 + Math.random() * 9000);
-            const genUsername = `vendeg_${guestId}_${Date.now()}`;
-            
-            acc = new Account({
-                username: genUsername,
-                displayName: username || "Vendég",
-                password: "", 
-                uniqueId: guestId,
-                rank: 'guest',
-                avatarUrl: '',
-                bio: '',
-                lastIp: clientIp,
-                // ÚJ: 24 óra múlva törlődik az adatbázisból
-                guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) 
-            });
-            await acc.save();
+            // VENDÉG LOGIKA (Itt már megakadályozzuk a duplikációt frissítéskor)
+            if (guestId) {
+                for (let [sid, u] of activeUsers.entries()) {
+                    if (u.uniqueId === guestId) {
+                        io.sockets.sockets.get(sid)?.disconnect();
+                        activeUsers.delete(sid);
+                    }
+                }
+                acc = await Account.findOne({ uniqueId: guestId });
+            }
+
+            if (acc) {
+                // Már létezik a vendég fiók (csak frissített az illető)
+                acc.lastIp = clientIp;
+                if (username && username !== acc.displayName) {
+                    acc.displayName = username; // Ha netán más nevet írt be
+                }
+                await acc.save();
+            } else {
+                // Teljesen új vendég
+                const newGuestId = "G" + Math.floor(1000 + Math.random() * 9000);
+                const genUsername = `vendeg_${newGuestId}_${Date.now()}`;
+                
+                acc = new Account({
+                    username: genUsername,
+                    displayName: username || "Vendég",
+                    password: "", 
+                    uniqueId: newGuestId,
+                    rank: 'guest',
+                    avatarUrl: '',
+                    bio: '',
+                    lastIp: clientIp,
+                    guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 óra
+                });
+                await acc.save();
+            }
         }
 
         activeUsers.set(socket.id, {
@@ -138,24 +156,28 @@ io.on('connection', async (socket) => {
         callback({ success: true, user: activeUsers.get(socket.id) });
         io.emit('updateUsers', Array.from(activeUsers.values()));
 
-        if (!isGuest) {
-            const isCreator = acc.rank === 'creator';
-            const sysMsg = new Message({ 
-                text: isCreator ? "a weboldal készítője csatlakozott a chathez! 🛡️" : "megérkezett a partyra!", 
-                senderDisplayName: acc.displayName, 
-                senderUniqueId: "SYS", 
-                rank: acc.rank, 
-                isSystem: true 
-            });
-            await sysMsg.save();
-            io.emit('newMessage', sysMsg);
-        }
+        // RENDSZERÜZENET: Mostantól mindenkit bejelent, a vendégeket is!
+        const isCreator = acc.rank === 'creator';
+        const isGuestRank = acc.rank === 'guest';
+        
+        let joinText = "megérkezett a partyra!";
+        if (isCreator) joinText = "a weboldal készítője csatlakozott a chathez! 🛡️";
+        else if (isGuestRank) joinText = "csatlakozott vendégként! 👋";
+
+        const sysMsg = new Message({ 
+            text: joinText, 
+            senderDisplayName: acc.displayName, 
+            senderUniqueId: "SYS", 
+            rank: acc.rank, 
+            isSystem: true 
+        });
+        await sysMsg.save();
+        io.emit('newMessage', sysMsg);
     });
 
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
-        
         try {
             const allAccounts = await Account.find({}).sort({ createdAt: -1 });
             socket.emit('adminDataResponse', allAccounts);
