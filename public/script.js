@@ -53,30 +53,29 @@ const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 // --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
+const emojiPanel = document.getElementById('emoji-panel');
+const emojiBtn = document.getElementById('emoji-toggle-btn');
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
-const emojiPanel = document.getElementById('emoji-panel');
-const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
 let gifSearchTimeout = null;
 
-// Golyóálló Emoji Gomb Logika (A HTML onclick attribútuma hívja meg)
-window.toggleEmojiPanel = function(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
+// Kattintás a gombra (Kizárólag ez az egy eseményvezérlő felel érte!)
+emojiBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (emojiPanel.classList.contains('active')) {
-        emojiPanel.classList.remove('active');
-    } else {
-        emojiPanel.classList.add('active');
-        if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
-            fetchGifs('party dance club');
-        }
+    emojiPanel.classList.toggle('active');
+    
+    // Ha megnyitjuk és a GIF panel üres, töltsünk be valami alapvetőt
+    if (emojiPanel.classList.contains('active') && currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
+        fetchGifs('party dance club');
     }
-};
+});
 
 // Kattintás a panelen kívül = bezárás
-document.addEventListener('click', function(event) {
+document.addEventListener('click', (event) => {
     if (emojiPanel && emojiPanel.classList.contains('active')) {
         const isClickInsidePanel = emojiPanel.contains(event.target);
         const isClickOnButton = emojiBtn.contains(event.target);
@@ -304,8 +303,8 @@ window.onload = () => {
     } else if (savedGuest) {
         socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
     } else {
-        authPanel.classList.remove('hidden');
-        chatPanel.classList.add('hidden');
+        document.getElementById('auth-panel').classList.remove('hidden');
+        document.getElementById('chat-panel').classList.add('hidden');
     }
 };
 
@@ -330,9 +329,9 @@ function formatTime(timestamp) { const date = new Date(timestamp); return date.t
 window.handleNameClick = function(id, name, rank) {
     if(!myUniqueId) return;
     if(id === myUniqueId) { 
-        openProfileModal(); 
+        window.openProfileModal(); 
     } else {
-        openUserModal(id, name, rank);
+        window.openUserModal(id, name, rank);
     }
 }
 
@@ -438,6 +437,8 @@ window.saveProfile = function() {
 }
 
 socket.on('connect', () => {
+    const statusDot = document.getElementById('server-status-dot');
+    const statusText = document.getElementById('server-status-text');
     statusDot.classList.replace('bg-yellow-500', 'bg-green-500');
     statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
     statusDot.classList.remove('animate-pulse');
@@ -445,6 +446,8 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
+    const statusDot = document.getElementById('server-status-dot');
+    const statusText = document.getElementById('server-status-text');
     statusDot.classList.replace('bg-green-500', 'bg-red-500');
     statusText.textContent = 'Nincs Kapcsolat';
 });
@@ -496,6 +499,8 @@ socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     document.getElementById('online-count').textContent = users.length;
     document.getElementById('mobile-online-count').textContent = users.length;
+    
+    const onlineUsersSidebar = document.getElementById('online-users-sidebar');
     if (users.length === 0) { onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; return; }
     
     users.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
@@ -539,6 +544,7 @@ socket.on('updateUsers', (users) => {
 });
 
 socket.on('typingUpdate', (typists) => {
+    const typingIndicator = document.getElementById('typing-indicator');
     const others = typists.filter(u => u.uniqueId !== myUniqueId);
     if (others.length > 0) {
         typingIndicator.textContent = others.length > 1 ? `${others.map(u=>u.displayName).join(', ')} éppen írnak...` : `${others[0].displayName} éppen ír...`;
@@ -547,6 +553,7 @@ socket.on('typingUpdate', (typists) => {
 });
 
 function renderMessages() {
+    const messagesContainer = document.getElementById('messages-container');
     messagesContainer.innerHTML = '';
     
     const filteredMessages = allMessages.filter(msg => {
@@ -652,14 +659,13 @@ function renderMessages() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function handleLoginResponse(res) {
+window.handleLoginResponse = function(res) {
     if (res.success) {
         userDisplayName = res.user.displayName; 
         myUniqueId = res.user.uniqueId; 
         myRank = res.user.rank;
         myAvatarSeed = res.user.avatarSeed;
         myAvatarUrl = res.user.avatarUrl || '';
-        
         document.getElementById('auth-panel').classList.add('hidden'); 
         document.getElementById('chat-panel').classList.remove('hidden'); 
         document.getElementById('logout-btn').classList.remove('hidden');
@@ -701,7 +707,8 @@ document.getElementById('message-input').addEventListener('input', () => {
 });
 
 document.getElementById('send-btn').addEventListener('click', () => {
-    const text = document.getElementById('message-input').value.trim();
+    const msgInput = document.getElementById('message-input');
+    const text = msgInput.value.trim();
     if (!text) return;
     
     if (currentTab !== 'main' && !text.startsWith('/')) {
@@ -722,14 +729,13 @@ document.getElementById('send-btn').addEventListener('click', () => {
                 <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
                 <p><b>/clear</b> - Teljes chatfal letakarítása</p>
             `;
-            messagesContainer.appendChild(helpDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            document.getElementById('message-input').value = '';
+            document.getElementById('messages-container').appendChild(helpDiv);
+            document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight;
+            msgInput.value = '';
             return;
         }
         socket.emit('sendMessage', text);
     }
-    document.getElementById('message-input').value = ''; 
-    socket.emit('typing', false);
+    msgInput.value = ''; socket.emit('typing', false);
 });
 document.getElementById('message-input').addEventListener('keypress', e => { if(e.key === 'Enter') document.getElementById('send-btn').click(); });
