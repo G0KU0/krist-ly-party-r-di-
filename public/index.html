@@ -51,7 +51,7 @@
         
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
-        /* MOBILOS OLDALSÁV ÉS SÖTÉTÍTÉS */
+        /* MOBILOS OLDALSÁV */
         #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100 !important; }
         .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
         
@@ -62,7 +62,7 @@
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        /* MODAL (Felugró ablakok) */
+        /* MODAL */
         .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal.active { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
@@ -72,7 +72,7 @@
         .tabs-scroll::-webkit-scrollbar { height: 4px; }
         .tabs-scroll::-webkit-scrollbar-thumb { background: rgba(217, 70, 239, 0.5); border-radius: 4px; }
         
-        /* KÉP IGAZÍTÁSOK A RENDES URL-HEZ */
+        /* KÉP IGAZÍTÁS AZ EGYÉNI URL-EKHEZ */
         .avatar-img { object-fit: cover; object-position: center; }
     </style>
 </head>
@@ -148,7 +148,7 @@
         <div class="w-full max-w-md lg:max-w-none lg:w-4/12 flex flex-col gap-4 sm:gap-6 shrink-0">
             <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
                  <h3 class="text-lg font-bold text-cyan-400 mb-1 flex justify-center items-center gap-2">Élő Adás</h3>
-                 <p class="text-gray-300 text-xs sm:text-sm">A legújabb dance és party slágerek.</p>
+                 <p class="text-gray-300 text-xs sm:text-sm">A legújabb dance és party slágerek. Dőlj hátra és csevegj!</p>
             </div>
 
             <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-[2rem] p-6 sm:p-8 shadow-2xl flex flex-col items-center">
@@ -273,8 +273,8 @@
         </div>
     </main>
 
-    <!-- FOOTER: KÉSZÍTETTE SZABY -->
-    <footer class="relative z-10 w-full py-4 text-center text-xs text-gray-500 font-medium tracking-widest mt-auto border-t border-white/5 bg-gray-900/50 backdrop-blur-sm">
+    <!-- FOOTER -->
+    <footer class="relative z-10 w-full py-4 text-center text-xs text-gray-500 font-medium tracking-widest mt-auto border-t border-gray-800/50 bg-gray-900/50 backdrop-blur-sm">
         KÉSZÍTETTE: <span class="text-cyan-400 font-black">SZABY</span> &copy; 2026
     </footer>
 
@@ -666,6 +666,7 @@
             } else { typingIndicator.classList.add('hidden'); }
         });
 
+        // JAVÍTVA: A saját üzeneteid is megkapják az avatar képedet a jobb oldalon!
         function renderMessages() {
             messagesContainer.innerHTML = '';
             
@@ -723,22 +724,34 @@
                     pmHeader = `<div class="text-[9px] text-fuchsia-400 font-black mb-1 bg-black/40 rounded py-1 px-3 border border-fuchsia-500/30 inline-block">${dirText}</div>`;
                 }
 
+                const ring = msg.rank === 'creator' ? 'border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]' : (msg.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_5px_rgba(192,38,211,0.5)]' : 'border-gray-600');
+
                 div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} mt-3`;
                 
                 if (isMe) {
-                    div.innerHTML = `<div class="flex flex-col items-end max-w-[85%]">
-                            ${pmHeader}
-                            <div class="flex items-center mb-1 flex-wrap justify-end">
-                                <span class="text-[10px] text-gray-500 mr-2 font-medium">${formatTime(msg.createdAt)}</span>
-                                ${badgeHtml}
-                                <span class="${nameClass} ml-2">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
+                    // AZ ÉN ÜZENETEM (JOBB OLDALRA IGAZÍTVA A KÉPPEL EGYÜTT)
+                    div.innerHTML = `
+                        <div class="flex gap-2 sm:gap-3 max-w-[85%] justify-end w-full ml-auto">
+                            <div class="flex flex-col items-end w-full">
+                                ${pmHeader}
+                                <div class="flex items-center mb-1 flex-wrap justify-end">
+                                    <span class="text-[10px] text-gray-500 mr-2 font-medium">${formatTime(msg.createdAt)}</span>
+                                    ${badgeHtml}
+                                    <span class="${nameClass} ml-2">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
+                                </div>
+                                <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
                             </div>
-                            <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1">
+                                <img src="${getAvatarUrl(msg.avatarSeed, msg.avatarUrl, msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm avatar-img">
+                            </div>
                         </div>`;
                 } else {
-                    const ring = msg.rank === 'creator' ? 'border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]' : (msg.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_5px_rgba(192,38,211,0.5)]' : 'border-gray-600');
-                    div.innerHTML = `<div class="flex gap-2 sm:gap-3 max-w-[85%]">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1"><img src="${getAvatarUrl(msg.avatarSeed, msg.avatarUrl, msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm avatar-img"></div>
+                    // A TÖBBIEK ÜZENETE (BAL OLDALRA IGAZÍTVA)
+                    div.innerHTML = `
+                        <div class="flex gap-2 sm:gap-3 max-w-[85%]">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1">
+                                <img src="${getAvatarUrl(msg.avatarSeed, msg.avatarUrl, msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm avatar-img">
+                            </div>
                             <div class="flex flex-col items-start w-full">
                                 ${pmHeader}
                                 <div class="flex items-center mb-1 w-full flex-wrap">
