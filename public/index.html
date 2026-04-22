@@ -9,12 +9,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/socket.io/socket.io.js"></script>
     <style>
+        /* Animációk és Alapok */
         @keyframes gradient-xy { 0%, 100% { background-size: 400% 400%; background-position: left center; } 50% { background-size: 200% 200%; background-position: right center; } }
         .animate-gradient-xy { animation: gradient-xy 15s ease infinite; }
+        
         @keyframes pulse-ring { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
         .playing-animation { animation: pulse-ring 2s infinite; }
+        
         @keyframes vipGradientAnim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
+        /* Hangerőszabályzó és Gördítősáv */
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #4B5563; border-radius: 2px; }
         
@@ -23,31 +27,47 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 10px; }
         .input-glow:focus { box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); border-color: rgba(168, 85, 247, 0.6); outline: none; }
 
-        .badge-creator { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); border: 1px solid #f87171; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
-        .badge-admin { background: linear-gradient(135deg, #eab308 0%, #a16207 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .badge-vip { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        /* JELVÉNYEK ÉS RANG SZÍNEK (Az összes új ranggal) */
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 5px; color: white; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .badge-creator { background: linear-gradient(90deg, #990000, #ff0000); border-color: gold; box-shadow: 0 0 8px rgba(255,0,0,0.5); }
+        .badge-owner { background: linear-gradient(135deg, #7e22ce, #c026d3); border-color: #f0abfc; box-shadow: 0 0 8px rgba(192,38,211,0.5); }
+        .badge-admin { background: #d97706; }
+        .badge-moderator { background: #15803d; }
+        .badge-vip { background: #3b82f6; }
         .badge-guest { background: #4b5563; color: #d1d5db; }
         
+        .rank-creator { color: #fca5a5; font-weight: 900; text-shadow: 0 0 5px rgba(255,0,0,0.8); }
+        .rank-owner { color: #f0abfc; font-weight: 900; text-shadow: 0 0 5px rgba(192,38,211,0.8); }
+        .rank-admin { color: #fcd34d; font-weight: 800; }
+        .rank-moderator { color: #86efac; font-weight: 700; }
+        .rank-vip { color: #93c5fd; font-weight: 700; }
+        .rank-user { color: #22d3ee; font-weight: 600; }
+        .rank-guest { color: #94a3b8; }
+        
+        /* BUBORÉKOK */
         .creator-bubble { background: linear-gradient(270deg, #7f1d1d, #b91c1c, #7f1d1d); background-size: 200% 200%; animation: vipGradientAnim 3s ease infinite; border: 1px solid rgba(239, 68, 68, 0.8); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .creator-name { color: #fca5a5; text-shadow: 0 0 8px rgba(239, 68, 68, 0.8); font-weight: 900; letter-spacing: 0.5px; }
-
-        .vip-bubble { background: linear-gradient(270deg, rgba(30, 58, 138, 0.95), rgba(126, 34, 206, 0.95), rgba(30, 58, 138, 0.95)); background-size: 200% 200%; animation: vipGradientAnim 4s ease infinite; border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
-        .vip-name { color: #fbbf24; text-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+        .owner-bubble { background: linear-gradient(270deg, #4c1d95, #7e22ce, #4c1d95); background-size: 200% 200%; animation: vipGradientAnim 4s ease infinite; border: 1px solid rgba(192,38,211, 0.6); box-shadow: 0 0 15px rgba(192,38,211, 0.3); }
+        .pm-bubble { background: #4a044e; border: 1px solid #d946ef; box-shadow: inset 0 0 15px rgba(217,70,239,0.3); }
         
         .user-id-tag { font-size: 0.65rem; color: #9ca3af; font-weight: normal; margin-left: 2px; }
 
+        /* MOBILOS OLDALSÁV (Sötétítő háttérrel) */
         #users-sidebar-container { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; z-index: 100 !important; }
+        .mobile-sidebar-open { transform: translateX(0) !important; display: flex !important; background: #0f172a !important; z-index: 100 !important; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
         
-        #sidebar-overlay { display: none; }
+        #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; backdrop-filter: blur(4px); }
         #sidebar-overlay.active { display: block; }
         
+        /* KATTINTHATÓ NEVEK */
         .editable-name { cursor: pointer; transition: all 0.2s; }
         .editable-name:hover { opacity: 0.8; text-decoration: underline; color: #fff; }
         
-        .modal-active { opacity: 1 !important; pointer-events: auto !important; }
-        #profile-modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
-        .modal-active #profile-modal-content { transform: scale(1); }
+        /* MODAL (Felugró ablakok) */
+        .modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal.active .modal-content { transform: scale(1); }
     </style>
 </head>
 <body class="min-h-screen bg-gray-900 text-white font-sans flex flex-col relative overflow-x-hidden">
@@ -55,10 +75,12 @@
     <div class="fixed inset-0 z-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 animate-gradient-xy opacity-80"></div>
     <div class="fixed inset-0 z-0" style="background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
 
-    <!-- PROFIL MODAL -->
-    <div id="profile-modal" class="fixed inset-0 z-[110] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div id="profile-modal-content" class="relative bg-slate-800 border border-slate-700 p-8 rounded-[2.5rem] w-80 shadow-2xl">
+    <div id="sidebar-overlay"></div>
+
+    <!-- MODAL: PROFIL SZERKESZTŐ (Amikor a saját nevedre kattintasz) -->
+    <div id="profile-modal" class="modal">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('profile-modal')"></div>
+        <div class="modal-content relative bg-slate-800 border border-slate-700 p-8 rounded-[2.5rem] w-80 shadow-2xl">
             <h3 class="text-xl font-bold mb-6 text-center text-cyan-400">Profil Szerkesztése</h3>
             <div class="flex flex-col items-center gap-5">
                 <div class="relative cursor-pointer group" onclick="randomAvatar()" title="Kattints új kép generálásához!">
@@ -74,6 +96,34 @@
         </div>
     </div>
 
+    <!-- MODAL: KÖZÖS PANEL (Privát üzenet + Moderáció, amikor más nevére kattintasz) -->
+    <div id="user-modal" class="modal">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal('user-modal')"></div>
+        <div class="modal-content relative bg-slate-800 border border-slate-700 p-6 rounded-[2rem] w-80 shadow-2xl">
+            <div class="text-center mb-5">
+                <img id="mod-avatar" src="" class="w-20 h-20 rounded-full mx-auto mb-2 border-4 border-slate-600">
+                <h4 id="mod-name" class="font-bold text-xl text-white">Név</h4>
+                <p id="mod-id" class="text-xs text-slate-400">#00000</p>
+            </div>
+            
+            <!-- PRIVÁT ÜZENET GOMB (Ezt mindenki látja) -->
+            <button id="btn-pm" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white py-3 rounded-2xl font-bold text-sm shadow-lg mb-4 flex items-center justify-center gap-2 transition">
+                💬 PRIVÁT ÜZENET
+            </button>
+
+            <!-- MODERÁCIÓ (Csak jogosultaknak jelenik meg dinamikusan) -->
+            <div id="mod-section" class="hidden border-t border-slate-700 pt-4 flex flex-col gap-3">
+                <p class="text-[10px] text-slate-400 uppercase font-bold text-center">Moderációs Rendszer</p>
+                <div id="rank-buttons" class="grid grid-cols-2 gap-2"></div>
+                <div id="punish-buttons" class="grid grid-cols-2 gap-2 mt-2">
+                    <button id="btn-mute" class="bg-yellow-600/20 border border-yellow-500 hover:bg-yellow-600 text-yellow-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">NÉMÍT (10p)</button>
+                    <button id="btn-kick" class="bg-orange-600/20 border border-orange-500 hover:bg-orange-600 text-orange-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition">KIDOBÁS</button>
+                </div>
+                <button id="btn-ban" class="w-full bg-red-600/20 border border-red-500 hover:bg-red-600 text-red-500 hover:text-white py-3 rounded-xl font-black text-xs mt-2 transition hidden">VÉGLEGES KITILTÁS</button>
+            </div>
+        </div>
+    </div>
+
     <header class="relative z-10 pt-6 pb-2 sm:p-8 text-center shrink-0">
         <h1 class="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-lg leading-tight">Kristály Party</h1>
         <p class="text-base sm:text-2xl mt-1 text-gray-300 font-light tracking-widest">R Á D I Ó</p>
@@ -81,7 +131,7 @@
 
     <main class="relative z-10 flex-grow flex flex-col lg:flex-row items-center lg:items-stretch justify-center p-3 sm:p-4 gap-6 w-full max-w-7xl mx-auto pb-12">
         
-        <!-- RÁDIÓ LEJÁTSZÓ -->
+        <!-- RÁDIÓ LEJÁTSZÓ (Mobilon középen, asztalin bal oldalt) -->
         <div class="w-full max-w-md lg:max-w-none lg:w-4/12 flex flex-col gap-4 sm:gap-6 shrink-0">
             <div class="bg-gray-800/60 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl text-center">
                  <h3 class="text-lg font-bold text-cyan-400 mb-1 flex justify-center items-center gap-2">Élő Adás</h3>
@@ -123,16 +173,23 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Mobilos Taglista Megnyitó Gomb -->
-                    <button id="mobile-users-toggle" class="lg:hidden flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors">
-                        <span class="text-xs font-bold text-gray-300">👥 Tagok</span>
-                        <span id="mobile-online-count" class="bg-cyan-500 text-gray-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">0</span>
-                    </button>
+                    
+                    <div class="flex items-center gap-2">
+                        <!-- ÚJ KILÉPÉS GOMB -->
+                        <button id="logout-btn" onclick="logout()" class="hidden lg:flex bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors items-center gap-1">
+                            🚪 Kilépés
+                        </button>
+                        <!-- Mobilos Taglista Gomb -->
+                        <button id="mobile-users-toggle" class="lg:hidden flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg border border-gray-600 transition-colors">
+                            <span class="text-xs font-bold text-gray-300">👥 Tagok</span>
+                            <span id="mobile-online-count" class="bg-cyan-500 text-gray-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">0</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex flex-grow overflow-hidden relative">
                     
-                    <!-- Chat Fal -->
+                    <!-- Chat Fal (Bal oldal) -->
                     <div class="flex flex-col flex-grow w-full lg:w-3/4 relative border-r border-gray-700/50">
                         <div id="messages-container" class="flex-grow p-3 sm:p-5 overflow-y-auto custom-scroll flex flex-col gap-4 relative bg-black/10 pb-12">
                             <!-- Üzenetek -->
@@ -143,7 +200,7 @@
                             Valaki éppen ír...
                         </div>
 
-                        <!-- Bemeneti Terület -->
+                        <!-- Bemeneti / Regisztrációs Terület -->
                         <div class="bg-gray-900/60 p-3 sm:p-4 shrink-0 border-t border-gray-700/50 z-10">
                             
                             <div id="auth-panel" class="flex flex-col gap-3 hidden bg-gray-800/50 p-3 rounded-2xl border border-gray-700/50">
@@ -180,16 +237,15 @@
                         </div>
                     </div>
 
-                    <!-- MOBILOS SÖTÉT HÁTTÉR -->
-                    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
-
                     <!-- Jobb Oldali Felhasználói Lista -->
                     <div id="users-sidebar-container" class="fixed lg:static inset-y-0 right-0 w-72 lg:w-1/4 bg-slate-900 border-l border-gray-700/50 translate-x-full lg:translate-x-0 flex flex-col z-50">
                         <div class="p-3 sm:p-4 border-b border-gray-700/50 bg-gray-900/80 flex justify-between items-center shadow-md">
                             <h3 class="text-sm font-bold text-gray-300">Online Tagok</h3>
-                            <button id="close-sidebar-btn" class="lg:hidden text-gray-400 hover:text-white p-1">
+                            <button id="close-sidebar-btn" class="lg:hidden text-gray-400 hover:text-white p-1 bg-slate-800 rounded">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
+                            <!-- Mobilos Kilépés Gomb (csak akkor látszik, ha megnyitják a menüt) -->
+                            <button onclick="logout()" class="lg:hidden ml-auto mr-2 bg-red-900/50 hover:bg-red-600 border border-red-500/50 px-2 py-1 rounded text-[10px] font-bold uppercase transition-colors">🚪 Kilépés</button>
                             <span id="online-count" class="hidden lg:inline-block bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full text-xs font-bold">0</span>
                         </div>
                         <div id="online-users-sidebar" class="flex-grow overflow-y-auto custom-scroll p-3 flex flex-col gap-2 relative"></div>
@@ -233,7 +289,11 @@
         let myAvatarSeed = '';
         let typingTimeout = null; 
         let allMessages = []; 
-        
+        let selectedUserId = null;
+
+        // HIERARCHIA SÚLYOK
+        const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
+
         const statusDot = document.getElementById('server-status-dot');
         const statusText = document.getElementById('server-status-text');
         const authPanel = document.getElementById('auth-panel');
@@ -246,14 +306,28 @@
         const sidebarContainer = document.getElementById('users-sidebar-container');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-        function openSidebar() {
-            sidebarContainer.classList.add('mobile-sidebar-open');
-            sidebarOverlay.classList.add('active');
+        // AUTO-LOGIN RENDSZER (Minden oldalbetöltéskor lefut)
+        window.onload = () => {
+            const savedUser = localStorage.getItem('radio_user');
+            const savedPass = localStorage.getItem('radio_pass');
+            const savedGuest = localStorage.getItem('radio_guest');
+
+            if (savedUser && savedPass) {
+                socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
+            } else if (savedGuest) {
+                socket.emit('login', { username: savedGuest, password: '', isGuest: true }, handleLoginResponse);
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('radio_user');
+            localStorage.removeItem('radio_pass');
+            localStorage.removeItem('radio_guest');
+            location.reload(); // Oldal frissítése a kezdőállapotba
         }
-        function closeSidebar() {
-            sidebarContainer.classList.remove('mobile-sidebar-open');
-            sidebarOverlay.classList.remove('active');
-        }
+
+        function openSidebar() { sidebarContainer.classList.add('mobile-sidebar-open'); sidebarOverlay.classList.add('active'); }
+        function closeSidebar() { sidebarContainer.classList.remove('mobile-sidebar-open'); sidebarOverlay.classList.remove('active'); }
 
         document.getElementById('mobile-users-toggle').addEventListener('click', openSidebar);
         document.getElementById('close-sidebar-btn').addEventListener('click', closeSidebar);
@@ -263,23 +337,90 @@
         function getAvatarUrl(name) { return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`; }
         function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
+        // --- KATTINTHATÓ NEVEK (Profil és Moderáció) ---
+        window.handleNameClick = function(id, name, rank) {
+            if(!myUniqueId) return;
+            if(id === myUniqueId) { 
+                openProfileModal(); 
+            } else {
+                openUserModal(id, name, rank);
+            }
+        }
+
         window.openProfileModal = function() {
-            if(!myUniqueId || myRank === 'guest') return alert("Vendégként nem szerkesztheted a profilodat. Kérlek regisztrálj V.I.P tagnak!");
+            if(!myUniqueId || myRank === 'guest') return alert("Vendégként nem szerkesztheted a profilodat. Kérlek regisztrálj!");
             const modal = document.getElementById('profile-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('modal-active'), 10);
+            modal.classList.add('active');
             
             document.getElementById('edit-displayname').value = userDisplayName;
             tempSeed = myAvatarSeed || Math.random().toString(36).substring(7);
             document.getElementById('edit-avatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${tempSeed}`;
         }
-        
-        window.closeModal = function() { 
-            const modal = document.getElementById('profile-modal');
-            modal.classList.remove('modal-active');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+
+        window.openUserModal = function(id, name, rank) {
+            if(!myUniqueId || id === myUniqueId) return;
+            
+            selectedUserId = id;
+            document.getElementById('mod-name').innerText = name;
+            document.getElementById('mod-id').innerText = "#" + id;
+            document.getElementById('mod-avatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${id}`;
+            
+            // Privát üzenet gomb működése
+            document.getElementById('btn-pm').onclick = () => {
+                msgInput.value = `/msg #${id} `;
+                msgInput.focus();
+                closeModal('user-modal');
+                if (window.innerWidth < 1024) closeSidebar();
+            };
+
+            // Moderációs menü jogosultság alapján
+            const modSection = document.getElementById('mod-section');
+            const btnBox = document.getElementById('rank-buttons');
+            btnBox.innerHTML = '';
+            
+            const canMod = RANKS_POWER[myRank] >= 40 && (RANKS_POWER[myRank] > RANKS_POWER[rank] || myRank === 'creator') && rank !== 'creator';
+
+            if (canMod) {
+                modSection.classList.remove('hidden');
+                
+                // Csak akkor adhat rangot, ha legalább Admin (60)
+                if (RANKS_POWER[myRank] >= 60) {
+                    const ranksToOffer = [
+                        { key: 'owner', label: '👑 TULAJDONOS', color: 'purple', min: 100 },
+                        { key: 'admin', label: '🛡️ ADMIN', color: 'orange', min: 80 },
+                        { key: 'moderator', label: '⚔️ MODERÁTOR', color: 'green', min: 60 },
+                        { key: 'user', label: '👤 TAG', color: 'slate', min: 60 }
+                    ];
+
+                    ranksToOffer.forEach(r => {
+                        if ((RANKS_POWER[myRank] >= r.min || myRank === 'creator') && rank !== r.key) {
+                            const b = document.createElement('button');
+                            b.className = `bg-${r.color}-900/40 border border-${r.color}-500/50 hover:bg-${r.color}-600 py-2 rounded-xl text-[10px] font-bold transition`;
+                            b.innerText = r.label;
+                            b.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'setRank', value: r.key }); closeModal('user-modal'); };
+                            btnBox.appendChild(b);
+                        }
+                    });
+                }
+
+                document.getElementById('btn-mute').onclick = () => { socket.emit('adminAction', { targetId: id, action: 'mute', value: 10 }); closeModal('user-modal'); };
+                document.getElementById('btn-kick').onclick = () => { socket.emit('sendMessage', `/kick ${id}`); closeModal('user-modal'); };
+                
+                const banBtn = document.getElementById('btn-ban');
+                if (RANKS_POWER[myRank] >= 60) { // Admin felett
+                    banBtn.classList.remove('hidden');
+                    banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); closeModal('user-modal'); };
+                } else {
+                    banBtn.classList.add('hidden');
+                }
+            } else {
+                modSection.classList.add('hidden');
+            }
+
+            document.getElementById('user-modal').classList.add('active');
         }
         
+        window.closeModal = function(modalId) { document.getElementById(modalId).classList.remove('active'); }
         window.randomAvatar = function() {
             tempSeed = Math.random().toString(36).substring(7);
             document.getElementById('edit-avatar').src = `https://api.dicebear.com/7.x/adventurer/svg?seed=${tempSeed}`;
@@ -289,9 +430,8 @@
             const name = document.getElementById('edit-displayname').value.trim();
             if(!name) return alert("A név nem lehet üres!");
             socket.emit('updateProfile', { displayName: name, avatarSeed: tempSeed });
-            userDisplayName = name;
-            myAvatarSeed = tempSeed;
-            closeModal();
+            userDisplayName = name; myAvatarSeed = tempSeed;
+            closeModal('profile-modal');
         }
 
         socket.on('connect', () => {
@@ -299,7 +439,7 @@
             statusDot.classList.replace('shadow-[0_0_8px_#eab308]', 'shadow-[0_0_8px_#22c55e]');
             statusDot.classList.remove('animate-pulse');
             statusText.textContent = 'Szerver Online';
-            authPanel.classList.remove('hidden');
+            if(!myUser) authPanel.classList.remove('hidden');
         });
 
         socket.on('disconnect', () => {
@@ -313,6 +453,7 @@
         });
 
         socket.on('initMessages', (messages) => { allMessages = messages; renderMessages(); });
+        socket.on('initPMs', (pms) => { allMessages = [...allMessages, ...pms].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)); renderMessages(); });
         socket.on('newMessage', (msg) => { allMessages.push(msg); renderMessages(); });
 
         socket.on('updateUsers', (users) => {
@@ -320,10 +461,7 @@
             document.getElementById('mobile-online-count').textContent = users.length;
             if (users.length === 0) { onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; return; }
             
-            users.sort((a, b) => {
-                const rankOrder = { 'creator': 1, 'admin': 2, 'vip': 3, 'user': 4, 'guest': 5 };
-                return (rankOrder[a.rank] || 99) - (rankOrder[b.rank] || 99);
-            });
+            users.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
 
             const me = users.find(u => u.uniqueId === myUniqueId);
             if (me) { myAvatarSeed = me.avatarSeed; myRank = me.rank; }
@@ -333,16 +471,17 @@
                 const isMe = u.uniqueId === myUniqueId;
                 
                 let badge = '';
-                if (u.rank === 'creator') badge = '<span class="ml-auto text-[10px] font-black rounded badge-creator px-1.5 py-0.5 shadow-sm">🛡️ WEBOLDAL KÉSZÍTŐ</span>';
-                else if (u.rank === 'admin') badge = '<span class="ml-auto text-[10px] font-black rounded badge-admin px-1.5 py-0.5 shadow-sm">🛡️ ADMIN</span>';
-                else if (u.rank === 'vip') badge = '<span class="ml-auto text-[10px] font-black rounded badge-vip px-1.5 py-0.5 shadow-sm">👑 VIP</span>';
+                if (u.rank === 'creator') badge = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
+                else if (u.rank === 'owner') badge = '<span class="badge badge-owner">👑 TULAJDONOS</span>';
+                else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
+                else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
+                else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
+                else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
                 
-                const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'vip' || u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600');
-                const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'vip' || u.rank === 'admin' ? 'vip-name font-bold' : 'text-gray-300');
+                const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
+                const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
                 
-                const displayNameHtml = isMe 
-                    ? `<span class="editable-name" onclick="openProfileModal()" title="Kattints a név módosításához!">${escapeHTML(u.displayName)} ✏️</span>` 
-                    : escapeHTML(u.displayName);
+                const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
 
                 const div = document.createElement('div');
                 div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
@@ -376,37 +515,47 @@
             
             allMessages.forEach(msg => {
                 const isMe = msg.senderUniqueId === myUniqueId && myUniqueId !== '';
+                const isPM = !!msg.recipientUniqueId;
                 const div = document.createElement('div');
                 
                 if (msg.isSystem) {
                     div.className = `flex w-full justify-center mt-3 mb-1`;
                     div.innerHTML = `<div class="bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.2)] font-medium text-center">
-                        ${msg.rank === 'creator' ? '🛡️' : '👑'} <b>${escapeHTML(msg.senderDisplayName)}</b> ${escapeHTML(msg.text)}</div>`;
+                        ${msg.rank === 'creator' ? '🛡️' : '🔔'} <b>${escapeHTML(msg.senderDisplayName)}</b> ${escapeHTML(msg.text)}</div>`;
                     messagesContainer.appendChild(div); return;
                 }
 
                 let bubbleClass = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
-                if (msg.rank === 'creator') bubbleClass = 'creator-bubble text-white';
-                else if (msg.rank === 'vip' || msg.rank === 'admin') bubbleClass = 'vip-bubble text-white';
+                if (isPM) bubbleClass = 'pm-bubble text-white font-medium';
+                else if (msg.rank === 'creator') bubbleClass = 'creator-bubble text-white';
+                else if (msg.rank === 'owner') bubbleClass = 'owner-bubble text-white';
                 else if (isMe) bubbleClass = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
 
-                let badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-medium rounded badge-guest ml-2">Vendég</span>';
-                if (msg.rank === 'creator') badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded badge-creator ml-2 shadow-sm border border-red-400">🛡️ KÉSZÍTŐ</span>';
-                else if (msg.rank === 'admin') badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded badge-admin ml-2 shadow-sm">🛡️ ADMIN</span>';
-                else if (msg.rank === 'vip') badgeHtml = '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded badge-vip ml-2 shadow-sm">👑 VIP</span>';
+                let badgeHtml = '<span class="badge badge-guest">Vendég</span>';
+                if (msg.rank === 'creator') badgeHtml = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
+                else if (msg.rank === 'owner') badgeHtml = '<span class="badge badge-owner">👑 TULAJDONOS</span>';
+                else if (msg.rank === 'admin') badgeHtml = '<span class="badge badge-admin">🛡️ ADMIN</span>';
+                else if (msg.rank === 'moderator') badgeHtml = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
+                else if (msg.rank === 'vip') badgeHtml = '<span class="badge badge-vip">👑 VIP</span>';
+                else if (msg.rank === 'user') badgeHtml = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
                 
                 let nameClass = 'text-cyan-400 font-bold text-xs sm:text-sm';
                 if (msg.rank === 'creator') nameClass = 'creator-name text-xs sm:text-sm tracking-wide';
-                else if (msg.rank === 'vip' || msg.rank === 'admin') nameClass = 'vip-name font-bold text-xs sm:text-sm tracking-wide';
+                else if (msg.rank === 'owner') nameClass = 'rank-owner text-xs sm:text-sm tracking-wide';
 
-                const displayNameHtml = isMe 
-                    ? `<span class="editable-name" onclick="openProfileModal()" title="Kattints a név módosításához!">${escapeHTML(msg.senderDisplayName)} ✏️</span>` 
-                    : escapeHTML(msg.senderDisplayName);
+                const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${msg.senderUniqueId}', '${escapeHTML(msg.senderDisplayName)}', '${msg.rank}')" title="Kattints az interakcióhoz!">${escapeHTML(msg.senderDisplayName)} ${isMe ? '✏️' : ''}</span>`;
+
+                let pmHeader = '';
+                if (isPM) {
+                    const dirText = isMe ? `💬 Privát üzenet tőled neki: #${escapeHTML(msg.recipientUniqueId)}` : `💬 Privát üzenet tőle: ${escapeHTML(msg.senderDisplayName)}`;
+                    pmHeader = `<div class="text-[9px] text-fuchsia-400 font-black mb-1 bg-black/40 rounded py-1 px-3 border border-fuchsia-500/30 inline-block">${dirText}</div>`;
+                }
 
                 div.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'} mt-3`;
                 
                 if (isMe) {
                     div.innerHTML = `<div class="flex flex-col items-end max-w-[85%]">
+                            ${pmHeader}
                             <div class="flex items-center mb-1 flex-wrap justify-end">
                                 <span class="text-[10px] text-gray-500 mr-2 font-medium">${formatTime(msg.createdAt)}</span>
                                 ${badgeHtml}
@@ -415,12 +564,13 @@
                             <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words">${escapeHTML(msg.text)}</div>
                         </div>`;
                 } else {
-                    const ring = msg.rank === 'creator' ? 'border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]' : (msg.rank === 'vip' || msg.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_5px_rgba(251,191,36,0.5)]' : 'border-gray-600');
+                    const ring = msg.rank === 'creator' ? 'border-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]' : (msg.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_5px_rgba(192,38,211,0.5)]' : 'border-gray-600');
                     div.innerHTML = `<div class="flex gap-2 sm:gap-3 max-w-[85%]">
                             <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1"><img src="${getAvatarUrl(msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm"></div>
                             <div class="flex flex-col items-start w-full">
+                                ${pmHeader}
                                 <div class="flex items-center mb-1 w-full flex-wrap">
-                                    <span class="${nameClass}">${escapeHTML(msg.senderDisplayName)} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
+                                    <span class="${nameClass}">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
                                     ${badgeHtml}
                                     <span class="text-[9px] sm:text-[10px] text-gray-500 ml-2 font-medium">${formatTime(msg.createdAt)}</span>
                                 </div>
@@ -438,16 +588,35 @@
         tabVip.addEventListener('click', () => { tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formVip.classList.remove('hidden'); formGuest.classList.add('hidden'); });
         tabGuest.addEventListener('click', () => { tabGuest.className = "flex-1 text-xs sm:text-sm font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1 transition-colors"; tabVip.className = "flex-1 text-xs sm:text-sm font-bold text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition-colors"; formGuest.classList.remove('hidden'); formVip.classList.add('hidden'); });
 
+        function handleLoginResponse(res) {
+            if (res.success) {
+                userDisplayName = res.user.displayName; 
+                myUniqueId = res.user.uniqueId; 
+                myRank = res.user.rank;
+                authPanel.classList.add('hidden'); 
+                chatPanel.classList.remove('hidden'); 
+                document.getElementById('logout-btn').classList.remove('hidden');
+                msgInput.focus();
+            } else { 
+                alert(res.error); 
+                logout(); // Hibás jelszónál kitörli a mentett adatot
+            }
+        }
+
         function attemptLogin(user, pass, isGuest) {
             socket.emit('login', { username: user, password: pass, isGuest: isGuest }, (res) => {
                 if (res.success) {
-                    userDisplayName = res.user.displayName; 
-                    myUniqueId = res.user.uniqueId; 
-                    myRank = res.user.rank;
-                    authPanel.classList.add('hidden'); 
-                    chatPanel.classList.remove('hidden'); 
-                    msgInput.focus();
-                } else { alert(res.error); }
+                    if (!isGuest) {
+                        localStorage.setItem('radio_user', user);
+                        localStorage.setItem('radio_pass', pass);
+                        localStorage.removeItem('radio_guest');
+                    } else {
+                        localStorage.setItem('radio_guest', user);
+                        localStorage.removeItem('radio_user');
+                        localStorage.removeItem('radio_pass');
+                    }
+                    handleLoginResponse(res);
+                } else alert(res.error);
             });
         }
 
@@ -467,25 +636,23 @@
             typingTimeout = setTimeout(() => { socket.emit('typing', false); }, 2000); 
         });
 
-        // PARANCSOK HELYI MEGJELENÍTÉSE
         document.getElementById('send-btn').addEventListener('click', () => {
             const text = msgInput.value.trim();
             if (!text) return;
             
-            // Helyi /help parancs megjelenítése (csak magadnak)
             if (text === '/help') {
                 const helpDiv = document.createElement('div');
                 helpDiv.className = "bg-slate-800/90 border border-cyan-500 p-4 rounded-xl text-xs text-slate-300 mt-2 mb-2 shadow-lg";
                 helpDiv.innerHTML = `
-                    <h4 class="font-bold text-cyan-400 mb-2">🛡️ MODERÁTORI PARANCSOK</h4>
-                    <p><b>/ban #ID [indok]</b> - Végleges tiltás</p>
-                    <p><b>/timeout #ID perc [indok]</b> - Időszakos tiltás percekre</p>
+                    <h4 class="font-bold text-cyan-400 mb-2">🛡️ PARANCSOK</h4>
+                    <p><b>/msg #ID üzenet</b> - Privát üzenet küldése</p>
+                    <p><b>/ban #ID</b> - Végleges tiltás</p>
+                    <p><b>/timeout #ID perc</b> - Időszakos tiltás percekre</p>
                     <p><b>/unban #ID</b> - Tiltás feloldása</p>
-                    <p><b>/mute #ID perc [indok]</b> - Némítás (Nem tud írni)</p>
+                    <p><b>/mute #ID perc</b> - Némítás</p>
                     <p><b>/unmute #ID</b> - Némítás feloldása</p>
-                    <p><b>/kick #ID [indok]</b> - Kidobás a chatből</p>
-                    <p><b>/rank #ID [admin/vip/user]</b> - Jogosultság adása</p>
-                    <p><b>/announce [üzenet]</b> - Globális figyelmeztetés</p>
+                    <p><b>/kick #ID</b> - Kidobás a chatből</p>
+                    <p><b>/announce üzenet</b> - Globális figyelmeztetés</p>
                     <p><b>/clear</b> - Teljes chatfal letakarítása</p>
                 `;
                 messagesContainer.appendChild(helpDiv);
