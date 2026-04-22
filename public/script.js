@@ -10,7 +10,6 @@ updateClock();
 
 async function fetchWeather() {
     try {
-        // Alapértelmezetten Magyarország közepére lőtt, ingyenes API
         const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=47.4984&longitude=19.0404&current_weather=true');
         const data = await res.json();
         const temp = Math.round(data.current_weather.temperature);
@@ -35,9 +34,9 @@ async function fetchWeather() {
     }
 }
 fetchWeather();
-setInterval(fetchWeather, 1800000); // Félóránként frissítjük
+setInterval(fetchWeather, 1800000); 
 
-// --- RÁDIÓ LOGIKA (FRISSÍTVE EQUALIZERREL) ---
+// --- RÁDIÓ LOGIKA EQUALIZERREL ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -105,6 +104,7 @@ let myUniqueId = '';
 let myRank = '';
 let myAvatarSeed = '';
 let myAvatarUrl = ''; 
+let myBio = ''; // ÚJ: Saját bio tárolása RAM-ban
 let typingTimeout = null; 
 let allMessages = []; 
 let selectedUserId = null;
@@ -128,7 +128,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
+// --- EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
@@ -215,7 +215,6 @@ function renderEmojis(filterQuery = '') {
 
 renderEmojis();
 
-// TENOR API KERESŐ (GIF)
 async function fetchGifs(query) {
     if(!gifContainer) return;
     gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
@@ -262,7 +261,6 @@ if(mediaSearch) {
     });
 }
 
-// FÜL VÁLTÓ (EMOJI <-> GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
@@ -287,14 +285,13 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
-
-// --- ÚJ: VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
+// --- VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ---
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez nincs jogosultságod!");
     const modal = document.getElementById('admin-dashboard-modal');
     if(modal) modal.classList.add('active');
     
-    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Adatok betöltése...</td></tr>';
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Adatok betöltése...</td></tr>';
     socket.emit('requestAdminData');
 }
 
@@ -321,6 +318,7 @@ socket.on('adminDataResponse', (accounts) => {
                     ${rankOptions}
                 </select>
             </td>
+            <td class="p-2 text-fuchsia-400 font-mono text-xs text-center">${acc.lastIp || 'Ismeretlen'}</td>
             <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'}">
                 ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
             </td>
@@ -340,7 +338,7 @@ window.adminAction = function(action, targetId, value = null) {
     socket.emit('adminDashboardAction', { action, targetId, value });
 }
 
-// MOBILOS MENÜ LOGIKA (TAGLISTA)
+// MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
     if(sidebarContainer) {
         sidebarContainer.classList.remove('translate-x-full');
@@ -368,7 +366,7 @@ if (mobileUsersToggle) mobileUsersToggle.addEventListener('click', openSidebar);
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// FÜLEK (TABS) LOGIKÁJA A CHATHEZ
+// FÜLEK (TABS) LOGIKÁJA
 window.switchTab = function(id) {
     currentTab = id;
     if (pmTabs[id]) pmTabs[id].unread = 0;
@@ -433,7 +431,6 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
-// AUTO-LOGIN ÉS HÁTTÉR VISSZATÉRÉS
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
         if (!socket.connected) socket.connect(); 
@@ -474,7 +471,7 @@ function getAvatarUrl(seed, customUrl, name) {
 
 function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
-// --- KATTINTHATÓ NEVEK ÉS MODALOK ---
+// --- PROFIL ÉS USER MODALOK ---
 window.handleNameClick = function(id, name, rank) {
     if(!myUniqueId) return;
     if(id === myUniqueId) { 
@@ -490,10 +487,12 @@ window.openProfileModal = function() {
     if(modal) modal.classList.add('active');
     
     const editDisplay = document.getElementById('edit-displayname');
+    const editBio = document.getElementById('edit-bio');
     const editUrl = document.getElementById('edit-avatar-url');
     const editAvatar = document.getElementById('edit-avatar');
     
     if(editDisplay) editDisplay.value = userDisplayName;
+    if(editBio) editBio.value = myBio || '';
     if(editUrl) editUrl.value = myAvatarUrl || '';
     tempSeed = myAvatarSeed || Math.random().toString(36).substring(7);
     if(editAvatar) editAvatar.src = getAvatarUrl(tempSeed, myAvatarUrl, userDisplayName);
@@ -514,12 +513,17 @@ window.openUserModal = function(id, name, rank) {
     selectedUserId = id;
     const modName = document.getElementById('mod-name');
     const modId = document.getElementById('mod-id');
+    const modBio = document.getElementById('mod-bio');
     const modAvatar = document.getElementById('mod-avatar');
     
-    if(modName) modName.innerText = name;
-    if(modId) modId.innerText = "#" + id;
-    
     const targetUser = onlineUsersData.find(u => u.uniqueId === id);
+    
+    if(modName) modName.innerText = name;
+    
+    // TÖKÉLETES MEGJELENÍTÉS A FELUGRÓ ABLAKBAN
+    if(modId) modId.innerText = `ID: #${id} | Fiók: ${targetUser ? targetUser.username : 'Ismeretlen'}`;
+    if(modBio) modBio.innerText = targetUser && targetUser.bio ? `"${targetUser.bio}"` : '';
+    
     const targetAvatarUrl = targetUser ? getAvatarUrl(targetUser.avatarSeed, targetUser.avatarUrl, name) : getAvatarUrl('', '', name);
     if(modAvatar) modAvatar.src = targetAvatarUrl;
     
@@ -600,16 +604,21 @@ window.randomAvatar = function() {
 window.saveProfile = function() {
     const nameInput = document.getElementById('edit-displayname');
     const urlInput = document.getElementById('edit-avatar-url');
+    const bioInput = document.getElementById('edit-bio');
+    
     if(!nameInput || !urlInput) return;
 
     const name = nameInput.value.trim();
     const customUrl = urlInput.value.trim();
+    const bioStr = bioInput ? bioInput.value.trim() : '';
+    
     if(!name) return alert("A név nem lehet üres!");
     
-    socket.emit('updateProfile', { displayName: name, avatarSeed: tempSeed, avatarUrl: customUrl });
+    socket.emit('updateProfile', { displayName: name, avatarSeed: tempSeed, avatarUrl: customUrl, bio: bioStr });
     userDisplayName = name; 
     myAvatarSeed = tempSeed;
     myAvatarUrl = customUrl;
+    myBio = bioStr;
     
     window.closeModal('profile-modal');
     renderTabs();
@@ -698,7 +707,6 @@ socket.on('updateUsers', (users) => {
         myAvatarUrl = me.avatarUrl; 
         myRank = me.rank; 
 
-        // Készítő gomb megjelenítése
         const dashBtn = document.getElementById('btn-open-dashboard');
         if(dashBtn) {
             if(myRank === 'creator') dashBtn.classList.remove('hidden');
@@ -723,18 +731,21 @@ socket.on('updateUsers', (users) => {
             const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
             
             const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
+            
+            // ÚJ: A Státusz/Bio mező generálása a Taglistába, és az ID eltüntetése innen!
+            const bioHtml = u.bio ? `<span class="text-[10px] text-cyan-400/70 truncate italic block -mt-1">${escapeHTML(u.bio)}</span>` : '';
 
             const div = document.createElement('div');
             div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
             
             div.innerHTML = `
-                <div class="relative shrink-0" title="${escapeHTML(u.displayName)} #${escapeHTML(u.uniqueId)}">
+                <div class="relative shrink-0" title="${escapeHTML(u.displayName)}">
                     <img src="${getAvatarUrl(u.avatarSeed, u.avatarUrl, u.displayName)}" class="w-8 h-8 rounded-full bg-gray-800 border-2 ${ringColor} shadow-sm avatar-img">
                     <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-grow">
                      <span class="text-sm truncate leading-tight ${nameColor}">${displayNameHtml}</span>
-                     <span class="user-id-tag">#${escapeHTML(u.uniqueId)}</span>
+                     ${bioHtml}
                 </div>
                 ${badge}
             `;
@@ -784,7 +795,6 @@ function renderMessages() {
             messagesContainer.appendChild(div); return;
         }
 
-        // GIF RENDERELÉSE
         let msgTextHtml = escapeHTML(msg.text);
         if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
@@ -829,7 +839,7 @@ function renderMessages() {
                         <div class="flex items-center mb-1 flex-wrap justify-end">
                             <span class="text-[10px] text-gray-500 mr-2 font-medium">${formatTime(msg.createdAt)}</span>
                             ${badgeHtml}
-                            <span class="${nameClass} ml-2">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
+                            <span class="${nameClass} ml-2">${displayNameHtml}</span>
                         </div>
                         <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words w-auto inline-block">${msgTextHtml}</div>
                     </div>
@@ -846,7 +856,7 @@ function renderMessages() {
                     <div class="flex flex-col items-start w-full">
                         ${pmHeader}
                         <div class="flex items-center mb-1 w-full flex-wrap">
-                            <span class="${nameClass}">${displayNameHtml} <span class="user-id-tag">#${escapeHTML(msg.senderUniqueId)}</span></span>
+                            <span class="${nameClass}">${displayNameHtml}</span>
                             ${badgeHtml}
                             <span class="text-[9px] sm:text-[10px] text-gray-500 ml-2 font-medium">${formatTime(msg.createdAt)}</span>
                         </div>
@@ -866,6 +876,7 @@ window.handleLoginResponse = function(res) {
         myRank = res.user.rank;
         myAvatarSeed = res.user.avatarSeed;
         myAvatarUrl = res.user.avatarUrl || '';
+        myBio = res.user.bio || ''; // ÚJ: Bio letöltése bejelentkezéskor
         
         const authPanelElem = document.getElementById('auth-panel');
         const chatPanelElem = document.getElementById('chat-panel');
