@@ -182,32 +182,61 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// ÚJ: HIVATALOS GOOGLE NOTO ANIMATED EMOJI SZERVER! (Tökéletesen működik, átlátszó háttérrel)
+// --- ÚJ: HATALMAS, HIBÁTLAN MATRICA LISTA ---
 const stickersList = [
+    // Arcok és Érzelmek
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", // Party arc
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", // Nevetés könnyekkel
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", // Földön fetrengve nevetés
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", // Sírva nevetős
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", // Földön fetrengő
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif", // Szívszemű
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", // Szívekkel mosolygó
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", // Cuki szíves
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", // Napszemüveges
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", // Felrobbanó agy
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif", // Zokogó
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", // Kérlelő szemek
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", // Szellem
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", // Alien
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", // Koponya
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", // Tűz
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  // Csillagok
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", // Konfetti
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", // Piros szív
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", // Kérlelő/Pillás
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f631/512.gif", // Sikító
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.gif", // Mérges
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", // Dilis
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f914/512.gif", // Gondolkodó
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", // Angyalkás
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", // Ördögi mosoly
+    
+    // Szimbólumok, Tárgyak
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", // Dobogó piros szív
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f494/512.gif", // Törött szív
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", // 100
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f49e/512.gif", // Forgó szívek
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", // Pattogó tűz
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  // Csillám/Szikra
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", // Konfetti ágyú
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f38a/512.gif", // Konfetti labda
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f388/512.gif", // Lufi
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", // 100-as
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif", // Robbanás
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", // Taps
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", // Összetett kéz
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", // Hangjegy
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b6/512.gif", // Több hangjegy
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3ba/512.gif", // Trombita
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b8/512.gif", // Gitár
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", // Koccintás (sör)
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", // Pezsgő bontás
+    
+    // Állatok és Különlegesek
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", // Szellem
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", // Alien fej
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47e/512.gif", // Űrinváder (pixeles)
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", // Koponya
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a9/512.gif", // Kaki
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f431/512.gif", // Cica
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f436/512.gif", // Kutya
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif", // Unikornis
+    
+    // Gesztusok
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif", // Integetés
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif", // Táncoló nő
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f57a/512.gif"  // Táncoló férfi
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", // OK jel
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", // Like (Felfeléujj)
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", // Tapsolás
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", // Ima / Köszi
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4aa/512.gif", // Bicepsz
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif"  // Táncoló nő
 ];
 
 function renderStickers() {
