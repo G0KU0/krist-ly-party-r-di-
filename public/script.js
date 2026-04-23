@@ -305,7 +305,7 @@ window.switchEmojiTab = function(tab) {
         if(sBtn) sBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(stickerContainer) stickerContainer.classList.remove('hidden'); 
         if(mediaSearch) {
-            mediaSearch.placeholder = "Matricák (Hamarosan...)";
+            mediaSearch.placeholder = "Matricák (Keresés itt nem elérhető)";
             mediaSearch.disabled = true;
             mediaSearch.style.opacity = '0.5';
         }
@@ -407,13 +407,12 @@ window.saveAdminEdit = function() {
     document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
 }
 
-// --- ÚJ: ÉLŐ RADAR (KÉSZÍTŐ ÉS TULAJDONOS) ---
+// --- ÉLŐ RADAR (KÉSZÍTŐ ÉS TULAJDONOS) ---
 window.openLiveRadar = function() {
     if (myRank !== 'creator' && myRank !== 'owner') return alert("Ehhez nincs jogosultságod!");
     const modal = document.getElementById('live-radar-modal');
     if(modal) modal.classList.add('active');
     
-    // A Radar a kliensen tárolt onlineUsersData-ból építkezik, ami folyamatosan frissül!
     renderRadar();
 }
 
@@ -449,10 +448,7 @@ function renderRadar() {
         let displayHtml = isVisitor ? `<span class="text-gray-500 italic">Névtelen Látogató</span>` : `<span class="font-bold text-white">${escapeHTML(acc.displayName)}</span>`;
         let accountHtml = isVisitor ? `<span class="text-gray-500 text-[10px]">Csak böngész</span>` : `<span class="text-gray-400 text-[10px]">#${acc.uniqueId}</span><br><span class="text-cyan-500 text-[10px]">${acc.username}</span>`;
         
-        // Csak a Készítő láthatja a piros IP TILTÁS gombot
         const ipBanBtn = myRank === 'creator' ? `<button onclick="radarAction('banIp', '${acc.uniqueId}', '${acc.ip}')" class="admin-action-btn text-red-500 border-red-500/50 hover:bg-red-500 hover:text-white" title="Végleges kizárás az oldalról">IP TILTÁS</button>` : '';
-        
-        // A Készítőt senki se dobhatja ki
         const disableKick = acc.rank === 'creator' ? 'hidden' : '';
 
         const tr = document.createElement('tr');
@@ -631,6 +627,7 @@ function getAvatarUrl(seed, customUrl, name) {
 
 function formatTime(timestamp) { const date = new Date(timestamp); return date.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' }); }
 
+// --- ÚJ: FELHASZNÁLÓI KÁRTYÁK ÚJRATERVEZÉSE ---
 window.handleNameClick = function(id, name, rank) {
     if(!myUniqueId) return;
     if(id === myUniqueId) { 
@@ -837,17 +834,15 @@ socket.on('newMessage', (msg) => {
     renderMessages(); 
 });
 
-// AZ ÉLŐ RADAR FRISSÍTÉSE A KLIENSEN IS
+// --- ÚJ: A TAGLISTA KÁRTYÁINAK ÚJRATERVEZÉSE (NINCS TRUNCATE HIBA) ---
 socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     
-    // Frissíti a Radart, ha nyitva van!
     const radarModal = document.getElementById('live-radar-modal');
     if(radarModal && radarModal.classList.contains('active')) {
         renderRadar();
     }
 
-    // A jobboldali Taglista SZŰRÉSE: Látogatók (visitor) nem jelenhetnek meg itt!
     const visibleUsers = users.filter(u => u.rank !== 'visitor');
 
     const onlineCount = document.getElementById('online-count');
@@ -875,7 +870,6 @@ socket.on('updateUsers', (users) => {
         myAvatarUrl = me.avatarUrl; 
         myRank = me.rank; 
 
-        // KÉSZÍTŐ (Dashboard + Radar) / TULAJDONOS (Csak Radar) GOMBOK
         const dashBtn = document.getElementById('btn-admin-dashboard');
         const radarBtn = document.getElementById('btn-live-radar');
         
@@ -896,34 +890,38 @@ socket.on('updateUsers', (users) => {
         visibleUsers.forEach(u => {
             const isMe = u.uniqueId === myUniqueId;
             
+            // JELVÉNYEK (a !ml-0 osztály megakadályozza, hogy elcsússzon)
             let badge = '';
-            if (u.rank === 'creator') badge = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
-            else if (u.rank === 'owner') badge = '<span class="badge badge-owner">👑 TULAJDONOS</span>';
-            else if (u.rank === 'admin') badge = '<span class="badge badge-admin">🛡️ ADMIN</span>';
-            else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator">⚔️ MODERÁTOR</span>';
-            else if (u.rank === 'vip') badge = '<span class="badge badge-vip">👑 VIP</span>';
-            else if (u.rank === 'user') badge = '<span class="badge badge-guest" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
+            if (u.rank === 'creator') badge = '<span class="badge badge-creator !ml-0">🛡️ KÉSZÍTŐ</span>';
+            else if (u.rank === 'owner') badge = '<span class="badge badge-owner !ml-0">👑 TULAJDONOS</span>';
+            else if (u.rank === 'admin') badge = '<span class="badge badge-admin !ml-0">🛡️ ADMIN</span>';
+            else if (u.rank === 'moderator') badge = '<span class="badge badge-moderator !ml-0">⚔️ MODERÁTOR</span>';
+            else if (u.rank === 'vip') badge = '<span class="badge badge-vip !ml-0">👑 VIP</span>';
+            else if (u.rank === 'user') badge = '<span class="badge badge-guest !ml-0" style="background:#0369a1; border-color:transparent;">👤 TAG</span>';
             
             const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
             const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
             
             const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
             
-            const bioHtml = u.bio ? `<span class="text-[10px] text-cyan-400/70 truncate italic block -mt-1">${escapeHTML(u.bio)}</span>` : '';
+            // BIO: "break-words" class biztosítja, hogy ne lógjon ki a dobozból!
+            const bioHtml = u.bio ? `<span class="text-[11px] text-cyan-400/80 italic block mt-1 break-words leading-snug">${escapeHTML(u.bio)}</span>` : '';
+            const badgeHtml = badge ? `<div class="mt-1 mb-0.5">${badge}</div>` : '';
 
             const div = document.createElement('div');
-            div.className = `flex items-center gap-2 p-2 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50' : 'hover:bg-gray-800/40 border border-transparent'}`;
+            div.className = `flex items-start gap-3 p-3 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50 shadow-inner' : 'hover:bg-gray-800/40 border border-transparent'}`;
             
+            // ÚJ ELRENDEZÉS: Nincs "truncate" -> Tördelve van a név, alatta a jelvény, alatta a bio!
             div.innerHTML = `
-                <div class="relative shrink-0" title="${escapeHTML(u.displayName)}">
-                    <img src="${getAvatarUrl(u.avatarSeed, u.avatarUrl, u.displayName)}" class="w-8 h-8 rounded-full bg-gray-800 border-2 ${ringColor} shadow-sm avatar-img">
-                    <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                <div class="relative shrink-0 mt-1" title="${escapeHTML(u.displayName)}">
+                    <img src="${getAvatarUrl(u.avatarSeed, u.avatarUrl, u.displayName)}" class="w-11 h-11 rounded-full bg-gray-800 border-2 ${ringColor} shadow-md avatar-img">
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-gray-900 rounded-full shadow-sm"></span>
                 </div>
-                <div class="flex flex-col justify-center min-w-0 flex-grow">
-                     <span class="text-sm truncate leading-tight ${nameColor}">${displayNameHtml}</span>
+                <div class="flex flex-col min-w-0 flex-grow justify-center">
+                     <span class="text-[15px] font-bold break-words leading-tight ${nameColor}">${displayNameHtml}</span>
+                     ${badgeHtml}
                      ${bioHtml}
                 </div>
-                ${badge}
             `;
             onlineUsersSidebar.appendChild(div);
         });
@@ -978,12 +976,6 @@ function renderMessages() {
         if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
-        } else {
-            msgTextHtml = msgTextHtml.replace(/[\p{Extended_Pictographic}]/gu, match => {
-                const hex = Array.from(match).map(c => c.codePointAt(0).toString(16)).join('_');
-                const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
-                return `<img src="${url}" class="w-6 h-6 sm:w-7 sm:h-7 inline-block align-bottom mx-0.5 drop-shadow-md" onerror="this.outerHTML='${match}'" alt="${match}">`;
-            });
         }
 
         let bubbleClass = 'text-white font-medium ';
@@ -1082,7 +1074,6 @@ window.handleLoginResponse = function(res) {
         if(logoutBtn) logoutBtn.classList.remove('hidden');
         if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
 
-        // Gombok beállítása
         const dashBtn = document.getElementById('btn-admin-dashboard');
         const radarBtn = document.getElementById('btn-live-radar');
         
