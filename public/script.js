@@ -127,7 +127,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI, RENDES MOZGÓ EMOJI ÉS GIF PANEL LOGIKA ---
+// --- EMOJI, VALÓDI ANIMÁLT MATRICA ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const animatedContainer = document.getElementById('content-animated');
@@ -182,33 +182,49 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// ÚJ: VALÓDI MOZGÓ EMOJIK LISTÁJA ÉS MEGJELENÍTÉSE
+// --- ÚJ: VALÓDI ANIMÁLT MATRICÁK (Discord-stílusú) ---
+// Ezek a linkek valós, mozgó kis emojik/matricák a webről!
 const animatedEmojisList = [
-    { e: '💃', type: 'dance' }, { e: '🕺', type: 'dance' }, { e: '🤪', type: 'spin' },
-    { e: '🤬', type: 'shake' }, { e: '🥳', type: 'bounce' }, { e: '🔥', type: 'pulse' },
-    { e: '🏀', type: 'bounce' }, { e: '⭐', type: 'spin' }, { e: '👽', type: 'dance' },
-    { e: '👻', type: 'bounce' }, { e: '🤡', type: 'shake' }, { e: '❤️', type: 'pulse' },
-    { e: '🎶', type: 'bounce' }, { e: '🥂', type: 'dance' }, { e: '🚀', type: 'pulse' }
+    "https://cdn.emoji.gg/emojis/8470-blob-dance.gif",
+    "https://cdn.emoji.gg/emojis/1368-party-blob.gif",
+    "https://cdn.emoji.gg/emojis/6290-cat-jam.gif",
+    "https://cdn.emoji.gg/emojis/4348-pepedance.gif",
+    "https://cdn.emoji.gg/emojis/3045-crab-rave.gif",
+    "https://cdn.emoji.gg/emojis/9664-bongo-cat.gif",
+    "https://cdn.emoji.gg/emojis/7939-pepe-jam.gif",
+    "https://cdn.emoji.gg/emojis/5584-rainbow-dance.gif",
+    "https://cdn.emoji.gg/emojis/1715-pikachu-dance.gif",
+    "https://cdn.emoji.gg/emojis/8394-hacker-cat.gif",
+    "https://cdn.emoji.gg/emojis/6889-dj-pepe.gif",
+    "https://cdn.emoji.gg/emojis/2338-party-parrot.gif",
+    "https://cdn.emoji.gg/emojis/9282-dance.gif",
+    "https://cdn.emoji.gg/emojis/7043-meow-party.gif",
+    "https://cdn.emoji.gg/emojis/5341-party-pika.gif",
+    "https://cdn.emoji.gg/emojis/4633-kirby-dance.gif",
+    "https://cdn.emoji.gg/emojis/6125-doge-dance.gif",
+    "https://cdn.emoji.gg/emojis/8834-banana-dance.gif",
+    "https://cdn.emoji.gg/emojis/9162-among-us-dance.gif",
+    "https://cdn.emoji.gg/emojis/7521-groot-dance.gif"
 ];
 
 function renderAnimatedEmojis() {
     if(!animatedContainer) return;
     animatedContainer.innerHTML = '';
     
-    animatedEmojisList.forEach(item => {
+    animatedEmojisList.forEach(url => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-center p-2";
         
-        const span = document.createElement('span');
-        span.innerText = item.e;
-        span.className = `emo-${item.type} text-4xl cursor-pointer hover:scale-125 transition-transform`;
-        span.onclick = (e) => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = "w-10 h-10 cursor-pointer hover:scale-125 transition-transform object-contain";
+        img.onclick = (e) => {
             e.preventDefault(); e.stopPropagation();
-            // Egy speciális kódot szúr be, amit a chat rendszer felismer!
-            if(msgInput) { msgInput.value += ` [anim:${item.type}]${item.e}[/anim] `; msgInput.focus(); }
+            // Amikor rákattintasz egy matricára, beszúrja az üzenetbe egy speciális címkével!
+            if(msgInput) { msgInput.value += ` [ANIM]${url} `; msgInput.focus(); }
         };
         
-        div.appendChild(span);
+        div.appendChild(img);
         animatedContainer.appendChild(div);
     });
 }
@@ -912,9 +928,8 @@ function renderMessages() {
 
         let msgTextHtml = escapeHTML(msg.text);
         
-        // --- ÚJ: MOZGÓ EMOJIK FELDOLGOZÁSA A SZÖVEGBEN! ---
-        // Kicseréljük a [anim:tipus]emoji[/anim] kódokat valódi mozgó HTML elemekre!
-        msgTextHtml = msgTextHtml.replace(/\[anim:([a-z]+)\](.*?)\[\/anim\]/g, '<span class="emo-$1">$2</span>');
+        // --- ANIMÁLT MATRICÁK (Discord stílus) FELISMERÉSE A SZÖVEGBEN ---
+        msgTextHtml = msgTextHtml.replace(/\[ANIM\](https?:\/\/[^\[\]\s]+)/g, '<img src="$1" class="h-8 w-8 sm:h-10 sm:w-10 inline-block align-middle mx-1" alt="emote">');
 
         if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
