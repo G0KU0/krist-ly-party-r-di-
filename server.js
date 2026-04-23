@@ -73,6 +73,23 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 
+// --- ÚJ: DUPLIKÁCIÓ SZŰRŐ RENDSZER (Több lap = 1 Ember) ---
+function emitUpdatedUsers() {
+    const uniqueUsers = [];
+    const seen = new Set();
+    // Prioritás: a magasabb rangúak (bejelentkezettek) felülírják a sima látogatói lapokat
+    const sorted = Array.from(activeUsers.values()).sort((a, b) => (RANKS[b.rank] || 0) - (RANKS[a.rank] || 0));
+    
+    for (let u of sorted) {
+        // Csak egyszer küldjük le a Radarnak és a Chatnek
+        if (!seen.has(u.uniqueId)) {
+            seen.add(u.uniqueId);
+            uniqueUsers.push(u);
+        }
+    }
+    io.emit('updateUsers', uniqueUsers);
+}
+
 async function fetchLocation(ip) {
     if (!ip || ip === '::1' || ip === '127.0.0.1') return 'Helyi hálózat';
     try {
@@ -90,14 +107,18 @@ io.on('connection', async (socket) => {
     const isSocketBanned = await BannedIP.exists({ ip: clientIp });
     if (isSocketBanned) return socket.disconnect();
 
-    // LÁTOGATÓ (NINCS DB-BEN, CSAK A RADARHOZ)
+    // A BÖNGÉSZŐ ÁLLANDÓ UJJLENYOMATA (Ha nyit egy új lapot, ezzel azonosítja magát)
+    const browserId = socket.handshake.auth.browserId || ('V' + Math.floor(10000 + Math.random() * 90000));
     const userLocation = await fetchLocation(clientIp);
+
+    // Alapértelmezett Látogatói Állapot beállítása
     activeUsers.set(socket.id, {
-        username: 'látogató_' + socket.id.substring(0, 5),
+        browserId: browserId, // Ezzel kötjük össze a lapokat
+        username: 'látogató_' + browserId.substring(0, 5),
         displayName: 'Névtelen Látogató',
-        uniqueId: 'V' + Math.floor(10000 + Math.random() * 90000),
+        uniqueId: browserId,
         rank: 'visitor', 
-        avatarSeed: socket.id,
+        avatarSeed: browserId,
         avatarUrl: '',
         bio: '',
         ip: clientIp,
@@ -105,24 +126,17 @@ io.on('connection', async (socket) => {
         connectedAt: Date.now()
     });
     
-    io.emit('updateUsers', Array.from(activeUsers.values()));
+    emitUpdatedUsers(); // Csak egyszer küldi el!
 
-    // JAVÍTVA: VENDÉGEK ÚJRA MENTVE AZ ADATBÁZISBA!
     socket.on('login', async (data, callback) => {
         const { username, password, isGuest, guestId } = data;
         let acc;
+        
         const currentUserData = activeUsers.get(socket.id); 
+        const currentBrowserId = currentUserData.browserId;
 
         if (!isGuest) {
             const lowUser = username.toLowerCase();
-            
-            for (let [sid, u] of activeUsers.entries()) {
-                if (u.username === lowUser && sid !== socket.id) {
-                    io.sockets.sockets.get(sid)?.disconnect();
-                    activeUsers.delete(sid);
-                }
-            }
-
             acc = await Account.findOne({ username: lowUser });
             
             if (acc) {
@@ -140,16 +154,8 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            // VENDÉG FIÓK KEZELÉSE ÉS ADATBÁZIS MENTÉSE
+            // VENDÉG FIÓK KEZELÉSE
             if (guestId) {
-                for (let [sid, u] of activeUsers.entries()) {
-                    if (u.uniqueId === guestId && sid !== socket.id) {
-                        io.sockets.sockets.get(sid)?.disconnect();
-                        activeUsers.delete(sid);
-                        break;
-                    }
-                }
-                // Megkeressük az adatbázisban a visszatérő vendéget!
                 acc = await Account.findOne({ uniqueId: guestId });
             }
 
@@ -157,9 +163,8 @@ io.on('connection', async (socket) => {
                 acc.lastIp = clientIp;
                 acc.location = userLocation;
                 if (username && username !== acc.displayName) acc.displayName = username;
-                await acc.save(); // Frissítjük a DB-ben
+                await acc.save(); 
             } else {
-                // ÚJ VENDÉG LÉTREHOZÁSA ÉS MENTÉSE A DB-BE (24h lejárattal)
                 const newGuestId = "G" + Math.floor(1000 + Math.random() * 9000);
                 const genUsername = `vendeg_${newGuestId}_${Date.now()}`;
                 
@@ -173,25 +178,30 @@ io.on('connection', async (socket) => {
                     bio: '',
                     lastIp: clientIp,
                     location: userLocation,
-                    guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Automatikus DB törlés 24h múlva
+                    guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) 
                 });
                 await acc.save();
             }
         }
 
-        activeUsers.set(socket.id, {
-            ...currentUserData, 
-            username: acc.username,
-            displayName: acc.displayName,
-            uniqueId: acc.uniqueId,
-            rank: acc.rank,
-            avatarSeed: acc.avatarSeed || socket.id,
-            avatarUrl: acc.avatarUrl || '',
-            bio: acc.bio || ''
-        });
+        // AZ ÖSSZES MEGYNYITOTT LAPJÁT FRISSÍTJÜK ERRE A FIÓKRA!
+        for (let [sid, u] of activeUsers.entries()) {
+            if (u.browserId === currentBrowserId || (isGuest && guestId && u.uniqueId === guestId) || (!isGuest && u.username === acc.username)) {
+                activeUsers.set(sid, {
+                    ...u, 
+                    username: acc.username,
+                    displayName: acc.displayName,
+                    uniqueId: acc.uniqueId,
+                    rank: acc.rank,
+                    avatarSeed: acc.avatarSeed || currentBrowserId,
+                    avatarUrl: acc.avatarUrl || '',
+                    bio: acc.bio || ''
+                });
+            }
+        }
 
         callback({ success: true, user: activeUsers.get(socket.id) });
-        io.emit('updateUsers', Array.from(activeUsers.values()));
+        emitUpdatedUsers();
 
         try {
             const publicMessages = await Message.find({ recipientUniqueId: null }).sort({ createdAt: 1 }).limit(100);
@@ -216,18 +226,32 @@ io.on('connection', async (socket) => {
         io.emit('newMessage', sysMsg);
     });
 
-    // ÚJ: KILÉPÉS ESEMÉNY (Vendég törlése)
+    // KILÉPÉS - Ha vendég, azonnal törlődik az adatbázisból!
     socket.on('logoutAccount', async () => {
         const user = activeUsers.get(socket.id);
         if (user) {
-            // Ha a kilépő illető Vendég volt, AZONNAL TÖRÖLJÜK az adatbázisból!
             if (user.rank === 'guest') {
                 try {
                     await Account.deleteOne({ uniqueId: user.uniqueId });
                 } catch(e) { console.error(e); }
             }
-            activeUsers.delete(socket.id);
-            io.emit('updateUsers', Array.from(activeUsers.values()));
+            
+            const bId = user.browserId;
+            // Visszaállítjuk az összes lapját sima Látogatóra
+            for (let [sid, u] of activeUsers.entries()) {
+                if (u.browserId === bId || u.uniqueId === user.uniqueId) {
+                    activeUsers.set(sid, {
+                        ...u,
+                        username: 'látogató_' + bId.substring(0, 5),
+                        displayName: 'Névtelen Látogató',
+                        uniqueId: bId,
+                        rank: 'visitor',
+                        avatarUrl: '',
+                        bio: ''
+                    });
+                }
+            }
+            emitUpdatedUsers();
         }
     });
 
@@ -289,7 +313,7 @@ io.on('connection', async (socket) => {
             
             const allAccounts = await Account.find({}).sort({ createdAt: -1 }).lean();
             socket.emit('adminDataResponse', allAccounts);
-            io.emit('updateUsers', Array.from(activeUsers.values()));
+            emitUpdatedUsers();
 
         } catch(e) { console.error(e); }
     });
@@ -321,7 +345,7 @@ io.on('connection', async (socket) => {
                 }
             }
         }
-        io.emit('updateUsers', Array.from(activeUsers.values()));
+        emitUpdatedUsers();
     });
 
     socket.on('adminAction', async (data) => {
@@ -353,7 +377,7 @@ io.on('connection', async (socket) => {
                 if (action === 'mute') u.muteExpiresAt = new Date(Date.now() + value * 60000);
             }
         }
-        io.emit('updateUsers', Array.from(activeUsers.values()));
+        emitUpdatedUsers();
         if (action === 'setRank') io.emit('newMessage', { text: `Rang módosítva: #${targetId} mostantól ${value}`, isSystem: true, senderDisplayName: 'RENDSZER' });
     });
 
@@ -441,7 +465,7 @@ io.on('connection', async (socket) => {
             bio: user.bio 
         });
         
-        io.emit('updateUsers', Array.from(activeUsers.values()));
+        emitUpdatedUsers();
     });
 
     socket.on('typing', (isTyping) => {
@@ -454,7 +478,7 @@ io.on('connection', async (socket) => {
 
     socket.on('disconnect', () => {
         activeUsers.delete(socket.id);
-        io.emit('updateUsers', Array.from(activeUsers.values()));
+        emitUpdatedUsers();
     });
 });
 
