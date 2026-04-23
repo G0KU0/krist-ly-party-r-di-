@@ -1,3 +1,4 @@
+// --- ÓRA ÉS IDŐJÁRÁS WIDGET LOGIKA ---
 function updateClock() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -35,6 +36,7 @@ async function fetchWeather() {
 fetchWeather();
 setInterval(fetchWeather, 1800000); 
 
+// --- RÁDIÓ LOGIKA EQUALIZERREL ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -97,19 +99,8 @@ audio.addEventListener('playing', () => {
     toggleEq(true);
 });
 
-
-// --- ÚJ: BÖNGÉSZŐ UJJLENYOMAT LÉTREHOZÁSA (Lapok szinkronizálása) ---
-let myBrowserId = localStorage.getItem('radio_browser_id');
-if (!myBrowserId) {
-    // Ha először jár itt, kap egy fix, állandó ID-t a gépére
-    myBrowserId = 'V' + Math.floor(10000 + Math.random() * 90000);
-    localStorage.setItem('radio_browser_id', myBrowserId);
-}
-
-// Csatlakozás az ujjlenyomattal
-const socket = io({
-    auth: { browserId: myBrowserId }
-}); 
+// --- CHAT ALAPVETŐ LOGIKA ---
+const socket = io(); 
 
 let userDisplayName = '';
 let myUniqueId = ''; 
@@ -137,6 +128,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
+// --- EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -339,7 +331,7 @@ window.switchEmojiTab = function(tab) {
 }
 
 
-// --- VEZÉRLŐPULT: ADATBÁZIS (CSAK KÉSZÍTŐ) ---
+// --- VEZÉRLŐPULT: ADATBÁZIS ÉS RADAR ---
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez csak a Készítőnek van jogosultsága!");
     const modal = document.getElementById('admin-dashboard-modal');
@@ -424,7 +416,6 @@ window.saveAdminEdit = function() {
     document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
 }
 
-// --- ÉLŐ RADAR (KÉSZÍTŐ ÉS TULAJDONOS) ---
 window.openLiveRadar = function() {
     if (myRank !== 'creator' && myRank !== 'owner') return alert("Ehhez nincs jogosultságod!");
     const modal = document.getElementById('live-radar-modal');
@@ -496,7 +487,6 @@ window.radarAction = function(action, targetId, targetIp = null) {
     }
     socket.emit('radarAction', { action, targetId, targetIp });
 }
-
 
 // MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
@@ -853,6 +843,7 @@ socket.on('newMessage', (msg) => {
     renderMessages(); 
 });
 
+// --- JAVÍTOTT TAGLISTA RENDEZÉS ÉS MEGJELENÍTÉS ---
 socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     
@@ -880,7 +871,13 @@ socket.on('updateUsers', (users) => {
         return; 
     }
     
-    visibleUsers.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
+    // --- ÚJ: SAJÁT MAGAD MINDIG LEGFELÜL VAN! ---
+    visibleUsers.sort((a, b) => { 
+        if (a.uniqueId === myUniqueId) return -1; // Ha én vagyok az 'a', rakjon előre
+        if (b.uniqueId === myUniqueId) return 1;  // Ha én vagyok a 'b', rakjon előre
+        // Egyébként normál rang szerinti sorrend:
+        return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); 
+    });
 
     const me = users.find(u => u.uniqueId === myUniqueId);
     if (me) { 
@@ -919,13 +916,15 @@ socket.on('updateUsers', (users) => {
             const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
             const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
             
-            const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)} ${isMe ? '✏️' : ''}</span>`;
+            // ÚJ: "(Te)" felirat a neved mellett!
+            const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)}${isMe ? ' <span class="text-slate-400 text-[10px] ml-1">(Te) ✏️</span>' : ''}</span>`;
             
             const bioHtml = u.bio ? `<span class="text-[11px] text-cyan-400/80 italic block mt-1 break-words leading-snug">${escapeHTML(u.bio)}</span>` : '';
             const badgeHtml = badge ? `<div class="mt-1 mb-0.5">${badge}</div>` : '';
 
             const div = document.createElement('div');
-            div.className = `flex items-start gap-3 p-3 rounded-xl transition-colors ${isMe ? 'bg-gray-800/80 border border-gray-600/50 shadow-inner' : 'hover:bg-gray-800/40 border border-transparent'}`;
+            // Kiemelt stílus a saját fiókodnak
+            div.className = `flex items-start gap-3 p-3 rounded-xl transition-colors ${isMe ? 'bg-slate-800 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.1)]' : 'hover:bg-gray-800/40 border border-transparent'}`;
             
             div.innerHTML = `
                 <div class="relative shrink-0 mt-1" title="${escapeHTML(u.displayName)}">
@@ -1104,6 +1103,9 @@ window.handleLoginResponse = function(res) {
         } else if (myRank === 'owner') {
             if(dashBtn) dashBtn.classList.add('hidden');
             if(radarBtn) radarBtn.classList.remove('hidden');
+        } else {
+            if(dashBtn) dashBtn.classList.add('hidden');
+            if(radarBtn) radarBtn.classList.add('hidden');
         }
 
         if (myRank === 'guest') {
