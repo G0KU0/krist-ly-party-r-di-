@@ -12,7 +12,7 @@ app.use(cors());
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Online')).catch(err => console.error(err));
 
-// --- IP TŰZFAL ---
+// --- IP TŰZFAL (TILTÁSOK ADATBÁZISA) ---
 const bannedIpSchema = new mongoose.Schema({
     ip: { type: String, required: true, unique: true },
     bannedAt: { type: Date, default: Date.now }
@@ -34,12 +34,10 @@ app.use(async (req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
-
-// JAVÍTÁS 1: Megnövelt Ping timeout, hogy a háttérben lévő lapok ne dobódjanak el azonnal!
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 120000,  // 2 percet vár, mielőtt eldobja a kapcsolatot
-    pingInterval: 30000   // 30 másodpercenként ellenőriz
+    pingTimeout: 120000,  
+    pingInterval: 30000   
 });
 
 const RANKS = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0, 'visitor': -1 };
@@ -77,9 +75,8 @@ const messageSchema = new mongoose.Schema({
 const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
-
-// JAVÍTÁS 2: "SZELLEM MÓD" KÉSLELTETÉS (Ha valaki háttérbe rakja az oldalt, nem töröljük azonnal)
 const pendingDisconnects = new Map();
+const recentAnnouncements = new Map();
 
 function emitUpdatedUsers() {
     const uniqueUsers = [];
@@ -115,11 +112,9 @@ io.on('connection', async (socket) => {
     const browserId = socket.handshake.auth.browserId || ('V' + Math.floor(10000 + Math.random() * 90000));
     const userLocation = await fetchLocation(clientIp);
 
-    // Okos takarító funkció a dupla lapok és a szellem mód ellen
     const clearOldSessions = (matchFn) => {
         for (let [sid, u] of activeUsers.entries()) {
             if (matchFn(u) && sid !== socket.id) {
-                // Ha visszajött, megszakítjuk a törlési időzítőt!
                 const pending = pendingDisconnects.get(sid);
                 if (pending) {
                     clearTimeout(pending);
@@ -205,7 +200,6 @@ io.on('connection', async (socket) => {
             }
         }
 
-        // Régi "szellem" munkamenetek takarítása a belépésnél
         clearOldSessions(u => 
             u.browserId === currentBrowserId || 
             (isGuest && guestId && u.uniqueId === guestId) || 
@@ -232,22 +226,26 @@ io.on('connection', async (socket) => {
             socket.emit('initMessages', publicMessages);
         } catch (e) { console.error(e); }
 
-        const isCreator = acc.rank === 'creator';
-        const isGuestRank = acc.rank === 'guest';
-        
-        let joinText = "megérkezett a partyra!";
-        if (isCreator) joinText = "a weboldal készítője csatlakozott a chathez! 🛡️";
-        else if (isGuestRank) joinText = "csatlakozott vendégként! 👋";
+        // --- ÚJ: JELENLÉT ÉRTESÍTÉSE (NEM MENTJÜK AZ ADATBÁZISBA!) ---
+        const now = Date.now();
+        const lastAnnounced = recentAnnouncements.get(acc.uniqueId);
 
-        const sysMsg = new Message({ 
-            text: joinText, 
-            senderDisplayName: acc.displayName, 
-            senderUniqueId: "SYS", 
-            rank: acc.rank, 
-            isSystem: true 
-        });
-        await sysMsg.save();
-        io.emit('newMessage', sysMsg);
+        if (!lastAnnounced || (now - lastAnnounced) > 300000) {
+            recentAnnouncements.set(acc.uniqueId, now);
+
+            const isCreator = acc.rank === 'creator';
+            const isGuestRank = acc.rank === 'guest';
+            
+            let joinText = "megérkezett a partyra!";
+            if (isCreator) joinText = "a weboldal készítője csatlakozott! 🛡️";
+            else if (isGuestRank) joinText = "csatlakozott vendégként! 👋";
+
+            // Kiküldjük a lebegő értesítést (Toast) a klienseknek
+            io.emit('systemNotification', { 
+                text: `<b>${acc.displayName}</b> ${joinText}`, 
+                rank: acc.rank 
+            });
+        }
     });
 
     socket.on('logoutAccount', async () => {
@@ -416,7 +414,7 @@ io.on('connection', async (socket) => {
 
         if (user.muteExpiresAt && user.muteExpiresAt > new Date()) {
             const mins = Math.ceil((user.muteExpiresAt - new Date()) / 60000);
-            return socket.emit('newMessage', { text: `Le vagy némítva még ${mins} percig!`, isSystem: true, senderDisplayName: 'RENDSZER' });
+            return socket.emit('systemNotification', { text: `Le vagy némítva még ${mins} percig!`, rank: 'user' });
         }
 
         if (text.startsWith('/msg ')) {
@@ -505,7 +503,6 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // JAVÍTÁS 3: Ha megszakad a socket, NEM TÖRÖLJÜK AZONNAL! Elindul egy 2 perces türelmi idő.
     socket.on('disconnect', () => {
         const user = activeUsers.get(socket.id);
         if (user) {
@@ -513,7 +510,7 @@ io.on('connection', async (socket) => {
                 activeUsers.delete(socket.id);
                 emitUpdatedUsers();
                 pendingDisconnects.delete(socket.id);
-            }, 120000); // 120,000 ms = 2 perc szellem mód
+            }, 120000); 
             
             pendingDisconnects.set(socket.id, timeout);
         }
