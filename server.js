@@ -12,7 +12,7 @@ app.use(cors());
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kristalyparty';
 mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB Online')).catch(err => console.error(err));
 
-// --- IP TŰZFAL (TILTÁSOK ADATBÁZISA) ---
+// --- IP TŰZFAL ---
 const bannedIpSchema = new mongoose.Schema({
     ip: { type: String, required: true, unique: true },
     bannedAt: { type: Date, default: Date.now }
@@ -34,9 +34,12 @@ app.use(async (req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
+
+// JAVÍTÁS 1: Megnövelt Ping timeout, hogy a háttérben lévő lapok ne dobódjanak el azonnal!
 const io = new Server(server, { 
     cors: { origin: "*" },
-    pingTimeout: 60000 
+    pingTimeout: 120000,  // 2 percet vár, mielőtt eldobja a kapcsolatot
+    pingInterval: 30000   // 30 másodpercenként ellenőriz
 });
 
 const RANKS = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0, 'visitor': -1 };
@@ -75,6 +78,9 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 
+// JAVÍTÁS 2: "SZELLEM MÓD" KÉSLELTETÉS (Ha valaki háttérbe rakja az oldalt, nem töröljük azonnal)
+const pendingDisconnects = new Map();
+
 function emitUpdatedUsers() {
     const uniqueUsers = [];
     const seen = new Set();
@@ -109,6 +115,22 @@ io.on('connection', async (socket) => {
     const browserId = socket.handshake.auth.browserId || ('V' + Math.floor(10000 + Math.random() * 90000));
     const userLocation = await fetchLocation(clientIp);
 
+    // Okos takarító funkció a dupla lapok és a szellem mód ellen
+    const clearOldSessions = (matchFn) => {
+        for (let [sid, u] of activeUsers.entries()) {
+            if (matchFn(u) && sid !== socket.id) {
+                // Ha visszajött, megszakítjuk a törlési időzítőt!
+                const pending = pendingDisconnects.get(sid);
+                if (pending) {
+                    clearTimeout(pending);
+                    pendingDisconnects.delete(sid);
+                }
+                activeUsers.delete(sid);
+                io.sockets.sockets.get(sid)?.disconnect(true);
+            }
+        }
+    };
+
     activeUsers.set(socket.id, {
         browserId: browserId,
         username: 'látogató_' + browserId.substring(0, 5),
@@ -120,7 +142,7 @@ io.on('connection', async (socket) => {
         bio: '',
         ip: clientIp,
         location: userLocation,
-        muteExpiresAt: null, // Új: némítás tárolása
+        muteExpiresAt: null, 
         connectedAt: Date.now()
     });
     
@@ -156,9 +178,7 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            if (guestId) {
-                acc = await Account.findOne({ uniqueId: guestId });
-            }
+            if (guestId) acc = await Account.findOne({ uniqueId: guestId });
 
             if (acc) {
                 acc.lastIp = clientIp;
@@ -185,21 +205,24 @@ io.on('connection', async (socket) => {
             }
         }
 
-        for (let [sid, u] of activeUsers.entries()) {
-            if (u.browserId === currentBrowserId || (isGuest && guestId && u.uniqueId === guestId) || (!isGuest && u.username === acc.username)) {
-                activeUsers.set(sid, {
-                    ...u, 
-                    username: acc.username,
-                    displayName: acc.displayName,
-                    uniqueId: acc.uniqueId,
-                    rank: acc.rank,
-                    avatarSeed: acc.avatarSeed || currentBrowserId,
-                    avatarUrl: acc.avatarUrl || '',
-                    bio: acc.bio || '',
-                    muteExpiresAt: acc.muteExpiresAt // Betöltjük a némítást a DB-ből!
-                });
-            }
-        }
+        // Régi "szellem" munkamenetek takarítása a belépésnél
+        clearOldSessions(u => 
+            u.browserId === currentBrowserId || 
+            (isGuest && guestId && u.uniqueId === guestId) || 
+            (!isGuest && u.username === acc.username)
+        );
+
+        activeUsers.set(socket.id, {
+            ...currentUserData, 
+            username: acc.username,
+            displayName: acc.displayName,
+            uniqueId: acc.uniqueId,
+            rank: acc.rank,
+            avatarSeed: acc.avatarSeed || currentBrowserId,
+            avatarUrl: acc.avatarUrl || '',
+            bio: acc.bio || '',
+            muteExpiresAt: acc.muteExpiresAt 
+        });
 
         callback({ success: true, user: activeUsers.get(socket.id) });
         emitUpdatedUsers();
@@ -231,9 +254,7 @@ io.on('connection', async (socket) => {
         const user = activeUsers.get(socket.id);
         if (user) {
             if (user.rank === 'guest') {
-                try {
-                    await Account.deleteOne({ uniqueId: user.uniqueId });
-                } catch(e) { console.error(e); }
+                try { await Account.deleteOne({ uniqueId: user.uniqueId }); } catch(e) { console.error(e); }
             }
             
             const bId = user.browserId;
@@ -255,13 +276,12 @@ io.on('connection', async (socket) => {
         }
     });
 
-    // --- ÚJ: BEKERÜLT A TILTOTT IP-K LEKÉRÉSE A VEZÉRLŐPULTHOZ ---
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
         try {
             const allAccounts = await Account.find({}).sort({ createdAt: -1 }).lean();
-            const bannedIps = await BannedIP.find({}).lean(); // Lekérjük az IP tiltásokat is!
+            const bannedIps = await BannedIP.find({}).lean(); 
             socket.emit('adminDataResponse', { accounts: allAccounts, bannedIps: bannedIps });
         } catch(e) { console.error(e); }
     });
@@ -295,7 +315,6 @@ io.on('connection', async (socket) => {
                     }
                 }
             } else if (action === 'unbanIp') {
-                // IP TILTÁS FELOLDÁSA!
                 await BannedIP.deleteOne({ ip: value });
             } else if (action === 'editUser') {
                 const { newUsername, newDisplayName, newPassword, newUniqueId } = editData;
@@ -375,7 +394,6 @@ io.on('connection', async (socket) => {
             const expireDate = new Date(Date.now() + value * 60000);
             await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: expireDate });
         } else if (action === 'unmute') {
-            // NÉMÍTÁS FELOLDÁSA!
             await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: null });
         }
 
@@ -487,9 +505,18 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // JAVÍTÁS 3: Ha megszakad a socket, NEM TÖRÖLJÜK AZONNAL! Elindul egy 2 perces türelmi idő.
     socket.on('disconnect', () => {
-        activeUsers.delete(socket.id);
-        emitUpdatedUsers();
+        const user = activeUsers.get(socket.id);
+        if (user) {
+            const timeout = setTimeout(() => {
+                activeUsers.delete(socket.id);
+                emitUpdatedUsers();
+                pendingDisconnects.delete(socket.id);
+            }, 120000); // 120,000 ms = 2 perc szellem mód
+            
+            pendingDisconnects.set(socket.id, timeout);
+        }
     });
 });
 
