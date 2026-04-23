@@ -1,4 +1,3 @@
-// --- ÓRA ÉS IDŐJÁRÁS WIDGET LOGIKA ---
 function updateClock() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -36,7 +35,6 @@ async function fetchWeather() {
 fetchWeather();
 setInterval(fetchWeather, 1800000); 
 
-// --- RÁDIÓ LOGIKA EQUALIZERREL ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -99,8 +97,19 @@ audio.addEventListener('playing', () => {
     toggleEq(true);
 });
 
-// --- CHAT ALAPVETŐ LOGIKA ---
-const socket = io(); 
+
+// --- ÚJ: BÖNGÉSZŐ UJJLENYOMAT LÉTREHOZÁSA (Lapok szinkronizálása) ---
+let myBrowserId = localStorage.getItem('radio_browser_id');
+if (!myBrowserId) {
+    // Ha először jár itt, kap egy fix, állandó ID-t a gépére
+    myBrowserId = 'V' + Math.floor(10000 + Math.random() * 90000);
+    localStorage.setItem('radio_browser_id', myBrowserId);
+}
+
+// Csatlakozás az ujjlenyomattal
+const socket = io({
+    auth: { browserId: myBrowserId }
+}); 
 
 let userDisplayName = '';
 let myUniqueId = ''; 
@@ -128,7 +137,6 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -196,7 +204,6 @@ function renderEmojis(filterQuery = '') {
         const div = document.createElement('div');
         div.className = "flex items-center justify-center p-1 cursor-pointer hover:scale-125 transition-transform";
         
-        // Google Noto 3D Animated Emoji lekérése Hexa kóddal
         const hex = Array.from(emojiChar).map(c => c.codePointAt(0).toString(16)).join('_');
         const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
         
@@ -621,7 +628,6 @@ document.addEventListener("visibilitychange", () => {
 
 window.logout = function() {
     socket.emit('logoutAccount');
-    
     setTimeout(() => {
         localStorage.removeItem('radio_user');
         localStorage.removeItem('radio_pass');
@@ -986,7 +992,6 @@ function renderMessages() {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
         } else {
-            // SZÖVEGBE ÁGYAZOTT GOOGLE NOTO ANIMÁLT EMOJIK CSERÉJE
             msgTextHtml = msgTextHtml.replace(/[\p{Extended_Pictographic}]/gu, match => {
                 const hex = Array.from(match).map(c => c.codePointAt(0).toString(16)).join('_');
                 const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
