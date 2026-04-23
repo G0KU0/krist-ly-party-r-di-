@@ -1,4 +1,3 @@
-// --- ÓRA ÉS IDŐJÁRÁS WIDGET LOGIKA ---
 function updateClock() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -36,7 +35,6 @@ async function fetchWeather() {
 fetchWeather();
 setInterval(fetchWeather, 1800000); 
 
-// --- RÁDIÓ LOGIKA EQUALIZERREL ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -99,7 +97,6 @@ audio.addEventListener('playing', () => {
     toggleEq(true);
 });
 
-// --- CHAT ALAPVETŐ LOGIKA ---
 const socket = io(); 
 
 let userDisplayName = '';
@@ -116,11 +113,10 @@ let onlineUsersData = [];
 let currentTab = 'main'; 
 let pmTabs = {}; 
 
-// TÁROLÓ A RADARHOZ
 window.adminAccountsData = [];
-let liveRadarInterval = null; // Élő számláló
+let liveRadarInterval = null; 
 
-const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
+const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0, 'visitor': -1 };
 
 const messagesContainer = document.getElementById('messages-container');
 const onlineUsersSidebar = document.getElementById('online-users-sidebar');
@@ -129,7 +125,6 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI, VALÓDI ANIMÁLT MATRICA ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -183,81 +178,6 @@ const emojisDict = [
 ];
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
-
-const stickersList = [
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f631/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f914/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f494/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f49e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f38a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f388/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b6/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3ba/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b8/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a9/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f431/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f436/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4aa/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif"  
-];
-
-function renderStickers() {
-    if(!stickerContainer) return;
-    stickerContainer.innerHTML = '';
-    
-    stickersList.forEach(url => {
-        const div = document.createElement('div');
-        div.className = "flex items-center justify-center p-2";
-        
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = "w-14 h-14 cursor-pointer hover:scale-125 transition-transform object-contain drop-shadow-md";
-        img.onclick = (e) => {
-            e.preventDefault(); e.stopPropagation();
-            const txt = `[STICKER]${url}`;
-            if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
-            else socket.emit('sendMessage', txt);
-            
-            if(emojiPanel) emojiPanel.classList.remove('active');
-        };
-        
-        div.appendChild(img);
-        stickerContainer.appendChild(div);
-    });
-}
-renderStickers();
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -385,7 +305,7 @@ window.switchEmojiTab = function(tab) {
         if(sBtn) sBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(stickerContainer) stickerContainer.classList.remove('hidden'); 
         if(mediaSearch) {
-            mediaSearch.placeholder = "Matricák (Keresés itt nem elérhető)";
+            mediaSearch.placeholder = "Matricák (Hamarosan...)";
             mediaSearch.disabled = true;
             mediaSearch.style.opacity = '0.5';
         }
@@ -402,17 +322,101 @@ window.switchEmojiTab = function(tab) {
 }
 
 
-// --- ÉLŐ RADAR (ADMIN PANEL) LOGIKA ---
+// --- VEZÉRLŐPULT: ADATBÁZIS (CSAK KÉSZÍTŐ) ---
 window.openAdminDashboard = function() {
-    if (myRank !== 'creator' && myRank !== 'owner') return alert("Ehhez nincs jogosultságod!");
+    if (myRank !== 'creator') return alert("Ehhez csak a Készítőnek van jogosultsága!");
     const modal = document.getElementById('admin-dashboard-modal');
     if(modal) modal.classList.add('active');
     
-    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Élő adatok beolvasása...</td></tr>';
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Adatbázis betöltése...</td></tr>';
     socket.emit('requestAdminData');
 }
 
-// Folyamatosan frissülő idő a radaron
+socket.on('adminDataResponse', (accounts) => {
+    window.adminAccountsData = accounts; 
+    const list = document.getElementById('admin-users-list');
+    if(!list) return;
+    list.innerHTML = '';
+
+    accounts.forEach(acc => {
+        const isBanned = acc.isBanned;
+        let rankOptions = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'].map(r => {
+            return `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`;
+        }).join('');
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-gray-700/50 hover:bg-white/5";
+        tr.innerHTML = `
+            <td class="p-2 text-gray-500 text-xs">#${acc.uniqueId}</td>
+            <td class="p-2 font-mono text-cyan-500 text-xs">${acc.username}</td>
+            <td class="p-2 font-bold">${escapeHTML(acc.displayName)}</td>
+            <td class="p-2">
+                <select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">
+                    ${rankOptions}
+                </select>
+            </td>
+            <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'}">
+                ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
+            </td>
+            <td class="p-2 text-right space-x-2">
+                <button onclick="openAdminEdit('${acc.uniqueId}')" class="admin-action-btn text-blue-400 border-blue-400/50 hover:bg-blue-500 hover:text-white">Szerkeszt</button>
+                <button onclick="adminAction('toggleBan', '${acc.uniqueId}')" class="admin-action-btn ${isBanned ? 'text-green-400' : 'text-orange-400'}">${isBanned ? 'Felold' : 'Kitilt'}</button>
+                <button onclick="adminAction('delete', '${acc.uniqueId}')" class="admin-action-btn admin-action-delete">Törlés</button>
+            </td>
+        `;
+        list.appendChild(tr);
+    });
+});
+
+window.adminAction = function(action, targetId, value = null) {
+    if (action === 'delete') {
+        if (!confirm('BIZTOSAN törölni akarod ezt a fiókot az adatbázisból? Ez nem vonható vissza!')) return;
+    }
+    socket.emit('adminDashboardAction', { action, targetId, value });
+}
+
+window.openAdminEdit = function(id) {
+    const acc = window.adminAccountsData.find(a => a.uniqueId === id);
+    if(!acc) return;
+    
+    document.getElementById('edit-adm-old-id').value = acc.uniqueId;
+    document.getElementById('edit-adm-id').value = acc.uniqueId;
+    document.getElementById('edit-adm-username').value = acc.username;
+    document.getElementById('edit-adm-displayname').value = acc.displayName;
+    document.getElementById('edit-adm-password').value = acc.password || ''; 
+    
+    document.getElementById('admin-edit-modal').classList.add('active');
+}
+
+window.saveAdminEdit = function() {
+    const oldId = document.getElementById('edit-adm-old-id').value;
+    const newId = document.getElementById('edit-adm-id').value.trim();
+    const newUsername = document.getElementById('edit-adm-username').value.trim();
+    const newDisplayName = document.getElementById('edit-adm-displayname').value.trim();
+    const newPassword = document.getElementById('edit-adm-password').value.trim();
+
+    if(!newId || !newUsername || !newDisplayName) return alert("ID, Login név és Megjelenítő név kötelező!");
+
+    socket.emit('adminDashboardAction', { 
+        action: 'editUser', 
+        targetId: oldId, 
+        editData: { newUniqueId: newId, newUsername, newDisplayName, newPassword } 
+    });
+
+    closeModal('admin-edit-modal');
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
+}
+
+// --- ÚJ: ÉLŐ RADAR (KÉSZÍTŐ ÉS TULAJDONOS) ---
+window.openLiveRadar = function() {
+    if (myRank !== 'creator' && myRank !== 'owner') return alert("Ehhez nincs jogosultságod!");
+    const modal = document.getElementById('live-radar-modal');
+    if(modal) modal.classList.add('active');
+    
+    // A Radar a kliensen tárolt onlineUsersData-ból építkezik, ami folyamatosan frissül!
+    renderRadar();
+}
+
 function updateLiveTime() {
     document.querySelectorAll('.live-time-counter').forEach(el => {
         const joinedAt = parseInt(el.getAttribute('data-joined'));
@@ -428,61 +432,56 @@ function updateLiveTime() {
 clearInterval(liveRadarInterval);
 liveRadarInterval = setInterval(updateLiveTime, 1000);
 
-socket.on('adminDataResponse', (accounts) => {
-    window.adminAccountsData = accounts; 
-    const list = document.getElementById('admin-users-list');
+function renderRadar() {
+    const list = document.getElementById('radar-users-list');
     if(!list) return;
     list.innerHTML = '';
 
-    if (accounts.length === 0) {
-        list.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Jelenleg senki sincs online.</td></tr>';
+    if (!onlineUsersData || onlineUsersData.length === 0) {
+        list.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Jelenleg senki sincs online.</td></tr>';
         return;
     }
 
-    accounts.forEach(acc => {
+    onlineUsersData.forEach(acc => {
         const locString = acc.location ? `<br><span class="text-[9px] text-gray-400">${acc.location}</span>` : '';
+        const isVisitor = acc.rank === 'visitor';
         
-        let allowedRanks = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'];
-        if (myRank === 'owner') allowedRanks = ['user', 'vip', 'moderator', 'admin', 'owner'];
+        let displayHtml = isVisitor ? `<span class="text-gray-500 italic">Névtelen Látogató</span>` : `<span class="font-bold text-white">${escapeHTML(acc.displayName)}</span>`;
+        let accountHtml = isVisitor ? `<span class="text-gray-500 text-[10px]">Csak böngész</span>` : `<span class="text-gray-400 text-[10px]">#${acc.uniqueId}</span><br><span class="text-cyan-500 text-[10px]">${acc.username}</span>`;
         
-        let rankHtml = `<span class="text-gray-400">${acc.rank.toUpperCase()}</span>`;
-        if (acc.rank !== 'guest' && !(myRank === 'owner' && acc.rank === 'creator')) {
-            let rankOptions = allowedRanks.map(r => `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`).join('');
-            rankHtml = `<select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">${rankOptions}</select>`;
-        }
-
-        const disableBan = (myRank === 'owner' && acc.rank === 'creator') ? 'hidden' : '';
-        // ÚJ: IP TILTÁS gomb (Csak Creator láthatja)
-        const ipBanBtn = myRank === 'creator' ? `<button onclick="adminAction('banIp', null, null, '${acc.ip}')" class="admin-action-btn text-red-500 border-red-500/50 hover:bg-red-500 hover:text-white" title="Weboldal szintű tiltás">IP TILTÁS</button>` : '';
+        // Csak a Készítő láthatja a piros IP TILTÁS gombot
+        const ipBanBtn = myRank === 'creator' ? `<button onclick="radarAction('banIp', '${acc.uniqueId}', '${acc.ip}')" class="admin-action-btn text-red-500 border-red-500/50 hover:bg-red-500 hover:text-white" title="Végleges kizárás az oldalról">IP TILTÁS</button>` : '';
+        
+        // A Készítőt senki se dobhatja ki
+        const disableKick = acc.rank === 'creator' ? 'hidden' : '';
 
         const tr = document.createElement('tr');
         tr.className = "border-b border-gray-700/50 hover:bg-white/5 transition-colors";
         tr.innerHTML = `
-            <td class="p-2 font-bold">${escapeHTML(acc.displayName)}</td>
-            <td class="p-2 text-gray-400 text-[10px] leading-tight">#${acc.uniqueId}<br><span class="text-cyan-500">${acc.username}</span></td>
-            <td class="p-2">${rankHtml}</td>
+            <td class="p-2">${displayHtml}</td>
+            <td class="p-2 leading-tight">${accountHtml}</td>
             <td class="p-2 text-fuchsia-400 font-mono text-[10px] text-center leading-tight">
                 ${acc.ip || 'Ismeretlen'}
                 ${locString}
             </td>
             <td class="p-2 text-[10px] font-bold text-green-500 text-center">
-                <span class="live-time-counter" data-joined="${acc.connectedAt}">Most lépett be</span>
+                <span class="live-time-counter" data-joined="${acc.connectedAt || Date.now()}">Számolás...</span>
             </td>
             <td class="p-2 text-right space-x-1">
                 ${ipBanBtn}
-                <button ${disableBan} onclick="adminAction('kick', '${acc.uniqueId}')" class="admin-action-btn text-orange-400 border-orange-400/50 hover:bg-orange-500 hover:text-white">KIDOBÁS</button>
+                <button ${disableKick} onclick="radarAction('kick', '${acc.uniqueId}')" class="admin-action-btn text-orange-400 border-orange-400/50 hover:bg-orange-500 hover:text-white">KIDOBÁS</button>
             </td>
         `;
         list.appendChild(tr);
     });
     updateLiveTime();
-});
+}
 
-window.adminAction = function(action, targetId, value = null, targetIp = null) {
+window.radarAction = function(action, targetId, targetIp = null) {
     if (action === 'banIp') {
-        if (!confirm(`BIZTOSAN ki akarod tiltani ezt az IP címet (${targetIp}) a weboldalról? Soha többet nem tudja megnyitni az oldalt!`)) return;
+        if (!confirm(`BIZTOSAN ki akarod tiltani ezt az IP címet (${targetIp}) a weboldalról? Soha többet nem fogja tudni megnyitni az oldalt!`)) return;
     }
-    socket.emit('adminDashboardAction', { action, targetId, value, targetIp });
+    socket.emit('radarAction', { action, targetId, targetIp });
 }
 
 
@@ -838,26 +837,37 @@ socket.on('newMessage', (msg) => {
     renderMessages(); 
 });
 
+// AZ ÉLŐ RADAR FRISSÍTÉSE A KLIENSEN IS
 socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
+    
+    // Frissíti a Radart, ha nyitva van!
+    const radarModal = document.getElementById('live-radar-modal');
+    if(radarModal && radarModal.classList.contains('active')) {
+        renderRadar();
+    }
+
+    // A jobboldali Taglista SZŰRÉSE: Látogatók (visitor) nem jelenhetnek meg itt!
+    const visibleUsers = users.filter(u => u.rank !== 'visitor');
+
     const onlineCount = document.getElementById('online-count');
     const mobOnlineCount = document.getElementById('mobile-online-count');
     const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
-    if(onlineCount) onlineCount.textContent = !myUniqueId ? '?' : users.length;
-    if(mobOnlineCount) mobOnlineCount.textContent = !myUniqueId ? '?' : users.length;
+    if(onlineCount) onlineCount.textContent = !myUniqueId ? '?' : visibleUsers.length;
+    if(mobOnlineCount) mobOnlineCount.textContent = !myUniqueId ? '?' : visibleUsers.length;
     
     if (!myUniqueId) {
         if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<div class="flex flex-col items-center justify-center h-full opacity-50 mt-10"><span class="text-4xl mb-2">🔒</span><span class="text-xs text-gray-400 text-center uppercase tracking-widest font-bold">Taglista Rejtve</span></div>'; 
         return; 
     }
 
-    if (users.length === 0) { 
+    if (visibleUsers.length === 0) { 
         if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; 
         return; 
     }
     
-    users.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
+    visibleUsers.sort((a, b) => { return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); });
 
     const me = users.find(u => u.uniqueId === myUniqueId);
     if (me) { 
@@ -865,16 +875,25 @@ socket.on('updateUsers', (users) => {
         myAvatarUrl = me.avatarUrl; 
         myRank = me.rank; 
 
-        const dashBtn = document.getElementById('btn-open-dashboard');
-        if(dashBtn) {
-            if(myRank === 'creator' || myRank === 'owner') dashBtn.classList.remove('hidden');
-            else dashBtn.classList.add('hidden');
+        // KÉSZÍTŐ (Dashboard + Radar) / TULAJDONOS (Csak Radar) GOMBOK
+        const dashBtn = document.getElementById('btn-admin-dashboard');
+        const radarBtn = document.getElementById('btn-live-radar');
+        
+        if (myRank === 'creator') {
+            if(dashBtn) dashBtn.classList.remove('hidden');
+            if(radarBtn) radarBtn.classList.remove('hidden');
+        } else if (myRank === 'owner') {
+            if(dashBtn) dashBtn.classList.add('hidden');
+            if(radarBtn) radarBtn.classList.remove('hidden');
+        } else {
+            if(dashBtn) dashBtn.classList.add('hidden');
+            if(radarBtn) radarBtn.classList.add('hidden');
         }
     }
 
     if(onlineUsersSidebar) {
         onlineUsersSidebar.innerHTML = '';
-        users.forEach(u => {
+        visibleUsers.forEach(u => {
             const isMe = u.uniqueId === myUniqueId;
             
             let badge = '';
@@ -955,13 +974,8 @@ function renderMessages() {
         }
 
         let msgTextHtml = escapeHTML(msg.text);
-        let isSticker = false;
 
-        if (msg.text.startsWith('[STICKER]')) {
-            const stickerUrl = msg.text.replace('[STICKER]', '');
-            msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
-            isSticker = true; 
-        } else if (msg.text.startsWith('[GIF]')) {
+        if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
         } else {
@@ -974,19 +988,15 @@ function renderMessages() {
 
         let bubbleClass = 'text-white font-medium ';
         
-        if (isSticker) {
-            bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
-        } else {
-            let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
-            if (isPM) bgColor = 'pm-bubble text-white font-medium';
-            else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
-            else if (msg.rank === 'owner') bgColor = 'owner-bubble text-white';
-            else if (isMe) bgColor = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
-            
-            bubbleClass += `${bgColor} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-md text-sm sm:text-base break-words w-auto inline-block`;
-            if (isMe) bubbleClass += ' rounded-tr-sm';
-            else bubbleClass += ' rounded-tl-sm';
-        }
+        let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
+        if (isPM) bgColor = 'pm-bubble text-white font-medium';
+        else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
+        else if (msg.rank === 'owner') bgColor = 'owner-bubble text-white';
+        else if (isMe) bgColor = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
+        
+        bubbleClass += `${bgColor} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-md text-sm sm:text-base break-words w-auto inline-block`;
+        if (isMe) bubbleClass += ' rounded-tr-sm';
+        else bubbleClass += ' rounded-tl-sm';
 
         let badgeHtml = '<span class="badge badge-guest">Vendég</span>';
         if (msg.rank === 'creator') badgeHtml = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
@@ -1072,9 +1082,15 @@ window.handleLoginResponse = function(res) {
         if(logoutBtn) logoutBtn.classList.remove('hidden');
         if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
 
-        if (myRank === 'creator' || myRank === 'owner') {
-            const dashBtn = document.getElementById('btn-open-dashboard');
+        // Gombok beállítása
+        const dashBtn = document.getElementById('btn-admin-dashboard');
+        const radarBtn = document.getElementById('btn-live-radar');
+        
+        if (myRank === 'creator') {
             if(dashBtn) dashBtn.classList.remove('hidden');
+            if(radarBtn) radarBtn.classList.remove('hidden');
+        } else if (myRank === 'owner') {
+            if(radarBtn) radarBtn.classList.remove('hidden');
         }
 
         if (myRank === 'guest') {
