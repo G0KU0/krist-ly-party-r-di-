@@ -1,4 +1,3 @@
-// --- ÓRA ÉS IDŐJÁRÁS WIDGET LOGIKA ---
 function updateClock() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -36,7 +35,6 @@ async function fetchWeather() {
 fetchWeather();
 setInterval(fetchWeather, 1800000); 
 
-// --- RÁDIÓ LOGIKA EQUALIZERREL ---
 const audio = document.getElementById('radio-stream');
 const playBtn = document.getElementById('play-pause-btn');
 const icons = { play: document.getElementById('icon-play'), pause: document.getElementById('icon-pause'), load: document.getElementById('icon-loading') };
@@ -99,8 +97,15 @@ audio.addEventListener('playing', () => {
     toggleEq(true);
 });
 
-// --- CHAT ALAPVETŐ LOGIKA ---
-const socket = io(); 
+let myBrowserId = localStorage.getItem('radio_browser_id');
+if (!myBrowserId) {
+    myBrowserId = 'V' + Math.floor(10000 + Math.random() * 90000);
+    localStorage.setItem('radio_browser_id', myBrowserId);
+}
+
+const socket = io({
+    auth: { browserId: myBrowserId }
+}); 
 
 let userDisplayName = '';
 let myUniqueId = ''; 
@@ -128,7 +133,6 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -330,8 +334,7 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
-
-// --- VEZÉRLŐPULT: ADATBÁZIS ÉS RADAR ---
+// --- VEZÉRLŐPULT: ADATBÁZIS (IP TILTÁSOKKAL) ---
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez csak a Készítőnek van jogosultsága!");
     const modal = document.getElementById('admin-dashboard-modal');
@@ -341,14 +344,17 @@ window.openAdminDashboard = function() {
     socket.emit('requestAdminData');
 }
 
-socket.on('adminDataResponse', (accounts) => {
-    window.adminAccountsData = accounts; 
+// ÚJ: Itt kapja meg a letiltott IP-k listáját is
+socket.on('adminDataResponse', (data) => {
+    window.adminAccountsData = data.accounts; 
     const list = document.getElementById('admin-users-list');
     if(!list) return;
     list.innerHTML = '';
 
-    accounts.forEach(acc => {
+    data.accounts.forEach(acc => {
         const isBanned = acc.isBanned;
+        const locString = acc.location ? `<br><span class="text-[9px] text-gray-400">${acc.location}</span>` : '';
+        
         let rankOptions = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'].map(r => {
             return `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`;
         }).join('');
@@ -356,18 +362,21 @@ socket.on('adminDataResponse', (accounts) => {
         const tr = document.createElement('tr');
         tr.className = "border-b border-gray-700/50 hover:bg-white/5";
         tr.innerHTML = `
-            <td class="p-2 text-gray-500 text-xs">#${acc.uniqueId}</td>
-            <td class="p-2 font-mono text-cyan-500 text-xs">${acc.username}</td>
+            <td class="p-2 text-gray-400 text-[10px] leading-tight">#${acc.uniqueId}<br><span class="text-cyan-500">${acc.username}</span></td>
             <td class="p-2 font-bold">${escapeHTML(acc.displayName)}</td>
             <td class="p-2">
                 <select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">
                     ${rankOptions}
                 </select>
             </td>
-            <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'}">
+            <td class="p-2 text-fuchsia-400 font-mono text-[10px] text-center leading-tight">
+                ${acc.lastIp || 'Ismeretlen'}
+                ${locString}
+            </td>
+            <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'} text-center">
                 ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
             </td>
-            <td class="p-2 text-right space-x-2">
+            <td class="p-2 text-right space-x-1">
                 <button onclick="openAdminEdit('${acc.uniqueId}')" class="admin-action-btn text-blue-400 border-blue-400/50 hover:bg-blue-500 hover:text-white">Szerkeszt</button>
                 <button onclick="adminAction('toggleBan', '${acc.uniqueId}')" class="admin-action-btn ${isBanned ? 'text-green-400' : 'text-orange-400'}">${isBanned ? 'Felold' : 'Kitilt'}</button>
                 <button onclick="adminAction('delete', '${acc.uniqueId}')" class="admin-action-btn admin-action-delete">Törlés</button>
@@ -375,6 +384,32 @@ socket.on('adminDataResponse', (accounts) => {
         `;
         list.appendChild(tr);
     });
+
+    // TILTOTT IP-K MEGJELENÍTÉSE ÉS FELOLDÁSA
+    const ipBanSection = document.getElementById('ip-ban-section');
+    const bannedIpsList = document.getElementById('banned-ips-list');
+    if (ipBanSection && bannedIpsList && myRank === 'creator') {
+        ipBanSection.classList.remove('hidden');
+        bannedIpsList.innerHTML = '';
+        if (!data.bannedIps || data.bannedIps.length === 0) {
+            bannedIpsList.innerHTML = '<span class="text-gray-500 text-xs">Jelenleg nincs tiltott IP cím a rendszerben.</span>';
+        } else {
+            data.bannedIps.forEach(bip => {
+                const btn = document.createElement('button');
+                btn.className = "bg-red-900/40 border border-red-500 text-red-200 px-3 py-1 rounded-lg text-xs flex items-center gap-2 hover:bg-red-600 hover:text-white transition-colors shadow-sm";
+                btn.innerHTML = `${bip.ip} <span class="font-bold text-white bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">✕</span>`;
+                btn.title = "Kattints az IP végleges feloldásához!";
+                btn.onclick = () => {
+                    if(confirm(`Biztosan feloldod a(z) ${bip.ip} IP címet? A felhasználó újra meg tudja majd nyitni az oldalt!`)) {
+                        socket.emit('adminDashboardAction', { action: 'unbanIp', value: bip.ip });
+                        // Frissítjük a listát
+                        setTimeout(() => socket.emit('requestAdminData'), 500);
+                    }
+                };
+                bannedIpsList.appendChild(btn);
+            });
+        }
+    }
 });
 
 window.adminAction = function(action, targetId, value = null) {
@@ -487,6 +522,7 @@ window.radarAction = function(action, targetId, targetIp = null) {
     }
     socket.emit('radarAction', { action, targetId, targetIp });
 }
+
 
 // MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
@@ -672,6 +708,7 @@ if(editAvatarUrlInput) {
     });
 }
 
+// --- ÚJ: NÉMÍTÁS FELOLDÁSA A MODALBAN ---
 window.openUserModal = function(id, name, rank) {
     if(!myUniqueId || id === myUniqueId) return;
     
@@ -729,20 +766,23 @@ window.openUserModal = function(id, name, rank) {
         }
 
         const btnMute = document.getElementById('btn-mute');
-        if(btnMute) btnMute.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'mute', value: 10 }); window.closeModal('user-modal'); };
+        if(btnMute) {
+            // Ellenőrizzük, hogy le van-e némítva a felhasználó
+            const isMuted = targetUser && targetUser.muteExpiresAt && new Date(targetUser.muteExpiresAt) > new Date();
+            
+            if (isMuted) {
+                btnMute.innerText = "NÉMÍTÁS FELOLDÁSA";
+                btnMute.className = "bg-green-600/20 border border-green-500 hover:bg-green-600 text-green-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition";
+                btnMute.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'unmute' }); window.closeModal('user-modal'); };
+            } else {
+                btnMute.innerText = "NÉMÍT (10p)";
+                btnMute.className = "bg-yellow-600/20 border border-yellow-500 hover:bg-yellow-600 text-yellow-500 hover:text-white py-2 rounded-xl text-[10px] font-bold transition";
+                btnMute.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'mute', value: 10 }); window.closeModal('user-modal'); };
+            }
+        }
         
         const btnKick = document.getElementById('btn-kick');
         if(btnKick) btnKick.onclick = () => { socket.emit('sendMessage', `/kick ${id}`); window.closeModal('user-modal'); };
-        
-        const banBtn = document.getElementById('btn-ban');
-        if(banBtn) {
-            if (RANKS_POWER[myRank] >= 60) {
-                banBtn.classList.remove('hidden');
-                banBtn.onclick = () => { socket.emit('adminAction', { targetId: id, action: 'ban' }); window.closeModal('user-modal'); };
-            } else {
-                banBtn.classList.add('hidden');
-            }
-        }
     } else if (modSection) {
         modSection.classList.add('hidden');
     }
@@ -843,7 +883,6 @@ socket.on('newMessage', (msg) => {
     renderMessages(); 
 });
 
-// --- JAVÍTOTT TAGLISTA RENDEZÉS ÉS MEGJELENÍTÉS ---
 socket.on('updateUsers', (users) => {
     onlineUsersData = users; 
     
@@ -871,11 +910,9 @@ socket.on('updateUsers', (users) => {
         return; 
     }
     
-    // --- ÚJ: SAJÁT MAGAD MINDIG LEGFELÜL VAN! ---
     visibleUsers.sort((a, b) => { 
-        if (a.uniqueId === myUniqueId) return -1; // Ha én vagyok az 'a', rakjon előre
-        if (b.uniqueId === myUniqueId) return 1;  // Ha én vagyok a 'b', rakjon előre
-        // Egyébként normál rang szerinti sorrend:
+        if (a.uniqueId === myUniqueId) return -1; 
+        if (b.uniqueId === myUniqueId) return 1;  
         return (RANKS_POWER[b.rank] || 0) - (RANKS_POWER[a.rank] || 0); 
     });
 
@@ -916,14 +953,12 @@ socket.on('updateUsers', (users) => {
             const ringColor = u.rank === 'creator' ? 'border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : (u.rank === 'owner' ? 'border-fuchsia-500 shadow-[0_0_8px_rgba(192,38,211,0.5)]' : (u.rank === 'admin' ? 'border-yellow-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-gray-600'));
             const nameColor = u.rank === 'creator' ? 'creator-name' : (u.rank === 'owner' ? 'rank-owner' : (u.rank === 'admin' ? 'rank-admin' : 'text-gray-300'));
             
-            // ÚJ: "(Te)" felirat a neved mellett!
             const displayNameHtml = `<span class="editable-name" onclick="handleNameClick('${u.uniqueId}', '${escapeHTML(u.displayName)}', '${u.rank}')" title="${isMe ? 'Profilod szerkesztése' : 'Interakció (PM/Mod)'}">${escapeHTML(u.displayName)}${isMe ? ' <span class="text-slate-400 text-[10px] ml-1">(Te) ✏️</span>' : ''}</span>`;
             
             const bioHtml = u.bio ? `<span class="text-[11px] text-cyan-400/80 italic block mt-1 break-words leading-snug">${escapeHTML(u.bio)}</span>` : '';
             const badgeHtml = badge ? `<div class="mt-1 mb-0.5">${badge}</div>` : '';
 
             const div = document.createElement('div');
-            // Kiemelt stílus a saját fiókodnak
             div.className = `flex items-start gap-3 p-3 rounded-xl transition-colors ${isMe ? 'bg-slate-800 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.1)]' : 'hover:bg-gray-800/40 border border-transparent'}`;
             
             div.innerHTML = `
