@@ -182,28 +182,20 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// --- ÚJ: VALÓDI MATRICÁK (Discord/Messenger stílusú, nagy, átlátszó) ---
+// --- ÚJ JAVÍTOTT MATRICÁK (Működő linkekkel!) ---
 const stickersList = [
-    "https://cdn.emoji.gg/emojis/8470-blob-dance.gif",
-    "https://cdn.emoji.gg/emojis/1368-party-blob.gif",
-    "https://cdn.emoji.gg/emojis/6290-cat-jam.gif",
-    "https://cdn.emoji.gg/emojis/4348-pepedance.gif",
-    "https://cdn.emoji.gg/emojis/3045-crab-rave.gif",
-    "https://cdn.emoji.gg/emojis/9664-bongo-cat.gif",
-    "https://cdn.emoji.gg/emojis/7939-pepe-jam.gif",
-    "https://cdn.emoji.gg/emojis/5584-rainbow-dance.gif",
-    "https://cdn.emoji.gg/emojis/1715-pikachu-dance.gif",
-    "https://cdn.emoji.gg/emojis/8394-hacker-cat.gif",
-    "https://cdn.emoji.gg/emojis/6889-dj-pepe.gif",
-    "https://cdn.emoji.gg/emojis/2338-party-parrot.gif",
-    "https://cdn.emoji.gg/emojis/9282-dance.gif",
-    "https://cdn.emoji.gg/emojis/7043-meow-party.gif",
-    "https://cdn.emoji.gg/emojis/5341-party-pika.gif",
-    "https://cdn.emoji.gg/emojis/4633-kirby-dance.gif",
-    "https://cdn.emoji.gg/emojis/6125-doge-dance.gif",
-    "https://cdn.emoji.gg/emojis/8834-banana-dance.gif",
-    "https://cdn.emoji.gg/emojis/9162-among-us-dance.gif",
-    "https://cdn.emoji.gg/emojis/7521-groot-dance.gif"
+    "https://media.tenor.com/bZeX-e6I9s0AAAAi/cat-jam.gif",
+    "https://media.tenor.com/7wBvHkP1EwgAAAAi/party-parrot.gif",
+    "https://media.tenor.com/2s3x_Xz3uS0AAAAi/pepe-dance.gif",
+    "https://media.tenor.com/bTz3-Lh9e9cAAAAi/blob-dance.gif",
+    "https://media.tenor.com/PZcZp088ZIIAAAAi/bongo-cat.gif",
+    "https://media.tenor.com/jIq1hHk_IigAAAAi/pepe-jam.gif",
+    "https://media.tenor.com/7qM0g112eOMAAAAi/kirby-dance.gif",
+    "https://media.tenor.com/XwP_xZ0k3LgAAAAi/banana-dance.gif",
+    "https://media.tenor.com/mOa_iVp46G0AAAAi/among-us-dance.gif",
+    "https://media.tenor.com/XqT2JzUa1m0AAAAi/pikachu-dance.gif",
+    "https://media.tenor.com/2Yy5z9o12qAAAAAi/dancing-duck.gif",
+    "https://media.tenor.com/1vYI79hH9lYAAAAi/doge-dance.gif"
 ];
 
 function renderStickers() {
@@ -219,7 +211,6 @@ function renderStickers() {
         img.className = "w-14 h-14 cursor-pointer hover:scale-125 transition-transform object-contain drop-shadow-md";
         img.onclick = (e) => {
             e.preventDefault(); e.stopPropagation();
-            // Azonnali küldés matrica kódként (Nincs buborék körötte!)
             const txt = `[STICKER]${url}`;
             if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
             else socket.emit('sendMessage', txt);
@@ -343,7 +334,6 @@ if(mediaSearch) {
     });
 }
 
-// HÁROM FÜL VÁLTÁSA (Emojik, Matricák, GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
@@ -908,7 +898,6 @@ socket.on('typingUpdate', (typists) => {
     } else { typingIndicator.classList.add('hidden'); }
 });
 
-// A MATRICÁK MEGJELENÍTÉSE
 function renderMessages() {
     if(!messagesContainer) return;
     if (!myUniqueId) return; 
@@ -950,7 +939,7 @@ function renderMessages() {
         if (msg.text.startsWith('[STICKER]')) {
             const stickerUrl = msg.text.replace('[STICKER]', '');
             msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
-            isSticker = true; // Jelezzük, hogy ez matrica!
+            isSticker = true; // Ez egy matrica! Nincs buborék.
         } else if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
@@ -958,11 +947,10 @@ function renderMessages() {
 
         let bubbleClass = 'text-white font-medium ';
         
-        // MATRICA esetén NINCS HÁTTÉR ÉS BUBORÉK!
+        // MATRICA ESETÉN ÁTLÁTSZÓ HÁTTÉR
         if (isSticker) {
             bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
         } else {
-            // Sima szöveg / GIF esetén van buborék
             let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
             if (isPM) bgColor = 'pm-bubble text-white font-medium';
             else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
