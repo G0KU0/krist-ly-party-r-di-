@@ -90,13 +90,13 @@ io.on('connection', async (socket) => {
     const isSocketBanned = await BannedIP.exists({ ip: clientIp });
     if (isSocketBanned) return socket.disconnect();
 
-    // 1. LÉPÉS: AZONNALI LÁTOGATÓ REGISZTRÁLÁSA (Csak megnyitotta az oldalt)
+    // LÁTOGATÓ (NINCS DB-BEN, CSAK A RADARHOZ)
     const userLocation = await fetchLocation(clientIp);
     activeUsers.set(socket.id, {
         username: 'látogató_' + socket.id.substring(0, 5),
         displayName: 'Névtelen Látogató',
         uniqueId: 'V' + Math.floor(10000 + Math.random() * 90000),
-        rank: 'visitor', // A visitor nem látszik a chates listában!
+        rank: 'visitor', 
         avatarSeed: socket.id,
         avatarUrl: '',
         bio: '',
@@ -105,13 +105,13 @@ io.on('connection', async (socket) => {
         connectedAt: Date.now()
     });
     
-    // Elküldjük a frissítést (A radar egyből látja a látogatót)
     io.emit('updateUsers', Array.from(activeUsers.values()));
 
+    // JAVÍTVA: VENDÉGEK ÚJRA MENTVE AZ ADATBÁZISBA!
     socket.on('login', async (data, callback) => {
         const { username, password, isGuest, guestId } = data;
         let acc;
-        const currentUserData = activeUsers.get(socket.id); // Meglévő látogatói adatok
+        const currentUserData = activeUsers.get(socket.id); 
 
         if (!isGuest) {
             const lowUser = username.toLowerCase();
@@ -140,38 +140,47 @@ io.on('connection', async (socket) => {
                 await acc.save();
             }
         } else {
-            let existingGuest = null;
+            // VENDÉG FIÓK KEZELÉSE ÉS ADATBÁZIS MENTÉSE
             if (guestId) {
                 for (let [sid, u] of activeUsers.entries()) {
                     if (u.uniqueId === guestId && sid !== socket.id) {
-                        existingGuest = u;
                         io.sockets.sockets.get(sid)?.disconnect();
                         activeUsers.delete(sid);
                         break;
                     }
                 }
+                // Megkeressük az adatbázisban a visszatérő vendéget!
+                acc = await Account.findOne({ uniqueId: guestId });
             }
 
-            if (existingGuest) {
-                acc = existingGuest;
+            if (acc) {
+                acc.lastIp = clientIp;
+                acc.location = userLocation;
                 if (username && username !== acc.displayName) acc.displayName = username;
+                await acc.save(); // Frissítjük a DB-ben
             } else {
+                // ÚJ VENDÉG LÉTREHOZÁSA ÉS MENTÉSE A DB-BE (24h lejárattal)
                 const newGuestId = "G" + Math.floor(1000 + Math.random() * 9000);
-                acc = {
-                    username: `vendeg_${newGuestId}`,
+                const genUsername = `vendeg_${newGuestId}_${Date.now()}`;
+                
+                acc = new Account({
+                    username: genUsername,
                     displayName: username || "Vendég",
+                    password: "", 
                     uniqueId: newGuestId,
                     rank: 'guest',
-                    avatarSeed: socket.id,
                     avatarUrl: '',
-                    bio: ''
-                };
+                    bio: '',
+                    lastIp: clientIp,
+                    location: userLocation,
+                    guestExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Automatikus DB törlés 24h múlva
+                });
+                await acc.save();
             }
         }
 
-        // FRISSÍTJÜK A LÁTOGATÓT BEJELENTKEZETT FELHASZNÁLÓVÁ
         activeUsers.set(socket.id, {
-            ...currentUserData, // Megtartjuk az IP-t, Helyet, és az eredeti csatlakozási időt!
+            ...currentUserData, 
             username: acc.username,
             displayName: acc.displayName,
             uniqueId: acc.uniqueId,
@@ -207,7 +216,21 @@ io.on('connection', async (socket) => {
         io.emit('newMessage', sysMsg);
     });
 
-    // VEZÉRLŐPULT: Adatbázis lekérése (Csak Készítőnek!)
+    // ÚJ: KILÉPÉS ESEMÉNY (Vendég törlése)
+    socket.on('logoutAccount', async () => {
+        const user = activeUsers.get(socket.id);
+        if (user) {
+            // Ha a kilépő illető Vendég volt, AZONNAL TÖRÖLJÜK az adatbázisból!
+            if (user.rank === 'guest') {
+                try {
+                    await Account.deleteOne({ uniqueId: user.uniqueId });
+                } catch(e) { console.error(e); }
+            }
+            activeUsers.delete(socket.id);
+            io.emit('updateUsers', Array.from(activeUsers.values()));
+        }
+    });
+
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
@@ -217,7 +240,6 @@ io.on('connection', async (socket) => {
         } catch(e) { console.error(e); }
     });
 
-    // VEZÉRLŐPULT AKCIÓK (Csak Készítő!)
     socket.on('adminDashboardAction', async (data) => {
         const admin = activeUsers.get(socket.id);
         if (!admin || admin.rank !== 'creator') return; 
@@ -272,7 +294,6 @@ io.on('connection', async (socket) => {
         } catch(e) { console.error(e); }
     });
 
-    // RADAR AKCIÓK (Készítő és Tulajdonos)
     socket.on('radarAction', async (data) => {
         const admin = activeUsers.get(socket.id);
         if (!admin || (admin.rank !== 'creator' && admin.rank !== 'owner')) return;
@@ -291,7 +312,7 @@ io.on('connection', async (socket) => {
             }
         } else if (action === 'kick') {
             const targetAcc = Array.from(activeUsers.values()).find(u => u.uniqueId === targetId);
-            if (targetAcc && targetAcc.rank === 'creator') return; // Creatort nem lehet kidobni
+            if (targetAcc && targetAcc.rank === 'creator') return;
 
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.uniqueId === targetId) {
