@@ -49,25 +49,31 @@
 
     <div id="admin-dashboard-modal" class="modal">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="closeModal('admin-dashboard-modal')"></div>
-        <div class="modal-content relative bg-slate-900 border border-red-500/50 p-4 sm:p-8 rounded-[2rem] w-[95%] max-w-4xl shadow-2xl h-[85vh] flex flex-col">
+        <div class="modal-content relative bg-slate-900 border border-red-500/50 p-4 sm:p-8 rounded-[2rem] w-[95%] max-w-5xl shadow-2xl h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4 shrink-0">
                 <h2 class="text-xl sm:text-2xl font-black text-red-500 tracking-widest flex items-center gap-2">🛡️ ADATBÁZIS VEZÉRLŐ</h2>
                 <button onclick="closeModal('admin-dashboard-modal')" class="text-gray-400 hover:text-white font-bold text-xl">✕</button>
             </div>
             <div class="flex-grow overflow-y-auto custom-scroll pr-2">
-                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <table class="w-full text-left border-collapse text-[10px] sm:text-xs">
                     <thead>
                         <tr class="text-gray-400 border-b border-gray-700">
-                            <th class="p-2">ID</th>
-                            <th class="p-2">Login Név</th>
+                            <th class="p-2">ID & Login Név</th>
                             <th class="p-2">Megjelenítő Név</th>
                             <th class="p-2">Rang</th>
-                            <th class="p-2">Állapot</th>
+                            <th class="p-2 text-center">Utolsó IP & Helyszín</th>
+                            <th class="p-2 text-center">Állapot</th>
                             <th class="p-2 text-right">Műveletek</th>
                         </tr>
                     </thead>
                     <tbody id="admin-users-list"></tbody>
                 </table>
+            </div>
+            
+            <div id="ip-ban-section" class="hidden mt-6 border-t border-gray-700 pt-4 shrink-0">
+                <h3 class="text-red-500 font-bold mb-2 uppercase tracking-widest text-[10px] sm:text-sm">⛔ Véglegesen Tiltott IP Címek</h3>
+                <div id="banned-ips-list" class="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scroll">
+                    </div>
             </div>
         </div>
     </div>
