@@ -127,7 +127,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- BIZTONSÁGOS EMOJI, ANIMÁLT EMOJI ÉS GIF PANEL LOGIKA ---
+// --- EMOJI, RENDES MOZGÓ EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const animatedContainer = document.getElementById('content-animated');
@@ -150,7 +150,7 @@ if(emojiBtn) {
         } else {
             emojiPanel.classList.add('active');
             if (currentMediaTab === 'gifs' && gifContainer.innerHTML.trim() === '') {
-                fetchGifs('party dance club', false);
+                fetchGifs('party dance club');
             }
         }
     };
@@ -182,29 +182,37 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// ÚJ: MOZGÓ EMOJIK LISTÁJA!
+// ÚJ: VALÓDI MOZGÓ EMOJIK LISTÁJA ÉS MEGJELENÍTÉSE
 const animatedEmojisList = [
-    "https://cdn.emoji.gg/emojis/8470-blob-dance.gif",
-    "https://cdn.emoji.gg/emojis/1368-party-blob.gif",
-    "https://cdn.emoji.gg/emojis/6290-cat-jam.gif",
-    "https://cdn.emoji.gg/emojis/4348-pepedance.gif",
-    "https://cdn.emoji.gg/emojis/3045-crab-rave.gif",
-    "https://cdn.emoji.gg/emojis/9664-bongo-cat.gif",
-    "https://cdn.emoji.gg/emojis/7939-pepe-jam.gif",
-    "https://cdn.emoji.gg/emojis/5584-rainbow-dance.gif",
-    "https://cdn.emoji.gg/emojis/1715-pikachu-dance.gif",
-    "https://cdn.emoji.gg/emojis/8394-hacker-cat.gif",
-    "https://cdn.emoji.gg/emojis/6889-dj-pepe.gif",
-    "https://cdn.emoji.gg/emojis/2338-party-parrot.gif",
-    "https://cdn.emoji.gg/emojis/9282-dance.gif",
-    "https://cdn.emoji.gg/emojis/7043-meow-party.gif",
-    "https://cdn.emoji.gg/emojis/5341-party-pika.gif",
-    "https://cdn.emoji.gg/emojis/4633-kirby-dance.gif",
-    "https://cdn.emoji.gg/emojis/6125-doge-dance.gif",
-    "https://cdn.emoji.gg/emojis/8834-banana-dance.gif",
-    "https://cdn.emoji.gg/emojis/9162-among-us-dance.gif",
-    "https://cdn.emoji.gg/emojis/7521-groot-dance.gif"
+    { e: '💃', type: 'dance' }, { e: '🕺', type: 'dance' }, { e: '🤪', type: 'spin' },
+    { e: '🤬', type: 'shake' }, { e: '🥳', type: 'bounce' }, { e: '🔥', type: 'pulse' },
+    { e: '🏀', type: 'bounce' }, { e: '⭐', type: 'spin' }, { e: '👽', type: 'dance' },
+    { e: '👻', type: 'bounce' }, { e: '🤡', type: 'shake' }, { e: '❤️', type: 'pulse' },
+    { e: '🎶', type: 'bounce' }, { e: '🥂', type: 'dance' }, { e: '🚀', type: 'pulse' }
 ];
+
+function renderAnimatedEmojis() {
+    if(!animatedContainer) return;
+    animatedContainer.innerHTML = '';
+    
+    animatedEmojisList.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-center p-2";
+        
+        const span = document.createElement('span');
+        span.innerText = item.e;
+        span.className = `emo-${item.type} text-4xl cursor-pointer hover:scale-125 transition-transform`;
+        span.onclick = (e) => {
+            e.preventDefault(); e.stopPropagation();
+            // Egy speciális kódot szúr be, amit a chat rendszer felismer!
+            if(msgInput) { msgInput.value += ` [anim:${item.type}]${item.e}[/anim] `; msgInput.focus(); }
+        };
+        
+        div.appendChild(span);
+        animatedContainer.appendChild(div);
+    });
+}
+renderAnimatedEmojis();
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -240,25 +248,6 @@ function renderEmojis(filterQuery = '') {
     }
 }
 renderEmojis();
-
-// ÚJ: Mozgó emojik kirajzolása
-function renderAnimatedEmojis() {
-    if(!animatedContainer) return;
-    animatedContainer.innerHTML = '';
-    
-    animatedEmojisList.forEach(url => {
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = "w-10 h-10 cursor-pointer hover:scale-125 transition-transform";
-        img.onclick = (e) => {
-            e.preventDefault(); e.stopPropagation();
-            // A szóközök nagyon fontosak, hogy a szöveg közben is működjön!
-            if(msgInput) { msgInput.value += ` [ANIM]${url} `; msgInput.focus(); }
-        };
-        animatedContainer.appendChild(img);
-    });
-}
-renderAnimatedEmojis();
 
 // Végtelen GIF görgetés
 async function fetchGifs(query, append = false) {
@@ -335,7 +324,6 @@ if(mediaSearch) {
     });
 }
 
-// HÁROM FÜL (Emojik, Mozgó, GIF) VÁLTÁSA
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
@@ -344,7 +332,7 @@ window.switchEmojiTab = function(tab) {
     
     if(mediaSearch) mediaSearch.value = ''; 
 
-    // Reset All
+    // Reset
     [eBtn, aBtn, gBtn].forEach(btn => { if(btn) btn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent transition-colors"; });
     [emojiContainer, animatedContainer, gifContainer].forEach(cont => { if(cont) cont.classList.add('hidden'); });
 
@@ -533,6 +521,7 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
+// --- ÚJ: AUTO-LOGIN ÉS HÁTTÉRBŐL VALÓ VISSZATÉRÉS ---
 function performAutoLogin() {
     const savedUser = localStorage.getItem('radio_user');
     const savedPass = localStorage.getItem('radio_pass');
@@ -922,12 +911,14 @@ function renderMessages() {
         }
 
         let msgTextHtml = escapeHTML(msg.text);
+        
+        // --- ÚJ: MOZGÓ EMOJIK FELDOLGOZÁSA A SZÖVEGBEN! ---
+        // Kicseréljük a [anim:tipus]emoji[/anim] kódokat valódi mozgó HTML elemekre!
+        msgTextHtml = msgTextHtml.replace(/\[anim:([a-z]+)\](.*?)\[\/anim\]/g, '<span class="emo-$1">$2</span>');
+
         if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
-        } else {
-            // ÚJ: Animált emoji megjelenítése a szövegben
-            msgTextHtml = msgTextHtml.replace(/\[ANIM\](https?:\/\/[^\[\]\s]+)/g, '<img src="$1" class="h-8 w-8 sm:h-10 sm:w-10 inline-block align-middle mx-1" alt="emote">');
         }
 
         let bubbleClass = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
