@@ -175,7 +175,7 @@ const emojisDict = [
     { e: '🎶', k: 'zene hangjegy dal' }, { e: '🎤', k: 'mikrofon ének karaoke' }
 ];
 
-const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
+const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -282,6 +282,7 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
+
 // --- VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ÉS FIÓK SZERKESZTŐ ---
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez nincs jogosultságod!");
@@ -368,7 +369,7 @@ window.saveAdminEdit = function() {
     document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
 }
 
-// MOBILOS MENÜ LOGIKA
+// MOBILOS MENÜ LOGIKA (TAGLISTA)
 window.openSidebar = function() {
     if(sidebarContainer) { sidebarContainer.classList.remove('translate-x-full'); sidebarContainer.classList.add('translate-x-0'); }
     if(sidebarOverlay) { sidebarOverlay.classList.remove('hidden'); sidebarOverlay.classList.add('block'); }
@@ -449,7 +450,7 @@ window.openPMTabFromUser = function(id, name) {
     switchTab(id);
 }
 
-// --- ÚJ: AUTO-LOGIN MÓDOSÍTVA VENDÉGEKRE IS ---
+// --- ÚJ: AUTO-LOGIN ÉS HÁTTÉRBŐL VALÓ VISSZATÉRÉS ---
 function performAutoLogin() {
     const savedUser = localStorage.getItem('radio_user');
     const savedPass = localStorage.getItem('radio_pass');
@@ -459,13 +460,15 @@ function performAutoLogin() {
     if (savedUser && savedPass) {
         socket.emit('login', { username: savedUser, password: savedPass, isGuest: false }, handleLoginResponse);
     } else if (guestName && guestId) {
-        // Ha van elmentett vendég ID, azt is elküldjük, hogy ugyanabba a fiókba tegye vissza
         socket.emit('login', { username: guestName, isGuest: true, guestId: guestId }, handleLoginResponse);
     } else {
         const authPanelElem = document.getElementById('auth-panel');
         const chatPanelElem = document.getElementById('chat-panel');
+        const unauthOverlay = document.getElementById('unauth-overlay');
+        
         if(authPanelElem) authPanelElem.classList.remove('hidden');
         if(chatPanelElem) chatPanelElem.classList.add('hidden');
+        if(unauthOverlay) unauthOverlay.classList.remove('hidden'); // Titkosítás megjelenik
     }
 }
 
@@ -677,9 +680,14 @@ socket.on('clearChat', () => {
     renderMessages();
 });
 
-socket.on('initMessages', (messages) => { allMessages = messages; renderMessages(); });
+socket.on('initMessages', (messages) => { 
+    if (!myUniqueId) return; // Biztonság: csak ha be van jelentkezve
+    allMessages = messages; 
+    renderMessages(); 
+});
 
 socket.on('initPMs', (pms) => { 
+    if (!myUniqueId) return; 
     allMessages = [...allMessages, ...pms].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)); 
     
     pms.forEach(msg => {
@@ -695,6 +703,7 @@ socket.on('initPMs', (pms) => {
 });
 
 socket.on('newMessage', (msg) => { 
+    if (!myUniqueId) return; // Ne dolgozza fel, ha nincs belépve
     allMessages.push(msg); 
     
     if (msg.recipientUniqueId) {
@@ -721,9 +730,16 @@ socket.on('updateUsers', (users) => {
     const mobOnlineCount = document.getElementById('mobile-online-count');
     const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
-    if(onlineCount) onlineCount.textContent = users.length;
-    if(mobOnlineCount) mobOnlineCount.textContent = users.length;
+    // Ha nincs belépve, ne mutassuk a létszámot
+    if(onlineCount) onlineCount.textContent = !myUniqueId ? '?' : users.length;
+    if(mobOnlineCount) mobOnlineCount.textContent = !myUniqueId ? '?' : users.length;
     
+    // Ha nincs belépve, tegyük be a lakatot a taglistába is
+    if (!myUniqueId) {
+        if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<div class="flex flex-col items-center justify-center h-full opacity-50 mt-10"><span class="text-4xl mb-2">🔒</span><span class="text-xs text-gray-400 text-center uppercase tracking-widest font-bold">Taglista Rejtve</span></div>'; 
+        return; 
+    }
+
     if (users.length === 0) { 
         if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<span class="text-xs text-gray-500 italic text-center mt-4">Nincs senki online.</span>'; 
         return; 
@@ -794,6 +810,8 @@ socket.on('typingUpdate', (typists) => {
 
 function renderMessages() {
     if(!messagesContainer) return;
+    if (!myUniqueId) return; // Ha nincs belépve, ne rajzolja ki a chatet a háttérben
+    
     messagesContainer.innerHTML = '';
     
     const filteredMessages = allMessages.filter(msg => {
@@ -912,6 +930,10 @@ window.handleLoginResponse = function(res) {
         const logoutBtn = document.getElementById('logout-btn');
         const mobLogoutBtn = document.getElementById('mobile-logout');
         
+        // ÚJ: Eltüntetjük a zárolt képernyőt, ha belépett!
+        const unauthOverlay = document.getElementById('unauth-overlay');
+        if(unauthOverlay) unauthOverlay.classList.add('hidden');
+        
         if(authPanelElem) authPanelElem.classList.add('hidden'); 
         if(chatPanelElem) chatPanelElem.classList.remove('hidden'); 
         if(logoutBtn) logoutBtn.classList.remove('hidden');
@@ -922,7 +944,6 @@ window.handleLoginResponse = function(res) {
             if(dashBtn) dashBtn.classList.remove('hidden');
         }
 
-        // VENDÉG FIGYELMEZTETÉS MEGJELENÍTÉSE!
         if (myRank === 'guest') {
             const guestWarning = document.getElementById('guest-warning-modal');
             if(guestWarning) guestWarning.classList.add('active');
