@@ -182,60 +182,62 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// --- ÚJ: HATALMAS, HIBÁTLAN MATRICA LISTA ---
+// --- ÚJ: GIGANTIKUS MATRICA LISTA ---
+// A Google Noto és Tenor tökéletesen átlátszó, animált matricái.
 const stickersList = [
-    // Arcok és Érzelmek
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", // Party arc
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", // Sírva nevetős
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", // Földön fetrengő
+    // Állatos / Mémek
+    "https://media.tenor.com/bZeX-e6I9s0AAAAi/cat-jam.gif",
+    "https://media.tenor.com/7wBvHkP1EwgAAAAi/party-parrot.gif",
+    "https://media.tenor.com/2s3x_Xz3uS0AAAAi/pepe-dance.gif",
+    "https://media.tenor.com/bTz3-Lh9e9cAAAAi/blob-dance.gif",
+    "https://media.tenor.com/PZcZp088ZIIAAAAi/bongo-cat.gif",
+    "https://media.tenor.com/jIq1hHk_IigAAAAi/pepe-jam.gif",
+    "https://media.tenor.com/7qM0g112eOMAAAAi/kirby-dance.gif",
+    "https://media.tenor.com/XwP_xZ0k3LgAAAAi/banana-dance.gif",
+    "https://media.tenor.com/mOa_iVp46G0AAAAi/among-us-dance.gif",
+    "https://media.tenor.com/XqT2JzUa1m0AAAAi/pikachu-dance.gif",
+    "https://media.tenor.com/2Yy5z9o12qAAAAAi/dancing-duck.gif",
+    "https://media.tenor.com/1vYI79hH9lYAAAAi/doge-dance.gif",
+    "https://media.tenor.com/w81o9VlY3HMAAAAi/spongebob-dance.gif",
+    "https://media.tenor.com/qU6YvO1Y3iMAAAAi/toothless-dance.gif",
+    "https://media.tenor.com/YwP2lZ0k3LgAAAAi/mario-dance.gif",
+    // Arcok / Emojik (Google Noto API)
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", // Party
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", // Nevetés
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", // ROFL
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif", // Szívszemű
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", // Cuki szíves
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", // Napszemüveges
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", // Felrobbanó agy
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", // Cuki
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", // Napszemüveg
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", // Agyrobbanás
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif", // Zokogó
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", // Kérlelő/Pillás
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", // Kérlelő
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f631/512.gif", // Sikító
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.gif", // Mérges
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", // Dilis
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", // Őrült
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f914/512.gif", // Gondolkodó
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", // Angyalkás
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", // Ördögi mosoly
-    
-    // Szimbólumok, Tárgyak
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", // Dobogó piros szív
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", // Angyal
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", // Ördög
+    // Tárgyak / Szimbólumok
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", // Szív
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f494/512.gif", // Törött szív
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f49e/512.gif", // Forgó szívek
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", // Pattogó tűz
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  // Csillám/Szikra
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", // Konfetti ágyú
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f38a/512.gif", // Konfetti labda
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f388/512.gif", // Lufi
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", // 100-as
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", // Tűz
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  // Csillag
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", // Konfetti
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", // 100
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif", // Robbanás
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", // Hangjegy
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b6/512.gif", // Több hangjegy
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3ba/512.gif", // Trombita
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b8/512.gif", // Gitár
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", // Koccintás (sör)
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", // Pezsgő bontás
-    
-    // Állatok és Különlegesek
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", // Zene
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", // Sör
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", // Pezsgő
+    // Egyebek
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", // Szellem
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", // Alien fej
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47e/512.gif", // Űrinváder (pixeles)
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", // Alien
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", // Koponya
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a9/512.gif", // Kaki
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f431/512.gif", // Cica
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f436/512.gif", // Kutya
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif", // Unikornis
-    
-    // Gesztusok
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif", // Integetés
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", // OK jel
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", // Like (Felfeléujj)
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", // Tapsolás
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", // Ima / Köszi
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4aa/512.gif", // Bicepsz
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", // OK
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", // Like
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", // Taps
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", // Ima
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif"  // Táncoló nő
 ];
 
@@ -266,6 +268,7 @@ function renderStickers() {
 }
 renderStickers();
 
+// ÚJ EMOJI PANEL MEGJELENÍTŐ (Az Emojik API-ból töltődnek be animálva)
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
     emojiContainer.innerHTML = '';
@@ -275,28 +278,29 @@ function renderEmojis(filterQuery = '') {
         filteredDict = emojisDict.filter(item => item.k.includes(filterQuery));
     }
     
-    filteredDict.forEach(item => {
-        const span = document.createElement('span');
-        span.innerText = item.e;
-        span.className = "cursor-pointer hover:scale-125 transition-transform";
-        span.onclick = (e) => { 
+    const createEmojiItem = (emojiChar) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-center p-1 cursor-pointer hover:scale-125 transition-transform";
+        
+        // Unicode konvertálása Hexa kódra a Google API-hoz
+        const hex = Array.from(emojiChar).map(c => c.codePointAt(0).toString(16)).join('_');
+        const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
+        
+        // Ha a Google-nek nincs meg animálva, visszadobja a sima szöveges emojit
+        div.innerHTML = `<img src="${url}" class="w-8 h-8 object-contain drop-shadow-md" onerror="this.outerHTML='<span class=\\'text-3xl\\'>${emojiChar}</span>'">`;
+        
+        div.onclick = (e) => { 
             e.preventDefault(); e.stopPropagation();
-            if(msgInput) { msgInput.value += item.e; msgInput.focus(); }
+            // A chatbe az Eredeti Unicode karaktert írjuk be, a rendszer majd kicseréli olvasáskor!
+            if(msgInput) { msgInput.value += emojiChar; msgInput.focus(); }
         };
-        emojiContainer.appendChild(span);
-    });
+        return div;
+    };
+
+    filteredDict.forEach(item => emojiContainer.appendChild(createEmojiItem(item.e)));
 
     if (!filterQuery) {
-        genericEmojis.forEach(em => {
-            const span = document.createElement('span');
-            span.innerText = em;
-            span.className = "cursor-pointer hover:scale-125 transition-transform";
-            span.onclick = (e) => { 
-                e.preventDefault(); e.stopPropagation();
-                if(msgInput) { msgInput.value += em; msgInput.focus(); }
-            };
-            emojiContainer.appendChild(span);
-        });
+        genericEmojis.forEach(em => emojiContainer.appendChild(createEmojiItem(em)));
     }
 }
 renderEmojis();
@@ -977,19 +981,26 @@ function renderMessages() {
         let msgTextHtml = escapeHTML(msg.text);
         let isSticker = false;
 
-        // MATRICA ÉRZÉKELÉSE
+        // MATRICA ÉRZÉKELÉSE A KÓDBAN
         if (msg.text.startsWith('[STICKER]')) {
             const stickerUrl = msg.text.replace('[STICKER]', '');
             msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
-            isSticker = true; // Ez egy matrica!
+            isSticker = true; // Ez egy matrica! Nincs buborék.
         } else if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
+        } else {
+            // ÚJ: A BEÍRT EMOJIKAT ÁTALAKÍTJUK GOOGLE 3D ANIMÁCIÓRA!
+            msgTextHtml = msgTextHtml.replace(/[\p{Extended_Pictographic}]/gu, match => {
+                const hex = Array.from(match).map(c => c.codePointAt(0).toString(16)).join('_');
+                const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
+                return `<img src="${url}" class="w-6 h-6 sm:w-7 sm:h-7 inline-block align-bottom mx-0.5 drop-shadow-md" onerror="this.outerHTML='${match}'" alt="${match}">`;
+            });
         }
 
         let bubbleClass = 'text-white font-medium ';
         
-        // HA MATRICA, AKKOR ÁTLÁTSZÓ HÁTTÉR (NINCS BUBORÉK!)
+        // MATRICA ESETÉN ÁTLÁTSZÓ HÁTTÉR
         if (isSticker) {
             bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
         } else {
