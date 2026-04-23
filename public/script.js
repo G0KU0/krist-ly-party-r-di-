@@ -334,7 +334,7 @@ window.switchEmojiTab = function(tab) {
     }
 }
 
-// --- VEZÉRLŐPULT: ADATBÁZIS (IP TILTÁSOKKAL) ---
+
 window.openAdminDashboard = function() {
     if (myRank !== 'creator') return alert("Ehhez csak a Készítőnek van jogosultsága!");
     const modal = document.getElementById('admin-dashboard-modal');
@@ -344,7 +344,6 @@ window.openAdminDashboard = function() {
     socket.emit('requestAdminData');
 }
 
-// ÚJ: Itt kapja meg a letiltott IP-k listáját is
 socket.on('adminDataResponse', (data) => {
     window.adminAccountsData = data.accounts; 
     const list = document.getElementById('admin-users-list');
@@ -385,7 +384,6 @@ socket.on('adminDataResponse', (data) => {
         list.appendChild(tr);
     });
 
-    // TILTOTT IP-K MEGJELENÍTÉSE ÉS FELOLDÁSA
     const ipBanSection = document.getElementById('ip-ban-section');
     const bannedIpsList = document.getElementById('banned-ips-list');
     if (ipBanSection && bannedIpsList && myRank === 'creator') {
@@ -402,7 +400,6 @@ socket.on('adminDataResponse', (data) => {
                 btn.onclick = () => {
                     if(confirm(`Biztosan feloldod a(z) ${bip.ip} IP címet? A felhasználó újra meg tudja majd nyitni az oldalt!`)) {
                         socket.emit('adminDashboardAction', { action: 'unbanIp', value: bip.ip });
-                        // Frissítjük a listát
                         setTimeout(() => socket.emit('requestAdminData'), 500);
                     }
                 };
@@ -524,7 +521,6 @@ window.radarAction = function(action, targetId, targetIp = null) {
 }
 
 
-// MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
     if(sidebarContainer) { sidebarContainer.classList.remove('translate-x-full'); sidebarContainer.classList.add('translate-x-0'); }
     if(sidebarOverlay) { sidebarOverlay.classList.remove('hidden'); sidebarOverlay.classList.add('block'); }
@@ -540,7 +536,6 @@ if (mobileUsersToggle) mobileUsersToggle.addEventListener('click', openSidebar);
 const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
 
-// FÜLEK (TABS) LOGIKÁJA
 window.switchTab = function(id) {
     currentTab = id;
     if (pmTabs[id]) pmTabs[id].unread = 0;
@@ -626,6 +621,40 @@ function performAutoLogin() {
     }
 }
 
+// --- ÚJ: A BEJELENTKEZÉSI (TOAST) ÉRTESÍTÉSEK KEZELÉSE ---
+socket.on('systemNotification', (data) => {
+    const toastCont = document.getElementById('toast-container');
+    if(!toastCont) return;
+
+    const div = document.createElement('div');
+    
+    let icon = '👋';
+    if(data.rank === 'creator') icon = '🛡️';
+    else if(data.rank === 'owner') icon = '👑';
+    
+    let colorClass = 'text-cyan-300 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]';
+    if (data.rank === 'creator') colorClass = 'text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
+    else if (data.rank === 'owner') colorClass = 'text-fuchsia-400 border-fuchsia-500/50 shadow-[0_0_15px_rgba(192,38,211,0.3)]';
+
+    div.className = `bg-slate-900/90 backdrop-blur-md border ${colorClass} px-4 py-2 rounded-full transform transition-all duration-500 translate-y-[-20px] opacity-0 flex items-center gap-2 pointer-events-none`;
+    div.innerHTML = `<span class="text-sm">${icon}</span> <span class="text-xs font-medium">${data.text}</span>`;
+    
+    toastCont.appendChild(div);
+
+    // Animáció be
+    setTimeout(() => {
+        div.classList.remove('translate-y-[-20px]', 'opacity-0');
+        div.classList.add('translate-y-0', 'opacity-100');
+    }, 50);
+
+    // Animáció ki és törlés 4 másodperc után
+    setTimeout(() => {
+        div.classList.remove('translate-y-0', 'opacity-100');
+        div.classList.add('translate-y-[-20px]', 'opacity-0');
+        setTimeout(() => div.remove(), 500);
+    }, 4000);
+});
+
 socket.on('connect', () => {
     const statusDot = document.getElementById('server-status-dot');
     const statusText = document.getElementById('server-status-text');
@@ -708,7 +737,6 @@ if(editAvatarUrlInput) {
     });
 }
 
-// --- ÚJ: NÉMÍTÁS FELOLDÁSA A MODALBAN ---
 window.openUserModal = function(id, name, rank) {
     if(!myUniqueId || id === myUniqueId) return;
     
@@ -767,7 +795,6 @@ window.openUserModal = function(id, name, rank) {
 
         const btnMute = document.getElementById('btn-mute');
         if(btnMute) {
-            // Ellenőrizzük, hogy le van-e némítva a felhasználó
             const isMuted = targetUser && targetUser.muteExpiresAt && new Date(targetUser.muteExpiresAt) > new Date();
             
             if (isMuted) {
