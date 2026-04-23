@@ -76,7 +76,6 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 const pendingDisconnects = new Map();
-const recentAnnouncements = new Map();
 
 function emitUpdatedUsers() {
     const uniqueUsers = [];
@@ -226,26 +225,19 @@ io.on('connection', async (socket) => {
             socket.emit('initMessages', publicMessages);
         } catch (e) { console.error(e); }
 
-        // --- ÚJ: JELENLÉT ÉRTESÍTÉSE (NEM MENTJÜK AZ ADATBÁZISBA!) ---
-        const now = Date.now();
-        const lastAnnounced = recentAnnouncements.get(acc.uniqueId);
+        // --- ÚJ: MINDEN EGYES ALKALOMMAL KIÍRJA (NINCS COOLDOWN!) ---
+        const isCreator = acc.rank === 'creator';
+        const isGuestRank = acc.rank === 'guest';
+        
+        let joinText = "megérkezett a partyra!";
+        if (isCreator) joinText = "a weboldal készítője csatlakozott! 🛡️";
+        else if (isGuestRank) joinText = "csatlakozott vendégként! 👋";
 
-        if (!lastAnnounced || (now - lastAnnounced) > 300000) {
-            recentAnnouncements.set(acc.uniqueId, now);
-
-            const isCreator = acc.rank === 'creator';
-            const isGuestRank = acc.rank === 'guest';
-            
-            let joinText = "megérkezett a partyra!";
-            if (isCreator) joinText = "a weboldal készítője csatlakozott! 🛡️";
-            else if (isGuestRank) joinText = "csatlakozott vendégként! 👋";
-
-            // Kiküldjük a lebegő értesítést (Toast) a klienseknek
-            io.emit('systemNotification', { 
-                text: `<b>${acc.displayName}</b> ${joinText}`, 
-                rank: acc.rank 
-            });
-        }
+        // Kiküldjük a lebegő értesítést (Toast) a klienseknek MINDIG
+        io.emit('systemNotification', { 
+            text: `<b>${acc.displayName}</b> ${joinText}`, 
+            rank: acc.rank 
+        });
     });
 
     socket.on('logoutAccount', async () => {
