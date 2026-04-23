@@ -127,10 +127,10 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI, VALÓDI ANIMÁLT MATRICA ÉS GIF PANEL LOGIKA ---
+// --- EMOJI, MATRICA (STICKER) ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
-const animatedContainer = document.getElementById('content-animated');
+const stickerContainer = document.getElementById('content-stickers');
 const gifContainer = document.getElementById('content-gifs');
 const emojiPanel = document.getElementById('emoji-panel');
 const emojiBtn = document.getElementById('emoji-toggle-btn');
@@ -182,9 +182,8 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-// --- ÚJ: VALÓDI ANIMÁLT MATRICÁK (Discord-stílusú) ---
-// Ezek a linkek valós, mozgó kis emojik/matricák a webről!
-const animatedEmojisList = [
+// --- ÚJ: VALÓDI MATRICÁK (Discord/Messenger stílusú, nagy, átlátszó) ---
+const stickersList = [
     "https://cdn.emoji.gg/emojis/8470-blob-dance.gif",
     "https://cdn.emoji.gg/emojis/1368-party-blob.gif",
     "https://cdn.emoji.gg/emojis/6290-cat-jam.gif",
@@ -207,28 +206,32 @@ const animatedEmojisList = [
     "https://cdn.emoji.gg/emojis/7521-groot-dance.gif"
 ];
 
-function renderAnimatedEmojis() {
-    if(!animatedContainer) return;
-    animatedContainer.innerHTML = '';
+function renderStickers() {
+    if(!stickerContainer) return;
+    stickerContainer.innerHTML = '';
     
-    animatedEmojisList.forEach(url => {
+    stickersList.forEach(url => {
         const div = document.createElement('div');
         div.className = "flex items-center justify-center p-2";
         
         const img = document.createElement('img');
         img.src = url;
-        img.className = "w-10 h-10 cursor-pointer hover:scale-125 transition-transform object-contain";
+        img.className = "w-14 h-14 cursor-pointer hover:scale-125 transition-transform object-contain drop-shadow-md";
         img.onclick = (e) => {
             e.preventDefault(); e.stopPropagation();
-            // Amikor rákattintasz egy matricára, beszúrja az üzenetbe egy speciális címkével!
-            if(msgInput) { msgInput.value += ` [ANIM]${url} `; msgInput.focus(); }
+            // Azonnali küldés matrica kódként (Nincs buborék körötte!)
+            const txt = `[STICKER]${url}`;
+            if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
+            else socket.emit('sendMessage', txt);
+            
+            if(emojiPanel) emojiPanel.classList.remove('active');
         };
         
         div.appendChild(img);
-        animatedContainer.appendChild(div);
+        stickerContainer.appendChild(div);
     });
 }
-renderAnimatedEmojis();
+renderStickers();
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -340,31 +343,44 @@ if(mediaSearch) {
     });
 }
 
+// HÁROM FÜL VÁLTÁSA (Emojik, Matricák, GIF)
 window.switchEmojiTab = function(tab) {
     currentMediaTab = tab;
     const eBtn = document.getElementById('tab-btn-emojis');
-    const aBtn = document.getElementById('tab-btn-animated');
+    const sBtn = document.getElementById('tab-btn-stickers');
     const gBtn = document.getElementById('tab-btn-gifs');
     
     if(mediaSearch) mediaSearch.value = ''; 
 
     // Reset
-    [eBtn, aBtn, gBtn].forEach(btn => { if(btn) btn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent transition-colors"; });
-    [emojiContainer, animatedContainer, gifContainer].forEach(cont => { if(cont) cont.classList.add('hidden'); });
+    [eBtn, sBtn, gBtn].forEach(btn => { if(btn) btn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent transition-colors"; });
+    [emojiContainer, stickerContainer, gifContainer].forEach(cont => { if(cont) cont.classList.add('hidden'); });
 
     if (tab === 'emojis') {
         if(eBtn) eBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(emojiContainer) emojiContainer.classList.remove('hidden'); 
-        if(mediaSearch) mediaSearch.placeholder = "Keresés (pl. mosoly, party)...";
+        if(mediaSearch) {
+            mediaSearch.placeholder = "Keresés (pl. mosoly, party)...";
+            mediaSearch.disabled = false;
+            mediaSearch.style.opacity = '1';
+        }
         renderEmojis(); 
-    } else if (tab === 'animated') {
-        if(aBtn) aBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
-        if(animatedContainer) animatedContainer.classList.remove('hidden'); 
-        if(mediaSearch) mediaSearch.placeholder = "Mozgó emojik (Keresés itt nem elérhető)";
+    } else if (tab === 'stickers') {
+        if(sBtn) sBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
+        if(stickerContainer) stickerContainer.classList.remove('hidden'); 
+        if(mediaSearch) {
+            mediaSearch.placeholder = "Matricák (Keresés itt nem elérhető)";
+            mediaSearch.disabled = true;
+            mediaSearch.style.opacity = '0.5';
+        }
     } else {
         if(gBtn) gBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(gifContainer) gifContainer.classList.remove('hidden'); 
-        if(mediaSearch) mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
+        if(mediaSearch) {
+            mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
+            mediaSearch.disabled = false;
+            mediaSearch.style.opacity = '1';
+        }
         if (gifContainer && gifContainer.innerHTML.trim() === '') fetchGifs('party dance club', false);
     }
 }
@@ -892,6 +908,7 @@ socket.on('typingUpdate', (typists) => {
     } else { typingIndicator.classList.add('hidden'); }
 });
 
+// A MATRICÁK MEGJELENÍTÉSE
 function renderMessages() {
     if(!messagesContainer) return;
     if (!myUniqueId) return; 
@@ -927,20 +944,35 @@ function renderMessages() {
         }
 
         let msgTextHtml = escapeHTML(msg.text);
-        
-        // --- ANIMÁLT MATRICÁK (Discord stílus) FELISMERÉSE A SZÖVEGBEN ---
-        msgTextHtml = msgTextHtml.replace(/\[ANIM\](https?:\/\/[^\[\]\s]+)/g, '<img src="$1" class="h-8 w-8 sm:h-10 sm:w-10 inline-block align-middle mx-1" alt="emote">');
+        let isSticker = false;
 
-        if (msg.text.startsWith('[GIF]')) {
+        // MATRICA ÉRZÉKELÉSE A SZÖVEGBEN
+        if (msg.text.startsWith('[STICKER]')) {
+            const stickerUrl = msg.text.replace('[STICKER]', '');
+            msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
+            isSticker = true; // Jelezzük, hogy ez matrica!
+        } else if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
         }
 
-        let bubbleClass = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
-        if (isPM) bubbleClass = 'pm-bubble text-white font-medium';
-        else if (msg.rank === 'creator') bubbleClass = 'creator-bubble text-white';
-        else if (msg.rank === 'owner') bubbleClass = 'owner-bubble text-white';
-        else if (isMe) bubbleClass = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
+        let bubbleClass = 'text-white font-medium ';
+        
+        // MATRICA esetén NINCS HÁTTÉR ÉS BUBORÉK!
+        if (isSticker) {
+            bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
+        } else {
+            // Sima szöveg / GIF esetén van buborék
+            let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
+            if (isPM) bgColor = 'pm-bubble text-white font-medium';
+            else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
+            else if (msg.rank === 'owner') bgColor = 'owner-bubble text-white';
+            else if (isMe) bgColor = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
+            
+            bubbleClass += `${bgColor} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-md text-sm sm:text-base break-words w-auto inline-block`;
+            if (isMe) bubbleClass += ' rounded-tr-sm';
+            else bubbleClass += ' rounded-tl-sm';
+        }
 
         let badgeHtml = '<span class="badge badge-guest">Vendég</span>';
         if (msg.rank === 'creator') badgeHtml = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
@@ -976,7 +1008,7 @@ function renderMessages() {
                             ${badgeHtml}
                             <span class="${nameClass} ml-2">${displayNameHtml}</span>
                         </div>
-                        <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tr-sm shadow-md text-sm sm:text-base break-words w-auto inline-block">${msgTextHtml}</div>
+                        <div class="${bubbleClass}">${msgTextHtml}</div>
                     </div>
                     <div class="w-8 h-8 sm:w-10 sm:h-10 shrink-0 mt-1">
                         <img src="${getAvatarUrl(msg.avatarSeed, msg.avatarUrl, msg.senderDisplayName)}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700/50 border-2 ${ring} shadow-sm avatar-img">
@@ -995,7 +1027,7 @@ function renderMessages() {
                             ${badgeHtml}
                             <span class="text-[9px] sm:text-[10px] text-gray-500 ml-2 font-medium">${formatTime(msg.createdAt)}</span>
                         </div>
-                        <div class="${bubbleClass} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl rounded-tl-sm shadow-sm text-sm sm:text-base break-words w-auto inline-block">${msgTextHtml}</div>
+                        <div class="${bubbleClass}">${msgTextHtml}</div>
                     </div>
                 </div>`;
         }
