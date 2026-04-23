@@ -52,6 +52,8 @@ const accountSchema = new mongoose.Schema({
     rank: { type: String, default: 'user' },
     isBanned: { type: Boolean, default: false },
     muteExpiresAt: { type: Date, default: null },
+    lastIp: { type: String, default: '' }, 
+    location: { type: String, default: 'Ismeretlen' },
     createdAt: { type: Date, default: Date.now },
     guestExpireAt: { type: Date, expires: 0 } 
 });
@@ -73,15 +75,12 @@ const Message = mongoose.model('Message', messageSchema);
 
 const activeUsers = new Map();
 
-// --- ÚJ: DUPLIKÁCIÓ SZŰRŐ RENDSZER (Több lap = 1 Ember) ---
 function emitUpdatedUsers() {
     const uniqueUsers = [];
     const seen = new Set();
-    // Prioritás: a magasabb rangúak (bejelentkezettek) felülírják a sima látogatói lapokat
     const sorted = Array.from(activeUsers.values()).sort((a, b) => (RANKS[b.rank] || 0) - (RANKS[a.rank] || 0));
     
     for (let u of sorted) {
-        // Csak egyszer küldjük le a Radarnak és a Chatnek
         if (!seen.has(u.uniqueId)) {
             seen.add(u.uniqueId);
             uniqueUsers.push(u);
@@ -107,13 +106,11 @@ io.on('connection', async (socket) => {
     const isSocketBanned = await BannedIP.exists({ ip: clientIp });
     if (isSocketBanned) return socket.disconnect();
 
-    // A BÖNGÉSZŐ ÁLLANDÓ UJJLENYOMATA (Ha nyit egy új lapot, ezzel azonosítja magát)
     const browserId = socket.handshake.auth.browserId || ('V' + Math.floor(10000 + Math.random() * 90000));
     const userLocation = await fetchLocation(clientIp);
 
-    // Alapértelmezett Látogatói Állapot beállítása
     activeUsers.set(socket.id, {
-        browserId: browserId, // Ezzel kötjük össze a lapokat
+        browserId: browserId,
         username: 'látogató_' + browserId.substring(0, 5),
         displayName: 'Névtelen Látogató',
         uniqueId: browserId,
@@ -123,15 +120,15 @@ io.on('connection', async (socket) => {
         bio: '',
         ip: clientIp,
         location: userLocation,
+        muteExpiresAt: null, // Új: némítás tárolása
         connectedAt: Date.now()
     });
     
-    emitUpdatedUsers(); // Csak egyszer küldi el!
+    emitUpdatedUsers();
 
     socket.on('login', async (data, callback) => {
         const { username, password, isGuest, guestId } = data;
         let acc;
-        
         const currentUserData = activeUsers.get(socket.id); 
         const currentBrowserId = currentUserData.browserId;
 
@@ -142,6 +139,9 @@ io.on('connection', async (socket) => {
             if (acc) {
                 if (acc.isBanned) return callback({ success: false, error: "Véglegesen ki vagy tiltva a szerverről!" });
                 if (acc.password !== password) return callback({ success: false, error: "Hibás jelszó!" });
+                acc.lastIp = clientIp;
+                acc.location = userLocation;
+                await acc.save();
             } else {
                 const isCreator = (lowUser === 'szaby');
                 acc = new Account({
@@ -149,12 +149,13 @@ io.on('connection', async (socket) => {
                     displayName: username,
                     password: password,
                     uniqueId: Math.floor(10000 + Math.random() * 90000).toString(),
-                    rank: isCreator ? 'creator' : 'user'
+                    rank: isCreator ? 'creator' : 'user',
+                    lastIp: clientIp,
+                    location: userLocation
                 });
                 await acc.save();
             }
         } else {
-            // VENDÉG FIÓK KEZELÉSE
             if (guestId) {
                 acc = await Account.findOne({ uniqueId: guestId });
             }
@@ -184,7 +185,6 @@ io.on('connection', async (socket) => {
             }
         }
 
-        // AZ ÖSSZES MEGYNYITOTT LAPJÁT FRISSÍTJÜK ERRE A FIÓKRA!
         for (let [sid, u] of activeUsers.entries()) {
             if (u.browserId === currentBrowserId || (isGuest && guestId && u.uniqueId === guestId) || (!isGuest && u.username === acc.username)) {
                 activeUsers.set(sid, {
@@ -195,7 +195,8 @@ io.on('connection', async (socket) => {
                     rank: acc.rank,
                     avatarSeed: acc.avatarSeed || currentBrowserId,
                     avatarUrl: acc.avatarUrl || '',
-                    bio: acc.bio || ''
+                    bio: acc.bio || '',
+                    muteExpiresAt: acc.muteExpiresAt // Betöltjük a némítást a DB-ből!
                 });
             }
         }
@@ -226,7 +227,6 @@ io.on('connection', async (socket) => {
         io.emit('newMessage', sysMsg);
     });
 
-    // KILÉPÉS - Ha vendég, azonnal törlődik az adatbázisból!
     socket.on('logoutAccount', async () => {
         const user = activeUsers.get(socket.id);
         if (user) {
@@ -237,7 +237,6 @@ io.on('connection', async (socket) => {
             }
             
             const bId = user.browserId;
-            // Visszaállítjuk az összes lapját sima Látogatóra
             for (let [sid, u] of activeUsers.entries()) {
                 if (u.browserId === bId || u.uniqueId === user.uniqueId) {
                     activeUsers.set(sid, {
@@ -247,7 +246,8 @@ io.on('connection', async (socket) => {
                         uniqueId: bId,
                         rank: 'visitor',
                         avatarUrl: '',
-                        bio: ''
+                        bio: '',
+                        muteExpiresAt: null
                     });
                 }
             }
@@ -255,12 +255,14 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // --- ÚJ: BEKERÜLT A TILTOTT IP-K LEKÉRÉSE A VEZÉRLŐPULTHOZ ---
     socket.on('requestAdminData', async () => {
         const user = activeUsers.get(socket.id);
         if (!user || user.rank !== 'creator') return; 
         try {
             const allAccounts = await Account.find({}).sort({ createdAt: -1 }).lean();
-            socket.emit('adminDataResponse', allAccounts);
+            const bannedIps = await BannedIP.find({}).lean(); // Lekérjük az IP tiltásokat is!
+            socket.emit('adminDataResponse', { accounts: allAccounts, bannedIps: bannedIps });
         } catch(e) { console.error(e); }
     });
 
@@ -292,6 +294,9 @@ io.on('connection', async (socket) => {
                         }
                     }
                 }
+            } else if (action === 'unbanIp') {
+                // IP TILTÁS FELOLDÁSA!
+                await BannedIP.deleteOne({ ip: value });
             } else if (action === 'editUser') {
                 const { newUsername, newDisplayName, newPassword, newUniqueId } = editData;
                 const updateDoc = {};
@@ -312,7 +317,8 @@ io.on('connection', async (socket) => {
             }
             
             const allAccounts = await Account.find({}).sort({ createdAt: -1 }).lean();
-            socket.emit('adminDataResponse', allAccounts);
+            const bannedIps = await BannedIP.find({}).lean();
+            socket.emit('adminDataResponse', { accounts: allAccounts, bannedIps: bannedIps });
             emitUpdatedUsers();
 
         } catch(e) { console.error(e); }
@@ -368,6 +374,9 @@ io.on('connection', async (socket) => {
         } else if (action === 'mute') {
             const expireDate = new Date(Date.now() + value * 60000);
             await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: expireDate });
+        } else if (action === 'unmute') {
+            // NÉMÍTÁS FELOLDÁSA!
+            await Account.updateOne({ uniqueId: targetId }, { muteExpiresAt: null });
         }
 
         for (let [sid, u] of activeUsers.entries()) {
@@ -375,10 +384,12 @@ io.on('connection', async (socket) => {
                 if (action === 'ban') io.sockets.sockets.get(sid)?.disconnect();
                 if (action === 'setRank') u.rank = value;
                 if (action === 'mute') u.muteExpiresAt = new Date(Date.now() + value * 60000);
+                if (action === 'unmute') u.muteExpiresAt = null;
             }
         }
         emitUpdatedUsers();
         if (action === 'setRank') io.emit('newMessage', { text: `Rang módosítva: #${targetId} mostantól ${value}`, isSystem: true, senderDisplayName: 'RENDSZER' });
+        if (action === 'unmute') io.emit('newMessage', { text: `Némítás feloldva: #${targetId}`, isSystem: true, senderDisplayName: 'RENDSZER' });
     });
 
     socket.on('sendMessage', async (text) => {
