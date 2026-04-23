@@ -128,7 +128,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI, VALÓDI ANIMÁLT MATRICA ÉS GIF PANEL LOGIKA ---
+// --- EMOJI ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -183,81 +183,6 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
-const stickersList = [
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f631/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f914/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f494/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f49e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f38a/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f388/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b6/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3ba/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b8/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47e/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a9/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f431/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f436/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4aa/512.gif", 
-    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif"  
-];
-
-function renderStickers() {
-    if(!stickerContainer) return;
-    stickerContainer.innerHTML = '';
-    
-    stickersList.forEach(url => {
-        const div = document.createElement('div');
-        div.className = "flex items-center justify-center p-2";
-        
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = "w-14 h-14 cursor-pointer hover:scale-125 transition-transform object-contain drop-shadow-md";
-        img.onclick = (e) => {
-            e.preventDefault(); e.stopPropagation();
-            const txt = `[STICKER]${url}`;
-            if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
-            else socket.emit('sendMessage', txt);
-            
-            if(emojiPanel) emojiPanel.classList.remove('active');
-        };
-        
-        div.appendChild(img);
-        stickerContainer.appendChild(div);
-    });
-}
-renderStickers();
-
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
     emojiContainer.innerHTML = '';
@@ -268,14 +193,20 @@ function renderEmojis(filterQuery = '') {
     }
     
     const createEmojiItem = (emojiChar) => {
-        const span = document.createElement('span');
-        span.innerText = emojiChar;
-        span.className = "cursor-pointer hover:scale-125 transition-transform text-3xl";
-        span.onclick = (e) => { 
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-center p-1 cursor-pointer hover:scale-125 transition-transform";
+        
+        // Google Noto 3D Animated Emoji lekérése Hexa kóddal
+        const hex = Array.from(emojiChar).map(c => c.codePointAt(0).toString(16)).join('_');
+        const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
+        
+        div.innerHTML = `<img src="${url}" class="w-8 h-8 object-contain drop-shadow-md" onerror="this.outerHTML='<span class=\\'text-3xl\\'>${emojiChar}</span>'" alt="${emojiChar}">`;
+        
+        div.onclick = (e) => { 
             e.preventDefault(); e.stopPropagation();
             if(msgInput) { msgInput.value += emojiChar; msgInput.focus(); }
         };
-        return span;
+        return div;
     };
 
     filteredDict.forEach(item => emojiContainer.appendChild(createEmojiItem(item.e)));
@@ -384,7 +315,7 @@ window.switchEmojiTab = function(tab) {
         if(sBtn) sBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(stickerContainer) stickerContainer.classList.remove('hidden'); 
         if(mediaSearch) {
-            mediaSearch.placeholder = "Matricák (Keresés itt nem elérhető)";
+            mediaSearch.placeholder = "Matricák (Hamarosan...)";
             mediaSearch.disabled = true;
             mediaSearch.style.opacity = '0.5';
         }
@@ -688,9 +619,8 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-// --- ÚJ JAVÍTÁS: KILÉPÉSKOR KÜLDJE A JELET A SZERVERNEK! ---
 window.logout = function() {
-    socket.emit('logoutAccount'); // Szól a szervernek, hogy törölheti a vendég fiókot
+    socket.emit('logoutAccount');
     
     setTimeout(() => {
         localStorage.removeItem('radio_user');
@@ -698,7 +628,7 @@ window.logout = function() {
         localStorage.removeItem('radio_guest_name');
         localStorage.removeItem('radio_guest_id');
         location.reload(); 
-    }, 100); // 1 tizedmásodpercet vár, hogy átérjen a jel, aztán újratölt
+    }, 100); 
 }
 
 function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); }
@@ -1051,16 +981,12 @@ function renderMessages() {
         }
 
         let msgTextHtml = escapeHTML(msg.text);
-        let isSticker = false;
 
-        if (msg.text.startsWith('[STICKER]')) {
-            const stickerUrl = msg.text.replace('[STICKER]', '');
-            msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
-            isSticker = true; 
-        } else if (msg.text.startsWith('[GIF]')) {
+        if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
         } else {
+            // SZÖVEGBE ÁGYAZOTT GOOGLE NOTO ANIMÁLT EMOJIK CSERÉJE
             msgTextHtml = msgTextHtml.replace(/[\p{Extended_Pictographic}]/gu, match => {
                 const hex = Array.from(match).map(c => c.codePointAt(0).toString(16)).join('_');
                 const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
@@ -1070,19 +996,15 @@ function renderMessages() {
 
         let bubbleClass = 'text-white font-medium ';
         
-        if (isSticker) {
-            bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
-        } else {
-            let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
-            if (isPM) bgColor = 'pm-bubble text-white font-medium';
-            else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
-            else if (msg.rank === 'owner') bgColor = 'owner-bubble text-white';
-            else if (isMe) bgColor = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
-            
-            bubbleClass += `${bgColor} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-md text-sm sm:text-base break-words w-auto inline-block`;
-            if (isMe) bubbleClass += ' rounded-tr-sm';
-            else bubbleClass += ' rounded-tl-sm';
-        }
+        let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
+        if (isPM) bgColor = 'pm-bubble text-white font-medium';
+        else if (msg.rank === 'creator') bgColor = 'creator-bubble text-white';
+        else if (msg.rank === 'owner') bgColor = 'owner-bubble text-white';
+        else if (isMe) bgColor = 'bg-gradient-to-br from-blue-600 to-purple-600 text-white';
+        
+        bubbleClass += `${bgColor} px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-md text-sm sm:text-base break-words w-auto inline-block`;
+        if (isMe) bubbleClass += ' rounded-tr-sm';
+        else bubbleClass += ' rounded-tl-sm';
 
         let badgeHtml = '<span class="badge badge-guest">Vendég</span>';
         if (msg.rank === 'creator') badgeHtml = '<span class="badge badge-creator">🛡️ KÉSZÍTŐ</span>';
@@ -1175,6 +1097,7 @@ window.handleLoginResponse = function(res) {
             if(dashBtn) dashBtn.classList.remove('hidden');
             if(radarBtn) radarBtn.classList.remove('hidden');
         } else if (myRank === 'owner') {
+            if(dashBtn) dashBtn.classList.add('hidden');
             if(radarBtn) radarBtn.classList.remove('hidden');
         }
 
