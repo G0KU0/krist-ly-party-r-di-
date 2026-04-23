@@ -116,7 +116,9 @@ let onlineUsersData = [];
 let currentTab = 'main'; 
 let pmTabs = {}; 
 
+// TÁROLÓ A RADARHOZ
 window.adminAccountsData = [];
+let liveRadarInterval = null; // Élő számláló
 
 const RANKS_POWER = { 'creator': 100, 'owner': 80, 'admin': 60, 'moderator': 40, 'vip': 30, 'user': 20, 'guest': 0 };
 
@@ -127,7 +129,7 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- EMOJI, MATRICA (HAMAROSAN) ÉS GIF PANEL LOGIKA ---
+// --- EMOJI, VALÓDI ANIMÁLT MATRICA ÉS GIF PANEL LOGIKA ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const stickerContainer = document.getElementById('content-stickers');
@@ -182,6 +184,81 @@ const emojisDict = [
 
 const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
+const stickersList = [
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f602/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f970/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60e/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92f/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f97a/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f631/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f621/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f92a/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f914/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f607/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f608/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2764_fe0f/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f494/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f49e/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f525/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.gif",  
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f389/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f38a/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f388/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4af/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a5/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b5/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b6/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3ba/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f3b8/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37b/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f37e/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47b/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47d/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f47e/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f480/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a9/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f431/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f436/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f984/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44c/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44d/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44f/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f64f/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f4aa/512.gif", 
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f483/512.gif"  
+];
+
+function renderStickers() {
+    if(!stickerContainer) return;
+    stickerContainer.innerHTML = '';
+    
+    stickersList.forEach(url => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-center p-2";
+        
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = "w-14 h-14 cursor-pointer hover:scale-125 transition-transform object-contain drop-shadow-md";
+        img.onclick = (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const txt = `[STICKER]${url}`;
+            if (currentTab !== 'main') socket.emit('sendMessage', `/msg #${currentTab} ${txt}`);
+            else socket.emit('sendMessage', txt);
+            
+            if(emojiPanel) emojiPanel.classList.remove('active');
+        };
+        
+        div.appendChild(img);
+        stickerContainer.appendChild(div);
+    });
+}
+renderStickers();
+
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
     emojiContainer.innerHTML = '';
@@ -210,7 +287,6 @@ function renderEmojis(filterQuery = '') {
 }
 renderEmojis();
 
-// Végtelen GIF görgetés
 async function fetchGifs(query, append = false) {
     if(!gifContainer) return;
     if(isFetchingGifs) return; 
@@ -293,7 +369,6 @@ window.switchEmojiTab = function(tab) {
     
     if(mediaSearch) mediaSearch.value = ''; 
 
-    // Reset
     [eBtn, sBtn, gBtn].forEach(btn => { if(btn) btn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent transition-colors"; });
     [emojiContainer, stickerContainer, gifContainer].forEach(cont => { if(cont) cont.classList.add('hidden'); });
 
@@ -310,7 +385,7 @@ window.switchEmojiTab = function(tab) {
         if(sBtn) sBtn.className = "flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 transition-colors";
         if(stickerContainer) stickerContainer.classList.remove('hidden'); 
         if(mediaSearch) {
-            mediaSearch.placeholder = "Matricák (Hamarosan...)";
+            mediaSearch.placeholder = "Matricák (Keresés itt nem elérhető)";
             mediaSearch.disabled = true;
             mediaSearch.style.opacity = '0.5';
         }
@@ -327,15 +402,31 @@ window.switchEmojiTab = function(tab) {
 }
 
 
-// --- VEZÉRLŐPULT (ADMIN PANEL) LOGIKA ÉS FIÓK SZERKESZTŐ ---
+// --- ÉLŐ RADAR (ADMIN PANEL) LOGIKA ---
 window.openAdminDashboard = function() {
-    if (myRank !== 'creator') return alert("Ehhez nincs jogosultságod!");
+    if (myRank !== 'creator' && myRank !== 'owner') return alert("Ehhez nincs jogosultságod!");
     const modal = document.getElementById('admin-dashboard-modal');
     if(modal) modal.classList.add('active');
     
-    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Adatok betöltése...</td></tr>';
+    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-cyan-400">Élő adatok beolvasása...</td></tr>';
     socket.emit('requestAdminData');
 }
+
+// Folyamatosan frissülő idő a radaron
+function updateLiveTime() {
+    document.querySelectorAll('.live-time-counter').forEach(el => {
+        const joinedAt = parseInt(el.getAttribute('data-joined'));
+        if(joinedAt) {
+            const diffSec = Math.floor((Date.now() - joinedAt) / 1000);
+            const mins = Math.floor(diffSec / 60);
+            const secs = diffSec % 60;
+            if(mins === 0) el.innerText = `${secs} másodperce`;
+            else el.innerText = `${mins} p ${secs} mp`;
+        }
+    });
+}
+clearInterval(liveRadarInterval);
+liveRadarInterval = setInterval(updateLiveTime, 1000);
 
 socket.on('adminDataResponse', (accounts) => {
     window.adminAccountsData = accounts; 
@@ -343,75 +434,57 @@ socket.on('adminDataResponse', (accounts) => {
     if(!list) return;
     list.innerHTML = '';
 
+    if (accounts.length === 0) {
+        list.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Jelenleg senki sincs online.</td></tr>';
+        return;
+    }
+
     accounts.forEach(acc => {
-        const isBanned = acc.isBanned;
-        let rankOptions = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'].map(r => {
-            return `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`;
-        }).join('');
+        const locString = acc.location ? `<br><span class="text-[9px] text-gray-400">${acc.location}</span>` : '';
+        
+        let allowedRanks = ['user', 'vip', 'moderator', 'admin', 'owner', 'creator'];
+        if (myRank === 'owner') allowedRanks = ['user', 'vip', 'moderator', 'admin', 'owner'];
+        
+        let rankHtml = `<span class="text-gray-400">${acc.rank.toUpperCase()}</span>`;
+        if (acc.rank !== 'guest' && !(myRank === 'owner' && acc.rank === 'creator')) {
+            let rankOptions = allowedRanks.map(r => `<option value="${r}" ${acc.rank === r ? 'selected' : ''}>${r.toUpperCase()}</option>`).join('');
+            rankHtml = `<select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">${rankOptions}</select>`;
+        }
+
+        const disableBan = (myRank === 'owner' && acc.rank === 'creator') ? 'hidden' : '';
+        // ÚJ: IP TILTÁS gomb (Csak Creator láthatja)
+        const ipBanBtn = myRank === 'creator' ? `<button onclick="adminAction('banIp', null, null, '${acc.ip}')" class="admin-action-btn text-red-500 border-red-500/50 hover:bg-red-500 hover:text-white" title="Weboldal szintű tiltás">IP TILTÁS</button>` : '';
 
         const tr = document.createElement('tr');
-        tr.className = "border-b border-gray-700/50";
+        tr.className = "border-b border-gray-700/50 hover:bg-white/5 transition-colors";
         tr.innerHTML = `
-            <td class="p-2 text-gray-500 text-xs">#${acc.uniqueId}</td>
-            <td class="p-2 font-mono text-cyan-500 text-xs">${acc.username}</td>
             <td class="p-2 font-bold">${escapeHTML(acc.displayName)}</td>
-            <td class="p-2">
-                <select onchange="adminAction('setRank', '${acc.uniqueId}', this.value)" class="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-xs outline-none focus:border-cyan-400">
-                    ${rankOptions}
-                </select>
+            <td class="p-2 text-gray-400 text-[10px] leading-tight">#${acc.uniqueId}<br><span class="text-cyan-500">${acc.username}</span></td>
+            <td class="p-2">${rankHtml}</td>
+            <td class="p-2 text-fuchsia-400 font-mono text-[10px] text-center leading-tight">
+                ${acc.ip || 'Ismeretlen'}
+                ${locString}
             </td>
-            <td class="p-2 text-fuchsia-400 font-mono text-xs text-center">${acc.lastIp || 'Ismeretlen'}</td>
-            <td class="p-2 text-xs font-bold ${isBanned ? 'text-red-500' : 'text-green-500'}">
-                ${isBanned ? 'KILTILTVA' : 'AKTÍV'}
+            <td class="p-2 text-[10px] font-bold text-green-500 text-center">
+                <span class="live-time-counter" data-joined="${acc.connectedAt}">Most lépett be</span>
             </td>
-            <td class="p-2 text-right space-x-2">
-                <button onclick="openAdminEdit('${acc.uniqueId}')" class="admin-action-btn text-blue-400 border-blue-400/50 hover:bg-blue-500 hover:text-white">Szerkeszt</button>
-                <button onclick="adminAction('toggleBan', '${acc.uniqueId}')" class="admin-action-btn ${isBanned ? 'text-green-400' : 'text-orange-400'}">${isBanned ? 'Felold' : 'Kitilt'}</button>
-                <button onclick="adminAction('delete', '${acc.uniqueId}')" class="admin-action-btn admin-action-delete">Törlés</button>
+            <td class="p-2 text-right space-x-1">
+                ${ipBanBtn}
+                <button ${disableBan} onclick="adminAction('kick', '${acc.uniqueId}')" class="admin-action-btn text-orange-400 border-orange-400/50 hover:bg-orange-500 hover:text-white">KIDOBÁS</button>
             </td>
         `;
         list.appendChild(tr);
     });
+    updateLiveTime();
 });
 
-window.adminAction = function(action, targetId, value = null) {
-    if (action === 'delete') {
-        if (!confirm('BIZTOSAN törölni akarod ezt a fiókot az adatbázisból? Ez nem vonható vissza!')) return;
+window.adminAction = function(action, targetId, value = null, targetIp = null) {
+    if (action === 'banIp') {
+        if (!confirm(`BIZTOSAN ki akarod tiltani ezt az IP címet (${targetIp}) a weboldalról? Soha többet nem tudja megnyitni az oldalt!`)) return;
     }
-    socket.emit('adminDashboardAction', { action, targetId, value });
+    socket.emit('adminDashboardAction', { action, targetId, value, targetIp });
 }
 
-window.openAdminEdit = function(id) {
-    const acc = window.adminAccountsData.find(a => a.uniqueId === id);
-    if(!acc) return;
-    
-    document.getElementById('edit-adm-old-id').value = acc.uniqueId;
-    document.getElementById('edit-adm-id').value = acc.uniqueId;
-    document.getElementById('edit-adm-username').value = acc.username;
-    document.getElementById('edit-adm-displayname').value = acc.displayName;
-    document.getElementById('edit-adm-password').value = acc.password || ''; 
-    
-    document.getElementById('admin-edit-modal').classList.add('active');
-}
-
-window.saveAdminEdit = function() {
-    const oldId = document.getElementById('edit-adm-old-id').value;
-    const newId = document.getElementById('edit-adm-id').value.trim();
-    const newUsername = document.getElementById('edit-adm-username').value.trim();
-    const newDisplayName = document.getElementById('edit-adm-displayname').value.trim();
-    const newPassword = document.getElementById('edit-adm-password').value.trim();
-
-    if(!newId || !newUsername || !newDisplayName) return alert("ID, Login név és Megjelenítő név kötelező!");
-
-    socket.emit('adminDashboardAction', { 
-        action: 'editUser', 
-        targetId: oldId, 
-        editData: { newUniqueId: newId, newUsername, newDisplayName, newPassword } 
-    });
-
-    closeModal('admin-edit-modal');
-    document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
-}
 
 // MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
@@ -794,7 +867,7 @@ socket.on('updateUsers', (users) => {
 
         const dashBtn = document.getElementById('btn-open-dashboard');
         if(dashBtn) {
-            if(myRank === 'creator') dashBtn.classList.remove('hidden');
+            if(myRank === 'creator' || myRank === 'owner') dashBtn.classList.remove('hidden');
             else dashBtn.classList.add('hidden');
         }
     }
@@ -882,18 +955,26 @@ function renderMessages() {
         }
 
         let msgTextHtml = escapeHTML(msg.text);
+        let isSticker = false;
 
         if (msg.text.startsWith('[STICKER]')) {
             const stickerUrl = msg.text.replace('[STICKER]', '');
             msgTextHtml = `<img src="${escapeHTML(stickerUrl)}" class="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-xl" alt="Sticker">`;
+            isSticker = true; 
         } else if (msg.text.startsWith('[GIF]')) {
             const gifUrl = msg.text.replace('[GIF]', '');
             msgTextHtml = `<img src="${escapeHTML(gifUrl)}" class="w-48 sm:w-64 rounded-xl shadow-md border border-white/10 mt-1">`;
+        } else {
+            msgTextHtml = msgTextHtml.replace(/[\p{Extended_Pictographic}]/gu, match => {
+                const hex = Array.from(match).map(c => c.codePointAt(0).toString(16)).join('_');
+                const url = `https://fonts.gstatic.com/s/e/notoemoji/latest/${hex}/512.gif`;
+                return `<img src="${url}" class="w-6 h-6 sm:w-7 sm:h-7 inline-block align-bottom mx-0.5 drop-shadow-md" onerror="this.outerHTML='${match}'" alt="${match}">`;
+            });
         }
 
         let bubbleClass = 'text-white font-medium ';
         
-        if (msg.text.startsWith('[STICKER]')) {
+        if (isSticker) {
             bubbleClass += 'bg-transparent border-transparent shadow-none inline-block w-auto';
         } else {
             let bgColor = 'bg-gray-700/80 text-gray-100 border border-gray-600/50';
@@ -991,7 +1072,7 @@ window.handleLoginResponse = function(res) {
         if(logoutBtn) logoutBtn.classList.remove('hidden');
         if(mobLogoutBtn) mobLogoutBtn.classList.remove('hidden');
 
-        if (myRank === 'creator') {
+        if (myRank === 'creator' || myRank === 'owner') {
             const dashBtn = document.getElementById('btn-open-dashboard');
             if(dashBtn) dashBtn.classList.remove('hidden');
         }
