@@ -265,13 +265,15 @@
                             <div id="chat-panel" class="flex gap-2 hidden relative w-full">
                                 <div id="emoji-panel" class="emoji-panel">
                                     <div class="flex border-b border-gray-700 shrink-0 bg-slate-900/80">
-                                        <button type="button" onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-3 text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
-                                        <button type="button" onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
+                                        <button type="button" onclick="switchEmojiTab('emojis')" id="tab-btn-emojis" class="flex-1 py-3 text-[10px] sm:text-xs font-bold text-cyan-400 border-b-2 border-cyan-400">😀 Emojik</button>
+                                        <button type="button" onclick="switchEmojiTab('animated')" id="tab-btn-animated" class="flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🕺 Animált</button>
+                                        <button type="button" onclick="switchEmojiTab('gifs')" id="tab-btn-gifs" class="flex-1 py-3 text-[10px] sm:text-xs font-bold text-slate-400 hover:text-white border-b-2 border-transparent">🎬 GIF-ek</button>
                                     </div>
                                     <div class="p-2 bg-slate-800 border-b border-gray-700 shrink-0">
                                         <input type="text" id="media-search" placeholder="Keresés (pl. mosoly, party, szív)..." class="w-full bg-slate-900 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500 transition">
                                     </div>
                                     <div id="content-emojis" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-5 gap-3 text-3xl items-center text-center"></div>
+                                    <div id="content-animated" class="flex-1 overflow-y-auto p-3 custom-scroll grid grid-cols-4 gap-4 hidden items-center justify-items-center"></div>
                                     <div id="content-gifs" class="flex-1 overflow-y-auto p-2 custom-scroll grid grid-cols-2 gap-2 hidden"></div>
                                 </div>
 
@@ -299,7 +301,7 @@
                             <span id="online-count" class="hidden lg:inline-block bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full text-xs font-bold">?</span>
                         </div>
                         <div id="online-users-sidebar" class="flex-grow overflow-y-auto custom-scroll p-3 flex flex-col gap-2 relative bg-gray-900/50 lg:bg-transparent">
-                            <div class="flex flex-col items-center justify-center h-full opacity-50">
+                            <div class="flex flex-col items-center justify-center h-full opacity-50 mt-10">
                                 <span class="text-4xl mb-2">🔒</span>
                                 <span class="text-xs text-gray-400 text-center uppercase tracking-widest font-bold">Taglista Rejtve</span>
                             </div>
