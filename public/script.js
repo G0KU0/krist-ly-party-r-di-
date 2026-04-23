@@ -127,14 +127,19 @@ const msgInput = document.getElementById('message-input');
 const sidebarContainer = document.getElementById('users-sidebar-container');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
-// --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA ---
+// --- BIZTONSÁGOS EMOJI ÉS GIF PANEL LOGIKA VÉGTELEN GÖRGETÉSSEL ---
 const mediaSearch = document.getElementById('media-search');
 const emojiContainer = document.getElementById('content-emojis');
 const gifContainer = document.getElementById('content-gifs');
 const emojiPanel = document.getElementById('emoji-panel');
 const emojiBtn = document.getElementById('emoji-toggle-btn');
 let currentMediaTab = 'emojis';
+
+// Végtelen görgetés változók
 let gifSearchTimeout = null;
+let currentGifQuery = 'party dance club';
+let nextGifPos = '';
+let isFetchingGifs = false;
 
 if(emojiBtn) {
     emojiBtn.onclick = function(e) {
@@ -175,7 +180,7 @@ const emojisDict = [
     { e: '🎶', k: 'zene hangjegy dal' }, { e: '🎤', k: 'mikrofon ének karaoke' }
 ];
 
-const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
+const genericEmojis = ['🤫','🤔','🤐','🥵','🥶','😱','🥸','🤓','😈','👿','🤡','💩','👻','💀','👽','👾','🤖','💋','💌','💘','💝','💖','💗','💓','💞','💕','💟','❣️','🧡','💛','💚','💙','💜','🤎','🖤','🤍','💢','💫','💦','💨','🕳️','💣','💬','👁️‍🗨️','🗨️','🗯️','💭','💤','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🦼','🦽','🦷','🦴','👀','👁️','👅','👄','👶','🧒','👦','👧','🧑','👱','👨','🧔','👨‍🦰','👨‍🦱','👨‍🦳','👨‍🦲','👩','👩‍🦰','🧑‍🦰','👩‍🦱','🧑‍🦱','👩‍🦳','🧑‍🦳','👩‍🦲','🧑‍🦲','👱‍♀️','👱‍♂️','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🧑‍🎓','👨‍🎓','👩‍🎓','🧑‍🏫','👨‍🏫','👩‍🏫','🧑‍⚖️','👨‍⚖️','👩‍⚖️','🧑‍🌾','👨‍🌾','👩‍🌾','🧑‍🍳','👨‍🍳','👩‍🍳','🧑‍🔧','👨‍🔧','👩‍🔧','🧑‍🏭','👨‍🏭','👩‍🏭','🧑‍💼','👨‍💼','👩‍⚖️','🧑‍🔬','👨‍🔬','👩‍🔬','🧑‍💻','👨‍💻','👩‍💻','🧑‍🎤','👨‍🎤','👩‍🎤','🧑‍🎨','👨‍🎨','👩‍🎨','🧑‍✈️','👨‍✈️','👩‍✈️','🧑‍🚀','👨‍✈️','👩‍🚀','🧑‍🚒','👨‍🚒','👩‍🚒','👮','👮‍♂️','👮‍♀️','🕵️','🕵️‍♂️','🕵️‍♀️','💂','💂‍♂️','💂‍♀️','🥷','👷','👷‍♂️','👷‍♀️','🤴','👸','👳','👳‍♂️','👳‍♀️','👲','🧕','🤵','🤵‍♂️','🤵‍♀️','👰','👰‍♂️','👰‍♀️','🤰','🤱','🧑‍🍼','👨‍🍼','👩‍🍼','👼','🎅','🤶','🧑‍🎄','🦸','🦸‍♂️','🦸‍♀️','🦹','🦹‍♂️','🦹‍♀️','🧙','🧙‍♂️','🧙‍♀️','🧚','🧚‍♂️','🧚‍♀️','🧛','🧛‍♂️','🧛‍♀️','🧜','🧜‍♂️','🧜‍♀️','🧝','🧝‍♂️','🧝‍♀️','🧞','🧞‍♂️','🧝‍♀️','🧟','🧟‍♂️','🧟‍♀️','💆','💇','🚶','🧍','🧎','🧑‍🦯','👨‍🦯','👩‍🦯','🧑‍🦼','👨‍🦼','👩‍🦼','🧑‍🦽','👨‍🦽','👩‍🦽','🏃','🏃‍♂️','🏃‍♀️','🕴️','👯‍♂️','🧖','🧗','🤺','🏇','⛷️','🏂','🏌️','🏄','🚣','🏊','⛹️','🏋️','🚴','🚵','🤸','🤼','🤽','🤾','🤹','🧘','🛀','🛌','👭','👫','👬','💏','👩‍❤️‍👨','👨‍❤️‍👨','👩‍❤️‍👩','💑','👩‍❤️‍💋‍👨','👨‍❤️‍💋‍👨','👩‍❤️‍💋‍👩','👪','👨‍👩‍👦','👨‍👩‍👧','👨‍👩‍👧‍👦','👨‍👩‍👦‍👦','👨‍👩‍👧‍👧','👨‍👨‍👦','👨‍👨‍👧','👨‍👨‍👧‍👦','👨‍👨‍👦‍👦','👨‍👨‍👧‍👧','👩‍👩‍👦','👩‍👩‍👧','👩‍👩‍👧‍👦','👩‍👩‍👦‍👦','👩‍👩‍👧‍👧','👨‍👦','👨‍👦‍👦','👨‍👧','👨‍👧‍👦','👨‍👧‍👧','👩‍👦','👩‍👦‍👦','👩‍👧','👩‍👧‍👦','👩‍👧‍👧','🗣️','👤','👥','🫂'];
 
 function renderEmojis(filterQuery = '') {
     if(!emojiContainer) return;
@@ -212,18 +217,39 @@ function renderEmojis(filterQuery = '') {
 }
 renderEmojis();
 
-async function fetchGifs(query) {
+// ÚJ: GIF Lekérő függvény Végtelen görgetéssel (Pagination)
+async function fetchGifs(query, append = false) {
     if(!gifContainer) return;
-    gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Keresés...</div>';
+    if(isFetchingGifs) return; // Ne indítsunk új kérést, ha épp tölt!
+    isFetchingGifs = true;
+
+    if (!append) {
+        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4 w-full">Keresés...</div>';
+        nextGifPos = '';
+        currentGifQuery = query || 'party dance club';
+    }
+
     try {
-        const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=LIVDSRZULELA&limit=30`);
+        // Maximum mennyiséget kérünk le (50 db)
+        let url = `https://g.tenor.com/v1/search?q=${encodeURIComponent(currentGifQuery)}&key=LIVDSRZULELA&limit=50`;
+        if (append && nextGifPos) {
+            url += `&pos=${nextGifPos}`; // Ha a lista végére értünk, betölti a következő oldalt
+        }
+
+        const res = await fetch(url);
         const data = await res.json();
-        gifContainer.innerHTML = '';
+        
+        if (!append) {
+            gifContainer.innerHTML = '';
+        }
         
         if (!data.results || data.results.length === 0) {
-            gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4">Nincs találat.</div>';
+            if(!append) gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-gray-500 py-4 w-full">Nincs találat.</div>';
+            isFetchingGifs = false;
             return;
         }
+
+        nextGifPos = data.next; // Eltároljuk a mutatót a következő 50 GIF-hez
 
         data.results.forEach(gif => {
             const img = document.createElement('img');
@@ -238,10 +264,24 @@ async function fetchGifs(query) {
             };
             gifContainer.appendChild(img);
         });
+        isFetchingGifs = false;
     } catch(e) {
         console.error(e);
-        gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4">Hiba a betöltéskor. Próbáld újra!</div>';
+        if(!append) gifContainer.innerHTML = '<div class="col-span-2 text-center text-xs text-red-500 py-4 w-full">Hiba a betöltéskor. Próbáld újra!</div>';
+        isFetchingGifs = false;
     }
+}
+
+// Görgetés figyelő a GIF panelre
+if(gifContainer) {
+    gifContainer.addEventListener('scroll', () => {
+        // Ha leértünk a lista aljára, töltsünk be újakat
+        if (gifContainer.scrollTop + gifContainer.clientHeight >= gifContainer.scrollHeight - 50) {
+            if (!isFetchingGifs && nextGifPos) {
+                fetchGifs(currentGifQuery, true); // true = append (hozzáfűzés)
+            }
+        }
+    });
 }
 
 if(mediaSearch) {
@@ -252,7 +292,7 @@ if(mediaSearch) {
         } else {
             clearTimeout(gifSearchTimeout);
             gifSearchTimeout = setTimeout(() => {
-                fetchGifs(query || 'party dance club');
+                fetchGifs(query || 'party dance club', false);
             }, 600); 
         }
     });
@@ -278,7 +318,7 @@ window.switchEmojiTab = function(tab) {
         if(gifContainer) gifContainer.classList.remove('hidden'); 
         if(emojiContainer) emojiContainer.classList.add('hidden');
         if(mediaSearch) mediaSearch.placeholder = "GIF Keresés (angolul a legjobb)...";
-        if (gifContainer && gifContainer.innerHTML.trim() === '') fetchGifs('party dance club');
+        if (gifContainer && gifContainer.innerHTML.trim() === '') fetchGifs('party dance club', false);
     }
 }
 
@@ -369,7 +409,7 @@ window.saveAdminEdit = function() {
     document.getElementById('admin-users-list').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-cyan-400">Frissítés...</td></tr>';
 }
 
-// MOBILOS MENÜ LOGIKA (TAGLISTA)
+// MOBILOS MENÜ LOGIKA
 window.openSidebar = function() {
     if(sidebarContainer) { sidebarContainer.classList.remove('translate-x-full'); sidebarContainer.classList.add('translate-x-0'); }
     if(sidebarOverlay) { sidebarOverlay.classList.remove('hidden'); sidebarOverlay.classList.add('block'); }
@@ -498,7 +538,6 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-// KILÉPÉS - Töröl minden mentett fiókot a böngészőből
 window.logout = function() {
     localStorage.removeItem('radio_user');
     localStorage.removeItem('radio_pass');
@@ -681,7 +720,7 @@ socket.on('clearChat', () => {
 });
 
 socket.on('initMessages', (messages) => { 
-    if (!myUniqueId) return; // Biztonság: csak ha be van jelentkezve
+    if (!myUniqueId) return; 
     allMessages = messages; 
     renderMessages(); 
 });
@@ -703,7 +742,7 @@ socket.on('initPMs', (pms) => {
 });
 
 socket.on('newMessage', (msg) => { 
-    if (!myUniqueId) return; // Ne dolgozza fel, ha nincs belépve
+    if (!myUniqueId) return; 
     allMessages.push(msg); 
     
     if (msg.recipientUniqueId) {
@@ -730,11 +769,9 @@ socket.on('updateUsers', (users) => {
     const mobOnlineCount = document.getElementById('mobile-online-count');
     const onlineUsersSidebar = document.getElementById('online-users-sidebar');
 
-    // Ha nincs belépve, ne mutassuk a létszámot
     if(onlineCount) onlineCount.textContent = !myUniqueId ? '?' : users.length;
     if(mobOnlineCount) mobOnlineCount.textContent = !myUniqueId ? '?' : users.length;
     
-    // Ha nincs belépve, tegyük be a lakatot a taglistába is
     if (!myUniqueId) {
         if(onlineUsersSidebar) onlineUsersSidebar.innerHTML = '<div class="flex flex-col items-center justify-center h-full opacity-50 mt-10"><span class="text-4xl mb-2">🔒</span><span class="text-xs text-gray-400 text-center uppercase tracking-widest font-bold">Taglista Rejtve</span></div>'; 
         return; 
@@ -810,7 +847,7 @@ socket.on('typingUpdate', (typists) => {
 
 function renderMessages() {
     if(!messagesContainer) return;
-    if (!myUniqueId) return; // Ha nincs belépve, ne rajzolja ki a chatet a háttérben
+    if (!myUniqueId) return; 
     
     messagesContainer.innerHTML = '';
     
@@ -930,7 +967,6 @@ window.handleLoginResponse = function(res) {
         const logoutBtn = document.getElementById('logout-btn');
         const mobLogoutBtn = document.getElementById('mobile-logout');
         
-        // ÚJ: Eltüntetjük a zárolt képernyőt, ha belépett!
         const unauthOverlay = document.getElementById('unauth-overlay');
         if(unauthOverlay) unauthOverlay.classList.add('hidden');
         
